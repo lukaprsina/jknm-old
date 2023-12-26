@@ -64,13 +64,33 @@ export default async function File() {
             >
                 <ul>
                     {directory.directories.map((directory) => (
-                        <li key={directory.name}>{directory.name}</li>
+                        <Paper
+                            key={directory.name}
+                            shadow="xs"
+                        >
+                            {directory.name}
+                        </Paper>
                     ))}
                     {directory.files.map((file) => (
-                        <li key={file.name}>{file.name}{file.size}{file.lastModified.toString()}</li>
+                        <Preview key={file.name} name={file.name} />
                     ))}
                 </ul>
             </Paper>
         </Flex>
+    )
+}
+
+type PreviewProps = {
+    name: string
+}
+
+function Preview({ name }: PreviewProps) {
+    return (
+        <Paper
+            key={name}
+            shadow="xs"
+        >
+
+        </Paper>
     )
 }
