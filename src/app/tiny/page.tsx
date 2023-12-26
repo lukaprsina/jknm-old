@@ -1,13 +1,15 @@
-import { createRef } from "react";
-import TinyMCE from "./TinyMCE";
+import dynamic from "next/dynamic";
+
+const TinyMCE = dynamic(
+    () => import("./TinyMCE"),
+    {
+        loading: () => <p>Loading...</p>,
+        ssr: false,
+    }
+)
 
 export default async function Tiny() {
-    async function upload(formData: FormData) {
-        'use server'
-        console.log(formData)
-    }
-
     return (
-        <TinyMCE upload={upload} />
+        <TinyMCE />
     )
 }
