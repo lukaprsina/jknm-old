@@ -11,7 +11,7 @@ async function main() {
         throw new Error("No user found")
     }
 
-    await db.post.create({
+    await db.article.create({
         data: {
             title: "Prisma makes databases easy",
             createdById: luka_id.id,

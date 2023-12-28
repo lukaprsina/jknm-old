@@ -2,35 +2,43 @@
 
 import { env } from "~/env";
 import { Editor } from '@tinymce/tinymce-react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { save } from '~/app/actions'
+import { useSearchParams } from "next/navigation";
 
 export default function TinyMCE() {
-    const initialValue = 'This is the initial content of the editor';
-    const editorRef = useRef(null);
-    const formRef = useRef<HTMLTextAreaElement>(null);
-    const submitButtonRef = useRef<HTMLButtonElement>(null);
+    const initial_value = 'This is the initial content of the editor';
+    const editor_ref = useRef<Editor>(null);
+    const form_ref = useRef<HTMLTextAreaElement>(null);
+    const submit_button_ref = useRef<HTMLButtonElement>(null);
+    const search_params = useSearchParams()
+
+    useEffect(() => {
+        if (search_params.has('site')) {
+            console.log(search_params.getAll('action'), search_params.getAll('site'))
+        }
+    })
 
     return (
         <form
             action={save}
             style={{ width: '100%', height: '100%' }}
         >
-            <textarea hidden ref={formRef} name="content"></textarea>
-            <button hidden ref={submitButtonRef} type="submit" name="submitbtn">Save</button>
+            <textarea hidden ref={form_ref} name="content"></textarea>
+            <button hidden ref={submit_button_ref} type="submit" name="submitbtn">Save</button>
 
             <Editor
                 apiKey={env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                initialValue={initialValue}
-                onInit={(evt, editor) => editorRef.current = editor}
+                initialValue={initial_value}
+                onInit={(evt, editor) => editor_ref.current = editor}
                 init={{
                     setup: (editor) => {
                         editor.ui.registry.addButton('save2', {
                             text: 'Save',
                             onAction: () => {
-                                if (!formRef.current || !submitButtonRef.current) return
-                                formRef.current.innerHTML = editor.getContent()
-                                submitButtonRef.current.click()
+                                if (!form_ref.current || !submit_button_ref.current) return
+                                form_ref.current.innerHTML = editor.getContent()
+                                submit_button_ref.current.click()
                             },
                         })
                     },
