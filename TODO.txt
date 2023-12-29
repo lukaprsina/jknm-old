@@ -1,0 +1,3 @@
+https://github.com/supabase/auth-ui
+supabase auth helpers
+# DATABASE_URL="file:./db.sqlite"

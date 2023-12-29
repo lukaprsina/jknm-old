@@ -2,43 +2,69 @@
 
 import { env } from "~/env";
 import { Editor } from '@tinymce/tinymce-react';
-import { useEffect, useRef } from 'react';
-import { save } from '~/app/actions'
+import type { Editor as TinyMCEEditorType } from 'tinymce';
+import { useEffect, useRef, useState } from 'react';
+import { create_or_update_article } from '~/app/actions'
 import { useSearchParams } from "next/navigation";
+import { Flex, TextInput, } from "@mantine/core";
 
 export default function TinyMCE() {
     const initial_value = 'This is the initial content of the editor';
-    const editor_ref = useRef<Editor>(null);
-    const form_ref = useRef<HTMLTextAreaElement>(null);
+    const editor_ref = useRef<TinyMCEEditorType | null>(null);
     const submit_button_ref = useRef<HTMLButtonElement>(null);
     const search_params = useSearchParams()
+    const [pathname, setPathname] = useState<string>("");
+    const [title, setTitle] = useState<string>("");
 
     useEffect(() => {
-        if (search_params.has('site')) {
-            console.log(search_params.getAll('action'), search_params.getAll('site'))
-        }
-    })
+        if (search_params.get("action") !== "edit") return;
+        setPathname(search_params.get("pathname") ?? "")
+    }, [search_params])
 
     return (
         <form
-            action={save}
+            onSubmit={async (event) => {
+                event.preventDefault();
+                //  const form_data = new FormData(event.currentTarget);
+                console.log("executing")
+
+                const res = await create_or_update_article({
+                    content: editor_ref.current?.getContent(),
+                    pathname: pathname,
+                    title
+                })
+
+                console.log(res)
+            }}
             style={{ width: '100%', height: '100%' }}
         >
-            <textarea hidden ref={form_ref} name="content"></textarea>
-            <button hidden ref={submit_button_ref} type="submit" name="submitbtn">Save</button>
+            <Flex>
+                <TextInput
+                    name="pathname"
+                    placeholder="Path"
+                    value={pathname}
+                    onChange={(event) => setPathname(event.currentTarget.value)}
+                />
+                <TextInput
+                    name="title"
+                    placeholder="Title"
+                    value={title}
+                    onChange={(event) => setTitle(event.currentTarget.value)}
+                />
+                <button hidden type="submit" name="submitbtn" ref={submit_button_ref} />
+            </Flex>
 
             <Editor
                 apiKey={env.NEXT_PUBLIC_TINYMCE_API_KEY}
                 initialValue={initial_value}
-                onInit={(evt, editor) => editor_ref.current = editor}
+                onInit={(_, editor) => editor_ref.current = editor}
                 init={{
                     setup: (editor) => {
                         editor.ui.registry.addButton('save2', {
                             text: 'Save',
                             onAction: () => {
-                                if (!form_ref.current || !submit_button_ref.current) return
-                                form_ref.current.innerHTML = editor.getContent()
-                                submit_button_ref.current.click()
+                                if (!submit_button_ref.current) return;
+                                submit_button_ref.current.click();
                             },
                         })
                     },

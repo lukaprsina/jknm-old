@@ -4,85 +4,102 @@ import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import path from "path"
 import fs from "fs/promises"
-import { ARTICLE_PREFIX } from "~/utlis/fs";
-import slugify from "slugify"
+import { FILESYSTEM_PREFIX } from "~/lib/fs";
+import sanitize_filename from "sanitize-filename"
 import type { Article } from "@prisma/client";
 
-export async function create(formData: FormData): Promise<Article> {
-    const session = await getServerAuthSession()
-    if (!session?.user) throw new Error("No user")
+import { action } from "~/lib/safe-action"
+import { z } from "zod";
 
-    const content = formData.get("content") as string
-    const requested_title = formData.get("title") as string
-    if (!requested_title || !content) throw new Error("No title or content")
+const create_or_update_schema = z.object({
+    title: z.string(),
+    pathname: z.string(),
+    content: z.string().optional(),
+})
 
-    const slug = slugify(requested_title, "_")
-    const possible_doubles = await db.article.findMany({
+const read_schema = z.object({
+    pathname: z.string(),
+})
+
+export const read_article = action(read_schema, async ({ pathname }): Promise<{ article: Article, content: string }> => {
+    const article = await db.article.findUniqueOrThrow({
         where: {
-            title: slug
-        },
-        select: {
-            title: true
+            pathname: decodeURIComponent(pathname),
         }
     })
 
-    const title = generateUniqueName(slug, possible_doubles.map(p => p.title))
+    const content = await fs.readFile(path.join(FILESYSTEM_PREFIX, article.pathname, "index.hml"), "utf-8")
 
-    const article = await db.article.create({
-        data: {
-            title: title,
-            createdBy: {
-                connect: {
-                    id: session.user.id
-                }
-            },
-        }
-    })
+    return {
+        article,
+        content
+    }
+})
 
-    const article_path = path.join(ARTICLE_PREFIX, title)
-    await fs.mkdir(article_path)
-    await fs.writeFile(path.join(article_path, "index.hml"), content)
-
-    return article;
-}
-
-export async function save(formData: FormData) {
+// TODO: test with malicious paths
+export const create_or_update_article = action(create_or_update_schema, async ({ content, pathname, title: requested_title }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    if (!session?.user) return;
-
-    const content = formData.get("content") as string
-    const title = formData.get("title") as string
-    if (!title || !content) throw new Error("No title or content")
+    if (!content) throw new Error("No content")
 
     const article_count = await db.article.count({
         where: {
-            title: title
+            title: requested_title,
+            pathname,
         }
     })
 
     if (article_count == 0) {
-        const article = await db.article.create({
-            data: {
-                title: title,
-                createdBy: {
-                    connect: {
-                        id: session.user.id
-                    }
-                },
+        await create(requested_title, pathname, content, session.user.id);
+    } else if (article_count == 1) {
+        const article = await db.article.findUniqueOrThrow({
+            where: {
+                title: requested_title,
+                pathname,
             }
         })
-        return article;
-    } else if (article_count == 1) {
+        await update(article, content);
     } else {
         throw new Error("Multiple articles with the same title")
     }
+})
 
-    const article_path = path.join(ARTICLE_PREFIX, title)
-    await fs.writeFile(path.join(article_path, "index.hml"), content)
+async function create(requested_title: string, dangerous_pathname: string, content: string, userId: string) {
+    const sanitized_title = sanitize_filename(requested_title)
+    const normalized_path = sanitize_filename(path.normalize(dangerous_pathname))
+    if (normalized_path.startsWith("..")) throw new Error("Invalid path")
+    const possible_pathname = path.join(normalized_path, sanitized_title)
+
+    const possible_doubles = await db.article.findMany({
+        where: {
+            title: requested_title,
+            pathname: possible_pathname
+        },
+    })
+
+    const title = generate_unique_name(sanitized_title, possible_doubles.map(p => p.title))
+    const pathname = path.join(normalized_path, title)
+
+    await db.article.create({
+        data: {
+            title: requested_title,
+            pathname,
+            createdById: userId
+        }
+    })
+
+    const article_dir = path.join(FILESYSTEM_PREFIX, normalized_path, title)
+    await fs.mkdir(article_dir, { recursive: true })
+    await fs.writeFile(path.join(article_dir, "index.hml"), content)
 }
 
-function generateUniqueName(name: string, existingNames: string[]): string {
+export async function update(article: Article, content: string) {
+    const article_dir = path.join(FILESYSTEM_PREFIX, article.pathname, article.title)
+    await fs.mkdir(article_dir, { recursive: true })
+    await fs.writeFile(path.join(article_dir, "index.hml"), content)
+}
+
+function generate_unique_name(name: string, existingNames: string[]): string {
     if (!existingNames.includes(name))
         return name;
 

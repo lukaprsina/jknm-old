@@ -49,7 +49,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Link
                             href={{
                                 pathname: '/edit',
-                                query: { site: pathname, action: "edit" },
+                                query: { pathname, action: "edit" },
                             }}
                         >
                             <IconEdit />
@@ -57,7 +57,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Link
                             href={{
                                 pathname: '/edit',
-                                query: { site: pathname, action: "create" },
+                                query: { pathname, action: "create" },
                             }}
                         >
                             <IconPlus />

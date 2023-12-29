@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import fs from "fs/promises"
 import path from "path"
 import { extension } from "mime-types"
-import { FILESYSTEM_PREFIX } from "~/utlis/fs"
+import { FILESYSTEM_PREFIX } from "~/lib/fs"
 
 export async function GET(request: NextRequest) {
     const formData = await request.formData()

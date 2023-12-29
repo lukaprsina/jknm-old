@@ -10,13 +10,6 @@ async function main() {
     if (!luka_id) {
         throw new Error("No user found")
     }
-
-    await db.article.create({
-        data: {
-            title: "Prisma makes databases easy",
-            createdById: luka_id.id,
-        }
-    })
 }
 
 await main()
