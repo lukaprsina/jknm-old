@@ -22,6 +22,7 @@ const read_schema = z.object({
 })
 
 export const read_article = action(read_schema, async ({ pathname }): Promise<{ article: Article, content: string }> => {
+    console.warn("Reading", pathname)
     const article = await db.article.findUniqueOrThrow({
         where: {
             pathname: decodeURIComponent(pathname),

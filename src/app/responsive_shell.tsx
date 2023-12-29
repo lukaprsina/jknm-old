@@ -7,19 +7,21 @@ import Link from 'next/link';
 import logo from '~/content/logo.gif'
 import { IconEdit, IconPlus } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 export default function ResponsiveShell({ children }: { children: React.ReactNode }) {
-    const [opened, { toggle }] = useDisclosure();
+    const [opened, { toggle }] = useDisclosure(true);
     const pathname = usePathname()
+    const [hideAsideAndNavbar] = useState(true)
 
     return (
         <AppShell
             header={{ height: { base: 60, md: 70, lg: 80 } }}
-            aside={{ width: 300, breakpoint: 'md', collapsed: { desktop: false, mobile: true } }}
+            aside={{ width: 300, breakpoint: 'md', collapsed: { desktop: hideAsideAndNavbar, mobile: true } }}
             navbar={{
                 width: { base: 200, md: 300, lg: 400 },
                 breakpoint: 'sm',
-                collapsed: { mobile: !opened },
+                collapsed: { mobile: hideAsideAndNavbar && !opened, desktop: hideAsideAndNavbar },
             }}
             footer={{ height: 60 }}
             padding="md"

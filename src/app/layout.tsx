@@ -6,6 +6,9 @@ import '@mantine/core/styles.css';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import ResponsiveShell from "./responsive_shell";
 
+import '@mdxeditor/editor/style.css'
+// import 'prism-themes/themes/prism-one-light.css'
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
