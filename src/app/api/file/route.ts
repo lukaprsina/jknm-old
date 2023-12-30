@@ -4,6 +4,8 @@ import path from "path"
 import { extension } from "mime-types"
 import { FILESYSTEM_PREFIX } from "~/lib/fs"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
     const formData = await request.formData()
     const keys = formData.keys();
@@ -14,6 +16,7 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json({ message: "Hello from /api/file" })
 }
+
 const NAME_PREFIX = "blobid-"
 
 export async function POST(request: NextRequest) {

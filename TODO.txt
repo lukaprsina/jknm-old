@@ -1,3 +1,6 @@
 https://github.com/supabase/auth-ui
 supabase auth helpers
 # DATABASE_URL="file:./db.sqlite"
+
+https://nextjs.org/docs/pages/building-your-application/configuring/mdx
+next-mdx-remote
