@@ -14,7 +14,7 @@ datasource db {
 model Article {
     id        Int      @id @default(autoincrement())
     title     String
-    content   String   @unique
+    content   String   @default("")
     pathname  String   @unique
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

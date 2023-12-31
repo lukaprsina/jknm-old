@@ -8,6 +8,7 @@ type ArticleType = {
 
 export default async function Article({ params }: ArticleType) {
     async function get_content() {
+        console.log("READING PARAMS:NAME", params.name)
         const data = await read_article({ pathname: path.join(...params.name) })
         return data
     }
@@ -16,7 +17,7 @@ export default async function Article({ params }: ArticleType) {
 
     return <>
         {(content.data) ? <Box>
-            <Title >{content.data.article.title}</Title>
+            <Title >{content.data.title}</Title>
             <Box
                 dangerouslySetInnerHTML={{ __html: content.data.content ?? "Not loaded" }}
             />

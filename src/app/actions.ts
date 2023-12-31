@@ -21,20 +21,47 @@ const read_schema = z.object({
     pathname: z.string(),
 })
 
-export const read_article = action(read_schema, async ({ pathname }): Promise<{ article: Article, content: string }> => {
-    console.warn("Reading", pathname)
+const create_temporary_schema = z.object({})
+
+export const create_temporary = action(create_temporary_schema, async () => {
+    const session = await getServerAuthSession()
+    if (!session?.user) throw new Error("No user")
+
+    let count;
+    let temp_name;
+    do {
+        const now = new Date()
+        const miliseconds = now.getTime()
+        temp_name = `temp-${miliseconds}`
+
+        count = await db.article.count({
+            where: {
+                pathname: temp_name,
+            }
+        })
+    } while (count > 0)
+
+    const article = await db.article.create({
+        data: {
+            title: "Untitled",
+            pathname: temp_name,
+            createdById: session.user.id
+        }
+    })
+
+    return article
+})
+
+export const read_article = action(read_schema, async ({ pathname }): Promise<Article> => {
+    console.log("read_article", pathname, decodeURIComponent(pathname))
+
     const article = await db.article.findUniqueOrThrow({
         where: {
             pathname: decodeURIComponent(pathname),
         }
     })
 
-    const content = await fs.readFile(path.join(FILESYSTEM_PREFIX, article.pathname, "index.hml"), "utf-8")
-
-    return {
-        article,
-        content
-    }
+    return article
 })
 
 // TODO: test with malicious paths
@@ -84,6 +111,7 @@ async function create(requested_title: string, dangerous_pathname: string, conte
     await db.article.create({
         data: {
             title: requested_title,
+            content,
             pathname,
             createdById: userId
         }
@@ -91,13 +119,20 @@ async function create(requested_title: string, dangerous_pathname: string, conte
 
     const article_dir = path.join(FILESYSTEM_PREFIX, normalized_path, title)
     await fs.mkdir(article_dir, { recursive: true })
-    await fs.writeFile(path.join(article_dir, "index.hml"), content)
 }
 
 export async function update(article: Article, content: string) {
     const article_dir = path.join(FILESYSTEM_PREFIX, article.pathname, article.title)
     await fs.mkdir(article_dir, { recursive: true })
-    await fs.writeFile(path.join(article_dir, "index.hml"), content)
+
+    await db.article.update({
+        where: {
+            id: article.id
+        },
+        data: {
+            content
+        }
+    })
 }
 
 function generate_unique_name(name: string, existingNames: string[]): string {

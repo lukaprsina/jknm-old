@@ -1,18 +1,24 @@
 "use client";
 
-import { AppShell, Box, Burger, Flex, Group, Skeleton } from '@mantine/core';
+import { AppShell, Burger, Flex, Group, Skeleton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '~/content/logo.gif'
 import { IconEdit, IconPlus } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function ResponsiveShell({ children }: { children: React.ReactNode }) {
     const [opened, { toggle }] = useDisclosure(true);
     const pathname = usePathname()
     const [hideAsideAndNavbar] = useState(true)
+
+    const sanitized_pathname = useMemo<string>(() => {
+        if (pathname.startsWith("/"))
+            return pathname.slice(1)
+        else return pathname
+    }, [pathname])
 
     return (
         <AppShell
@@ -51,7 +57,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Link
                             href={{
                                 pathname: '/edit',
-                                query: { pathname, action: "edit" },
+                                query: { pathname: sanitized_pathname, action: "edit" },
                             }}
                         >
                             <IconEdit />
@@ -59,7 +65,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Link
                             href={{
                                 pathname: '/edit',
-                                query: { pathname, action: "create" },
+                                query: { pathname: sanitized_pathname, action: "create" },
                             }}
                         >
                             <IconPlus />

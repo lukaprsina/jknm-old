@@ -1,15 +1,7 @@
-import dynamic from "next/dynamic";
+import EditorClient from "./EditorClient";
 
-const TinyMCE = dynamic(
-    () => import("./TinyMCE"),
-    {
-        loading: () => <p>Loading...</p>,
-        ssr: false,
-    }
-)
-
-export default async function Tiny() {
+export default async function EditorServer() {
     return (
-        <TinyMCE />
+        <EditorClient />
     )
 }

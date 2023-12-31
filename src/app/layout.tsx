@@ -1,12 +1,13 @@
+// order matters
+import '@mdxeditor/editor/style.css'
+import '@mantine/core/styles.css';
 import "~/styles/globals.css";
 
 import { Inter } from "next/font/google";
 
-import '@mantine/core/styles.css';
-import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import ResponsiveShell from "./responsive_shell";
 
-import '@mdxeditor/editor/style.css'
+import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 // import 'prism-themes/themes/prism-one-light.css'
 
 const inter = Inter({
