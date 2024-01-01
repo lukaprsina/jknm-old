@@ -14,13 +14,15 @@ datasource db {
 model Article {
     id        Int      @id @default(autoincrement())
     title     String
-    content   String   @default("")
     pathname  String   @unique
+    content   String   @default("")
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
+
+    published Boolean @default(false)
 
     @@index([title])
 }

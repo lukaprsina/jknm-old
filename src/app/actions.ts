@@ -3,30 +3,108 @@
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import path from "path"
-import fs from "fs/promises"
+import fs from 'fs-extra'
 import { FILESYSTEM_PREFIX } from "~/lib/fs";
-import sanitize_filename from "sanitize-filename"
-import type { Article } from "@prisma/client";
 
 import { action } from "~/lib/safe-action"
 import { z } from "zod";
 
-const create_or_update_schema = z.object({
-    title: z.string(),
-    pathname: z.string(),
-    content: z.string().optional(),
-})
+const format_pathname = (str: string) => str.replace(/^\/|^\\/, '').replace(/\\/g, '/')
 
-const read_schema = z.object({
-    pathname: z.string(),
-})
+const new_article_schema = z.object({ article_path: z.string() })
 
-const create_temporary_schema = z.object({})
-
-export const create_temporary = action(create_temporary_schema, async () => {
+export const new_article = action(new_article_schema, async ({ article_path }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
 
+    const base_dir = await sanitize_path(article_path)
+    const temp_name = await get_temp_name()
+    const pathname = path.join(base_dir, temp_name)
+
+    const article = await db.article.create({
+        data: {
+            title: temp_name,
+            // replace leading slash and backslash with nothing
+            pathname: format_pathname(pathname),
+            createdById: session.user.id,
+            published: true,
+        }
+    })
+
+    await fs.mkdir(path.join(FILESYSTEM_PREFIX, pathname), { recursive: true })
+
+    return article
+})
+
+const save_article_schema = z.object({
+    title: z.string().optional(),
+    pathname: z.string().optional(),
+    content: z.string().optional(),
+    id: z.number()
+})
+
+export const save_article = action(save_article_schema, async ({ title, pathname, content, id }) => {
+    const article = await db.article.findUniqueOrThrow({
+        where: {
+            id,
+        }
+    })
+
+    const slug = path.basename(article.pathname)
+    const old_pathname = path.join(FILESYSTEM_PREFIX, article.pathname)
+    let formatted = article.pathname
+
+    if (typeof pathname == "string") {
+        formatted = format_pathname(pathname)
+        const new_pathname = path.join(FILESYSTEM_PREFIX, await sanitize_path(pathname), slug)
+
+        if (new_pathname != old_pathname) {
+            try {
+                // TODO: handle overwriting
+                console.log("moving", old_pathname, new_pathname)
+                await fs.move(old_pathname, new_pathname)
+            } catch (e) {
+                console.error("move error", e)
+            }
+        }
+    }
+
+    await db.article.update({
+        where: {
+            id,
+        },
+        data: {
+            title: title ?? article.title,
+            pathname: formatted,
+            content: content ?? article.content,
+        }
+    })
+})
+
+async function sanitize_path(article_path: string) {
+    const normalized_path = path.normalize(article_path)
+    if (normalized_path.startsWith("..")) throw new Error("Invalid path")
+    return normalized_path
+}
+
+async function get_first_real_dir(article_path: string) {
+    const relative_path = path.join(FILESYSTEM_PREFIX, article_path)
+    const relative_root = FILESYSTEM_PREFIX
+    const sanitized_path = await sanitize_path(relative_path)
+
+    let test_path = sanitized_path
+    do {
+        try {
+            const stats = await fs.stat(test_path)
+            if (stats.isDirectory()) break
+        } catch (e) { }
+        test_path = path.dirname(test_path)
+    } while (sanitized_path != relative_root)
+
+    return path.relative(relative_root, test_path)
+}
+
+async function get_temp_name() {
     let count;
     let temp_name;
     do {
@@ -40,110 +118,5 @@ export const create_temporary = action(create_temporary_schema, async () => {
             }
         })
     } while (count > 0)
-
-    const article = await db.article.create({
-        data: {
-            title: "Untitled",
-            pathname: temp_name,
-            createdById: session.user.id
-        }
-    })
-
-    return article
-})
-
-export const read_article = action(read_schema, async ({ pathname }): Promise<Article> => {
-    console.log("read_article", pathname, decodeURIComponent(pathname))
-
-    const article = await db.article.findUniqueOrThrow({
-        where: {
-            pathname: decodeURIComponent(pathname),
-        }
-    })
-
-    return article
-})
-
-// TODO: test with malicious paths
-export const create_or_update_article = action(create_or_update_schema, async ({ content, pathname, title: requested_title }) => {
-    const session = await getServerAuthSession()
-    if (!session?.user) throw new Error("No user")
-    if (!content) throw new Error("No content")
-
-    const article_count = await db.article.count({
-        where: {
-            title: requested_title,
-            pathname,
-        }
-    })
-
-    if (article_count == 0) {
-        await create(requested_title, pathname, content, session.user.id);
-    } else if (article_count == 1) {
-        const article = await db.article.findUniqueOrThrow({
-            where: {
-                title: requested_title,
-                pathname,
-            }
-        })
-        await update(article, content);
-    } else {
-        throw new Error("Multiple articles with the same title")
-    }
-})
-
-async function create(requested_title: string, dangerous_pathname: string, content: string, userId: string) {
-    const sanitized_title = sanitize_filename(requested_title)
-    const normalized_path = sanitize_filename(path.normalize(dangerous_pathname))
-    if (normalized_path.startsWith("..")) throw new Error("Invalid path")
-    const possible_pathname = path.join(normalized_path, sanitized_title)
-
-    const possible_doubles = await db.article.findMany({
-        where: {
-            title: requested_title,
-            pathname: possible_pathname
-        },
-    })
-
-    const title = generate_unique_name(sanitized_title, possible_doubles.map(p => p.title))
-    const pathname = path.join(normalized_path, title)
-
-    await db.article.create({
-        data: {
-            title: requested_title,
-            content,
-            pathname,
-            createdById: userId
-        }
-    })
-
-    const article_dir = path.join(FILESYSTEM_PREFIX, normalized_path, title)
-    await fs.mkdir(article_dir, { recursive: true })
-}
-
-export async function update(article: Article, content: string) {
-    const article_dir = path.join(FILESYSTEM_PREFIX, article.pathname, article.title)
-    await fs.mkdir(article_dir, { recursive: true })
-
-    await db.article.update({
-        where: {
-            id: article.id
-        },
-        data: {
-            content
-        }
-    })
-}
-
-function generate_unique_name(name: string, existingNames: string[]): string {
-    if (!existingNames.includes(name))
-        return name;
-
-    let uniqueName = name;
-    let index = 1;
-    while (existingNames.includes(uniqueName)) {
-        uniqueName = `${name} (${index++})`;
-    }
-    return uniqueName;
-
+    return temp_name
 }

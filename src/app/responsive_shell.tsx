@@ -4,7 +4,7 @@ import { AppShell, Burger, Flex, Group, Skeleton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
-import logo from '~/content/logo.gif'
+import logo from '~/content/logo.png'
 import { IconEdit, IconPlus } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -27,7 +27,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
             navbar={{
                 width: { base: 200, md: 300, lg: 400 },
                 breakpoint: 'sm',
-                collapsed: { mobile: hideAsideAndNavbar && !opened, desktop: hideAsideAndNavbar },
+                collapsed: { mobile: hideAsideAndNavbar || !opened, desktop: hideAsideAndNavbar },
             }}
             footer={{ height: 60 }}
             padding="md"
@@ -46,6 +46,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Image
                             src={logo}
                             alt="logo"
+                            placeholder='empty'
                             fill={false}
                             style={{
                                 width: '100%',

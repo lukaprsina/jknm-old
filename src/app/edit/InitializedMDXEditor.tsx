@@ -21,16 +21,19 @@ import {
     type MDXEditorProps,
 } from '@mdxeditor/editor'
 import { Toolbar } from "./Toolbar";
-import { Box, Button, TextInput } from "@mantine/core";
+import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
-import { create_or_update_article, create_temporary, read_article } from "../actions";
-import type { Article } from "@prisma/client";
+import { create_or_update_article } from "../actions";
 import useForwardedRef from "~/lib/useForwardedRef";
+import type { EditorPropsJoined } from "./EditorClient";
 
-const imageUploadHandler = async (image: File): Promise<string> => {
+const imageUploadHandler = async (image: File, pathname?: string): Promise<string> => {
+    if (typeof pathname == "undefined") throw new Error("No pathname")
+
     console.log(image.name)
     const form = new FormData()
     form.append("file", image)
+    form.append("pathname", pathname)
 
     const image_response = await fetch("/api/file", {
         method: "POST",
@@ -46,14 +49,14 @@ const imageUploadHandler = async (image: File): Promise<string> => {
     }
 }
 
-const allPlugins = (diffMarkdown: string) => [
+const allPlugins = (diffMarkdown: string, pathname?: string) => [
     toolbarPlugin({ toolbarContents: () => <Toolbar /> }),
     listsPlugin(),
     quotePlugin(),
     headingsPlugin(),
     linkPlugin(),
     linkDialogPlugin(),
-    imagePlugin({ imageUploadHandler }),
+    imagePlugin({ imageUploadHandler: (image) => imageUploadHandler(image, pathname) }),
     tablePlugin(),
     thematicBreakPlugin(),
     frontmatterPlugin(),
@@ -64,70 +67,63 @@ const allPlugins = (diffMarkdown: string) => [
 
 export default function InitializedMDXEditor({
     editorRef,
+    article,
+    markdown,
     ...props
-}: { editorRef: ForwardedRef<MDXEditorMethods> | null } & MDXEditorProps) {
-    const search_params = useSearchParams()
-    const [article, setArticle] = useState<Article | undefined>()
+}: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
+    const [pathname, setPathname] = useState<string>("")
     const innerRef = useForwardedRef(editorRef);
+    const search_params = useSearchParams()
+    useEffect(() => {
+        console.log("from client", article?.id)
+    }, [article])
 
     useEffect(() => {
-        const create_and_set = async () => {
-            const response = await create_temporary({})
-            setArticle(response.data)
-        }
-
-        const read_and_set = async (input: {
-            pathname: string;
-        }) => {
-            const response = await read_article(input)
-            setArticle(response.data)
-        }
-
-        if (search_params.get("action") === "create") {
-            void create_and_set()
-        } else if (search_params.get("action") === "edit") {
-            const pathname = search_params.get("pathname")
-            if (!pathname) return
-            void read_and_set({ pathname })
-        }
-    }, [])
-
-    useEffect(() => {
-        console.log({ article })
-        if (article?.title)
-            setTitle(article.title)
-    })
+        if (!article) return
+        console.log("setting article", article.id)
+        setPathname(article.pathname)
+        setTitle(article.title)
+        innerRef.current?.setMarkdown(article.content)
+    }, [article])
 
     return <>
-        <TextInput
-            label="Title"
-            w={500}
-            value={title}
-            onChange={(event) => setTitle(event.currentTarget.value)}
-        />
-        <Button
-            onClick={async () => {
-                const pathname = search_params.get("pathname")
+        <Flex align="flex-end" columnGap="md">
+            <TextInput
+                label="Pathname"
+                w={200}
+                value={pathname}
+                onChange={(event) => setPathname(event.currentTarget.value)}
+            />
+            <TextInput
+                label="Title"
+                w={200}
+                value={title}
+                onChange={(event) => setTitle(event.currentTarget.value)}
+            />
+            <Button
+                onClick={async () => {
+                    console.log("saving", pathname)
+                    if (!pathname || !innerRef.current) return
 
-                console.log(innerRef)
-                if (!pathname || !innerRef.current) return
+                    const result = await create_or_update_article({
+                        pathname,
+                        title,
+                        content: innerRef.current.getMarkdown(),
+                    })
 
+                    console.log("saved", result)
+                }}
+            >
+                Save
+            </Button>
+        </Flex>
 
-                const result = await create_or_update_article({
-                    pathname,
-                    title,
-                    content: innerRef.current.getMarkdown(),
-                })
-                console.log(result)
-            }}
-        >
-            Save
-        </Button>
-        <Box style={{ marginTop: "2.25rem" }}>
+        <Box style={{ marginTop: "2.25rem", height: "100%", border: "1px solid black" }}>
             <MDXEditor
-                plugins={allPlugins(props.markdown)}
+                plugins={allPlugins(markdown ?? "", search_params.get("pathname") ?? undefined)}
                 {...props}
+                markdown={markdown ?? ""}
                 contentEditableClassName="prose max-w-full"
                 ref={editorRef}
             />
