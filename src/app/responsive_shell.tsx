@@ -1,17 +1,19 @@
 "use client";
 
-import { AppShell, Burger, Flex, Group, Skeleton } from '@mantine/core';
+import { AppShell, Burger, Button, Flex, Group, Skeleton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '~/content/logo.png'
 import { IconEdit, IconPlus } from '@tabler/icons-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { new_article } from './actions';
 
 export default function ResponsiveShell({ children }: { children: React.ReactNode }) {
     const [opened, { toggle }] = useDisclosure(true);
     const pathname = usePathname()
+    const router = useRouter()
     const [hideAsideAndNavbar] = useState(true)
 
     const sanitized_pathname = useMemo<string>(() => {
@@ -46,7 +48,7 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         <Image
                             src={logo}
                             alt="logo"
-                            placeholder='empty'
+                            priority={true}
                             fill={false}
                             style={{
                                 width: '100%',
@@ -54,23 +56,24 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                             }}
                         />
                     </Link>
-                    <Flex>
+                    <Flex align="center">
                         <Link
                             href={{
                                 pathname: '/edit',
-                                query: { pathname: sanitized_pathname, action: "edit" },
+                                query: { pathname: sanitized_pathname },
                             }}
                         >
                             <IconEdit />
                         </Link>
-                        <Link
-                            href={{
-                                pathname: '/edit',
-                                query: { pathname: sanitized_pathname, action: "create" },
+                        <Button variant='transparent' color='black'
+                            onClick={async () => {
+                                const response = await new_article({ pathname: sanitized_pathname })
+                                if (response.data)
+                                    router.push(`/edit?pathname=${response.data.pathname}`)
                             }}
                         >
                             <IconPlus />
-                        </Link>
+                        </Button>
                     </Flex>
                 </Group>
             </AppShell.Header>

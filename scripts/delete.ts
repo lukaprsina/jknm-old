@@ -1,6 +1,7 @@
 import { db } from "~/server/db"
 import path from "path"
 import fs from "fs/promises"
+import { FILESYSTEM_PREFIX } from "~/lib/fs";
 
 async function clear_directory(directory: string) {
     const files = await fs.readdir(directory);
@@ -14,7 +15,7 @@ async function clear_directory(directory: string) {
 async function main() {
     await db.article.deleteMany({})
 
-    await clear_directory(path.join(process.cwd(), "fs"))
+    await clear_directory(path.join(process.cwd(), FILESYSTEM_PREFIX))
 }
 
 await main()

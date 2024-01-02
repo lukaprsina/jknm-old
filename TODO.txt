@@ -4,3 +4,5 @@ supabase auth helpers
 
 https://nextjs.org/docs/pages/building-your-application/configuring/mdx
 next-mdx-remote
+
+sanitize title

@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidateTag } from 'next/cache'
+import sanitize_filename from 'sanitize-filename'
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import path from "path"
@@ -8,30 +10,51 @@ import { FILESYSTEM_PREFIX } from "~/lib/fs";
 
 import { action } from "~/lib/safe-action"
 import { z } from "zod";
+import type { Article } from "@prisma/client";
 
-const format_pathname = (str: string) => str.replace(/^\/|^\\/, '').replace(/\\/g, '/')
+const format_pathname = (str: string) => path.normalize(str).replace(/^\/|^\\/, '').replace(/\\/g, '/')
 
-const new_article_schema = z.object({ article_path: z.string() })
+const read_schema = z.object({
+    pathname: z.string(),
+})
 
-export const new_article = action(new_article_schema, async ({ article_path }) => {
+export const read_article = action(read_schema, async ({ pathname }): Promise<Article> => {
+    const decoded = decodeURIComponent(pathname)
+    const unmicrosofted = decoded.replace(/\\/g, "/")
+    let final_path = unmicrosofted
+    if (path.normalize(final_path).startsWith("article"))
+        final_path = path.relative("article", unmicrosofted)
+
+    const article = await db.article.findUniqueOrThrow({
+        where: {
+            pathname: format_pathname(final_path),
+        }
+    })
+
+    return article
+})
+
+const new_article_schema = z.object({ pathname: z.string() })
+
+export const new_article = action(new_article_schema, async ({ pathname }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
+    revalidateTag("articles")
 
-    const base_dir = await sanitize_path(article_path)
+    const base_dir = await sanitize_path(pathname)
     const temp_name = await get_temp_name()
-    const pathname = path.join(base_dir, temp_name)
+    const fs_pathname = path.join(base_dir, temp_name)
 
     const article = await db.article.create({
         data: {
             title: temp_name,
-            // replace leading slash and backslash with nothing
-            pathname: format_pathname(pathname),
+            pathname: format_pathname(fs_pathname),
             createdById: session.user.id,
             published: true,
         }
     })
 
-    await fs.mkdir(path.join(FILESYSTEM_PREFIX, pathname), { recursive: true })
+    await fs.mkdir(path.join(FILESYSTEM_PREFIX, fs_pathname), { recursive: true })
 
     return article
 })
@@ -44,64 +67,69 @@ const save_article_schema = z.object({
 })
 
 export const save_article = action(save_article_schema, async ({ title, pathname, content, id }) => {
+    const session = await getServerAuthSession()
+    if (!session?.user) throw new Error("No user")
+    revalidateTag("articles")
+
     const article = await db.article.findUniqueOrThrow({
         where: {
             id,
         }
     })
 
-    const slug = path.basename(article.pathname)
+    const old_formatted_title = path.basename(article.pathname)
     const old_pathname = path.join(FILESYSTEM_PREFIX, article.pathname)
-    let formatted = article.pathname
+    let new_pathname = old_pathname
+    let new_pathname_with_old_title = old_pathname
 
     if (typeof pathname == "string") {
-        formatted = format_pathname(pathname)
-        const new_pathname = path.join(FILESYSTEM_PREFIX, await sanitize_path(pathname), slug)
+        try {
+            new_pathname = path.join(FILESYSTEM_PREFIX, await sanitize_path(pathname))
+        } catch (e) {
+            // new_pathname is invalid
+        }
+        new_pathname_with_old_title = path.join(new_pathname, old_formatted_title)
 
-        if (new_pathname != old_pathname) {
+        if (new_pathname_with_old_title != old_pathname) {
+            console.log("moving", { old_pathname, new_pathname_with_slug: new_pathname_with_old_title })
             try {
                 // TODO: handle overwriting
-                console.log("moving", old_pathname, new_pathname)
-                await fs.move(old_pathname, new_pathname)
+                await fs.move(old_pathname, new_pathname_with_old_title)
             } catch (e) {
                 console.error("move error", e)
             }
         }
     }
 
+    let new_pathname_with_new_title = new_pathname_with_old_title
+    if (typeof title == "string") {
+        new_pathname_with_new_title = path.join(new_pathname, sanitize_filename(title))
+
+        if (new_pathname_with_old_title !== new_pathname_with_new_title) {
+            console.log("renaming", { new_pathname_with_old_title, new_pathname_with_new_title })
+            await fs.rename(new_pathname_with_old_title, new_pathname_with_new_title)
+        }
+    }
+
+    const final_path = format_pathname(path.relative(FILESYSTEM_PREFIX, new_pathname_with_new_title))
     await db.article.update({
         where: {
             id,
         },
         data: {
             title: title ?? article.title,
-            pathname: formatted,
+            pathname: final_path,
             content: content ?? article.content,
         }
     })
+
+    return final_path
 })
 
 async function sanitize_path(article_path: string) {
     const normalized_path = path.normalize(article_path)
     if (normalized_path.startsWith("..")) throw new Error("Invalid path")
     return normalized_path
-}
-
-async function get_first_real_dir(article_path: string) {
-    const relative_path = path.join(FILESYSTEM_PREFIX, article_path)
-    const relative_root = FILESYSTEM_PREFIX
-    const sanitized_path = await sanitize_path(relative_path)
-
-    let test_path = sanitized_path
-    do {
-        try {
-            const stats = await fs.stat(test_path)
-            if (stats.isDirectory()) break
-        } catch (e) { }
-        test_path = path.dirname(test_path)
-    } while (sanitized_path != relative_root)
-
-    return path.relative(relative_root, test_path)
 }
 
 async function get_temp_name() {
