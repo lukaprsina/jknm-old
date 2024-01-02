@@ -1,5 +1,5 @@
 // order matters
-import 'mdxeditor/style.css'
+import '@lukaprsina/mdxeditor/style.css'
 import '@mantine/core/styles.css';
 import "~/styles/globals.css";
 

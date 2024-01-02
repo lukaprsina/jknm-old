@@ -15,8 +15,13 @@ import {
     ListsToggle,
     Separator,
     UndoRedo
-} from "mdxeditor"
-import { type DirectiveNode } from "vendor/editor/dist/plugins/directives/DirectiveNode"
+} from "@lukaprsina/mdxeditor"
+
+type DirectiveNode = {
+    getMdastNode: () => {
+        name: string
+    }
+}
 
 function whenInAdmonition(editorInFocus: EditorInFocus | null) {
     const node = editorInFocus?.rootNode
@@ -24,7 +29,7 @@ function whenInAdmonition(editorInFocus: EditorInFocus | null) {
         return false
     }
 
-    return ['note', 'tip', 'danger', 'info', 'caution'].includes((node as DirectiveNode).getMdastNode().name as AdmonitionKind)
+    return ['note', 'tip', 'danger', 'info', 'caution'].includes((node as unknown as DirectiveNode).getMdastNode().name as AdmonitionKind)
 }
 
 export const Toolbar: React.FC = () => {

@@ -1,9 +1,9 @@
 "use client"
 
 import { Suspense, useRef } from "react";
-import type { MDXEditorMethods } from "mdxeditor";
+import type { MDXEditorMethods } from "@lukaprsina/mdxeditor";
 
-import type { MDXEditorProps } from "mdxeditor";
+import type { MDXEditorProps } from "@lukaprsina/mdxeditor";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 import type { Article } from "@prisma/client";
