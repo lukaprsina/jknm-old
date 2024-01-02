@@ -8,9 +8,10 @@ import logo from '~/content/logo.png'
 import { IconEdit, IconPlus } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { new_article } from './actions';
+import path from 'path';
+import type { new_article as new_type } from './actions'
 
-export default function ResponsiveShell({ children }: { children: React.ReactNode }) {
+export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {
     const [opened, { toggle }] = useDisclosure(true);
     const pathname = usePathname()
     const router = useRouter()
@@ -67,7 +68,9 @@ export default function ResponsiveShell({ children }: { children: React.ReactNod
                         </Link>
                         <Button variant='transparent' color='black'
                             onClick={async () => {
-                                const response = await new_article({ pathname: sanitized_pathname })
+                                const response = await new_article({ pathname: path.dirname(sanitized_pathname) })
+                                console.log(response)
+
                                 if (response.data)
                                     router.push(`/edit?pathname=${response.data.pathname}`)
                             }}

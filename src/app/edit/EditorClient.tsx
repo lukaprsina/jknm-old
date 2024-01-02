@@ -7,6 +7,7 @@ import type { MDXEditorProps } from "@mdxeditor/editor";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 import type { Article } from "@prisma/client";
+import type { save_article as save_type } from "../actions";
 
 const Editor = dynamic(() => import("./InitializedMDXEditor"), { ssr: false });
 
@@ -21,14 +22,15 @@ ForwardRefEditor.displayName = "ForwardRefEditor";
 
 type EditorClientProps = {
     article?: Article;
+    save_article: typeof save_type;
 }
 
-export default function EditorClient({ article }: EditorClientProps) {
+export default function EditorClient({ article, save_article }: EditorClientProps) {
     const ref = useRef<MDXEditorMethods>(null)
 
     return (
         <Suspense fallback={null}>
-            <ForwardRefEditor ref={ref} article={article} />
+            <ForwardRefEditor ref={ref} article={article} save_article={save_article} />
         </Suspense>
     )
 }

@@ -23,15 +23,12 @@ import {
 import { Toolbar } from "./Toolbar";
 import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
-import { save_article } from "../actions";
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./EditorClient";
 import path from "path";
 
 const imageUploadHandler = async (image: File, pathname?: string): Promise<string> => {
     if (typeof pathname == "undefined") throw new Error("No pathname")
-    const article_removed = path.relative("article", pathname)
-    console.log("uploading image", pathname, image.name, article_removed)
 
     const form = new FormData()
     form.append("file", image)
@@ -44,7 +41,6 @@ const imageUploadHandler = async (image: File, pathname?: string): Promise<strin
 
     if (image_response.ok) {
         const image_json = await image_response.json() as { location: string }
-
         return image_json.location
     } else {
         throw new Error("Failed to upload image")
@@ -71,6 +67,7 @@ export default function InitializedMDXEditor({
     editorRef,
     article,
     markdown,
+    save_article,
     ...props
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
@@ -81,7 +78,6 @@ export default function InitializedMDXEditor({
 
     useEffect(() => {
         if (!article) return
-        console.log("setting article", article.id)
         setPathname(path.dirname(article.pathname))
         setTitle(article.title)
         innerRef.current?.setMarkdown(article.content)
@@ -103,7 +99,6 @@ export default function InitializedMDXEditor({
             />
             <Button
                 onClick={async () => {
-                    console.log("saving", pathname)
                     if (!pathname || !innerRef.current || !article) return
 
                     const result = await save_article({

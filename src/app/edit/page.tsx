@@ -1,5 +1,6 @@
 import { read_article } from "../actions";
 import EditorClient from "./EditorClient";
+import { save_article } from "../actions";
 
 type EditorServerProps = {
     params: { slug: string };
@@ -18,9 +19,7 @@ export default async function EditorServer({ searchParams }: EditorServerProps) 
 
     const article = await get_article();
 
-    console.log("from server", article?.id)
-
     return (
-        <EditorClient article={article} />
+        <EditorClient article={article} save_article={save_article} />
     )
 }

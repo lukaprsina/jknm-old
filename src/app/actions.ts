@@ -12,7 +12,7 @@ import { action } from "~/lib/safe-action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 
-const format_pathname = (str: string) => path.normalize(str).replace(/^\/|^\\/, '').replace(/\\/g, '/')
+export const format_pathname = (str: string) => path.normalize(str).replace(/^\/|^\\/, '').replace(/\\/g, '/')
 
 const read_schema = z.object({
     pathname: z.string(),
@@ -21,13 +21,13 @@ const read_schema = z.object({
 export const read_article = action(read_schema, async ({ pathname }): Promise<Article> => {
     const decoded = decodeURIComponent(pathname)
     const unmicrosofted = decoded.replace(/\\/g, "/")
-    let final_path = unmicrosofted
-    if (path.normalize(final_path).startsWith("article"))
-        final_path = path.relative("article", unmicrosofted)
+    let article_removed = path.normalize(unmicrosofted)
+    if (article_removed.startsWith("article"))
+        article_removed = path.relative("article", article_removed)
 
     const article = await db.article.findUniqueOrThrow({
         where: {
-            pathname: format_pathname(final_path),
+            pathname: format_pathname(article_removed),
         }
     })
 
@@ -41,7 +41,11 @@ export const new_article = action(new_article_schema, async ({ pathname }) => {
     if (!session?.user) throw new Error("No user")
     revalidateTag("articles")
 
-    const base_dir = await sanitize_path(pathname)
+    let article_removed = path.normalize(pathname)
+    if (article_removed.startsWith("article"))
+        article_removed = path.relative("article", article_removed)
+
+    const base_dir = await sanitize_path(article_removed)
     const temp_name = await get_temp_name()
     const fs_pathname = path.join(base_dir, temp_name)
 
@@ -91,7 +95,6 @@ export const save_article = action(save_article_schema, async ({ title, pathname
         new_pathname_with_old_title = path.join(new_pathname, old_formatted_title)
 
         if (new_pathname_with_old_title != old_pathname) {
-            console.log("moving", { old_pathname, new_pathname_with_slug: new_pathname_with_old_title })
             try {
                 // TODO: handle overwriting
                 await fs.move(old_pathname, new_pathname_with_old_title)
@@ -106,7 +109,6 @@ export const save_article = action(save_article_schema, async ({ title, pathname
         new_pathname_with_new_title = path.join(new_pathname, sanitize_filename(title))
 
         if (new_pathname_with_old_title !== new_pathname_with_new_title) {
-            console.log("renaming", { new_pathname_with_old_title, new_pathname_with_new_title })
             await fs.rename(new_pathname_with_old_title, new_pathname_with_new_title)
         }
     }

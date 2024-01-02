@@ -6,6 +6,7 @@ import "~/styles/globals.css";
 import { Inter } from "next/font/google";
 
 import ResponsiveShell from "./responsive_shell";
+import { new_article } from './actions';
 
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 // import 'prism-themes/themes/prism-one-light.css'
@@ -33,7 +34,7 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${inter.variable}`}>
         <MantineProvider>
-          <ResponsiveShell>
+          <ResponsiveShell new_article={new_article}>
             {children}
           </ResponsiveShell>
         </MantineProvider>
