@@ -1,3 +1,3 @@
 [submodule "vendor/editor"]
 	path = vendor/editor
-	url = https://github.com/mdx-editor/editor
+	url = https://github.com/lukaprsina/editor

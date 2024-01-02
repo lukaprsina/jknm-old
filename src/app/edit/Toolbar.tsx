@@ -15,7 +15,7 @@ import {
     ListsToggle,
     Separator,
     UndoRedo
-} from "@mdxeditor/editor"
+} from "mdxeditor"
 import { type DirectiveNode } from "vendor/editor/dist/plugins/directives/DirectiveNode"
 
 function whenInAdmonition(editorInFocus: EditorInFocus | null) {
