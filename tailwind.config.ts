@@ -1,8 +1,10 @@
+
+import { withUt } from "uploadthing/tw";
 import { type Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 import typography from '@tailwindcss/typography'
 
-export default {
+export default withUt({
   content: ["./src/**/*.tsx", "./public/**/*.css"],
   theme: {
     extend: {
@@ -12,4 +14,4 @@ export default {
     },
   },
   plugins: [typography],
-} satisfies Config;
+}) satisfies Config;
