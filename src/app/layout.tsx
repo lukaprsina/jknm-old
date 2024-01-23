@@ -1,7 +1,8 @@
 // order matters
-import '@lukaprsina/mdxeditor/style.css'
-import '@mantine/core/styles.css';
+// import '@lukaprsina/mdxeditor/style.css'
 import "~/styles/globals.css";
+import '@mdxeditor/editor/style.css'
+import '@mantine/core/styles.css';
 
 import { Inter } from "next/font/google";
 

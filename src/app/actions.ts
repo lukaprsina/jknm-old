@@ -7,6 +7,7 @@ import { db } from "~/server/db";
 import path from "path"
 import fs from 'fs-extra'
 import { FILESYSTEM_PREFIX } from "~/lib/fs";
+import { compile } from '@mdx-js/mdx'
 
 import { action } from "~/lib/safe-action"
 import { z } from "zod";
@@ -87,11 +88,8 @@ export const save_article = action(save_article_schema, async ({ title, pathname
     let new_pathname_with_old_title = old_pathname
 
     if (typeof pathname == "string") {
-        try {
-            new_pathname = path.join(FILESYSTEM_PREFIX, await sanitize_path(pathname))
-        } catch (e) {
-            // new_pathname is invalid
-        }
+        // the new path invalid if it throws
+        new_pathname = path.join(FILESYSTEM_PREFIX, await sanitize_path(pathname))
         new_pathname_with_old_title = path.join(new_pathname, old_formatted_title)
 
         if (new_pathname_with_old_title != old_pathname) {
@@ -114,6 +112,13 @@ export const save_article = action(save_article_schema, async ({ title, pathname
     }
 
     const final_path = format_pathname(path.relative(FILESYSTEM_PREFIX, new_pathname_with_new_title))
+    const final_content = content ?? article.content
+
+    // prerender mdx
+    const code = String(await compile(final_content, {
+        outputFormat: 'function-body',
+    }))
+
     await db.article.update({
         where: {
             id,
@@ -121,7 +126,8 @@ export const save_article = action(save_article_schema, async ({ title, pathname
         data: {
             title: title ?? article.title,
             pathname: final_path,
-            content: content ?? article.content,
+            content: final_content,
+            cached: code,
         }
     })
 

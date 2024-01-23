@@ -16,6 +16,9 @@ export default function Home() {
                     // Do something with the error.
                     alert(`ERROR! ${error.message}`);
                 }}
+                config={{
+                    appendOnPaste: true,
+                }}
             />
         </main>
     );

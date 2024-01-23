@@ -1,5 +1,5 @@
 import {
-    type AdmonitionKind,
+    // type AdmonitionKind,
     BlockTypeSelect,
     BoldItalicUnderlineToggles,
     ChangeAdmonitionType,
@@ -15,7 +15,7 @@ import {
     ListsToggle,
     Separator,
     UndoRedo
-} from "@lukaprsina/mdxeditor"
+} from "@mdxeditor/editor"
 
 type DirectiveNode = {
     getMdastNode: () => {
@@ -29,7 +29,7 @@ function whenInAdmonition(editorInFocus: EditorInFocus | null) {
         return false
     }
 
-    return ['note', 'tip', 'danger', 'info', 'caution'].includes((node as unknown as DirectiveNode).getMdastNode().name as AdmonitionKind)
+    return ['note', 'tip', 'danger', 'info', 'caution'].includes((node as unknown as DirectiveNode).getMdastNode().name)
 }
 
 export const Toolbar: React.FC = () => {

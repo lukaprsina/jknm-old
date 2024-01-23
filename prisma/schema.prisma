@@ -16,6 +16,7 @@ model Article {
     title     String
     pathname  String   @unique
     content   String   @default("")
+    cached    String?  @default("")
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

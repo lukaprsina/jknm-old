@@ -19,7 +19,7 @@ import {
     markdownShortcutPlugin,
     type MDXEditorMethods,
     type MDXEditorProps,
-} from '@lukaprsina/mdxeditor'
+} from '@mdxeditor/editor'
 import { Toolbar } from "./Toolbar";
 import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -98,6 +98,7 @@ export default function InitializedMDXEditor({
                 onChange={(event) => setTitle(event.currentTarget.value)}
             />
             <Button
+                className="prose"
                 onClick={async () => {
                     if (!pathname || !innerRef.current || !article) return
 
@@ -117,15 +118,17 @@ export default function InitializedMDXEditor({
             </Button>
         </Flex>
 
-        <Box style={{ marginTop: "2.25rem", height: "100%", border: "1px solid black" }}>
+        <Box style={{ marginTop: "2.25rem", border: "1px solid black" }}>
             <MDXEditor
                 plugins={allPlugins(markdown ?? "", search_params.get("pathname") ?? undefined)}
                 {...props}
                 markdown={markdown ?? ""}
-                contentEditableClassName="prose max-w-full"
+                className=""
+                contentEditableClassName="prose lg:prose-xl max-w-full"
                 ref={editorRef}
             />
         </Box>
+        <Box style={{ height: "70px" }} />
     </>
 
 }
