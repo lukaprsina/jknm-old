@@ -35,7 +35,6 @@
     "@t3-oss/env-nextjs": "^0.7.3",
     "@tabler/icons-react": "^2.46.0",
     "@tailwindcss/typography": "^0.5.10",
-    "@tinymce/tinymce-react": "^4.3.2",
     "@types/mdx": "^2.0.10",
     "@uploadthing/react": "^6.2.0",
     "fs-extra": "^11.2.0",
@@ -47,8 +46,8 @@
     "react-dom": "18.2.0",
     "sanitize-filename": "^1.6.3",
     "sharp": "^0.33.2",
-    "tinymce": "^6.8.2",
     "uploadthing": "^6.2.0",
+    "xstate": "^5.5.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {

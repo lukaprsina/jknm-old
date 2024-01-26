@@ -1,21 +1,23 @@
 "use client";
 
-import { AppShell, Burger, Button, Flex, Group, Skeleton } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { AppShell, Autocomplete, Burger, Button, Group, Skeleton, px, rem, useMantineTheme } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '~/content/logo.png'
-import { IconEdit, IconPlus } from '@tabler/icons-react';
+import { IconEdit, IconPlus, IconSearch } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import path from 'path';
-import type { new_article as new_type } from './actions'
+import { search_articles, type new_article as new_type } from './actions'
 
 export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {
-    const [opened, { toggle }] = useDisclosure(true);
+    const [opened, { toggle }] = useDisclosure(false);
     const pathname = usePathname()
     const router = useRouter()
-    const [hideAsideAndNavbar] = useState(true)
+    const { breakpoints } = useMantineTheme();
+    const isXS = useMediaQuery(`(max-width: ${px(breakpoints.xs)}px)`);
+    const [searchText, setSearchText] = useState('');
 
     const sanitized_pathname = useMemo<string>(() => {
         if (pathname.startsWith("/"))
@@ -26,11 +28,10 @@ export default function ResponsiveShell({ children, new_article }: { children: R
     return (
         <AppShell
             header={{ height: { base: 60, md: 70, lg: 80 } }}
-            aside={{ width: 300, breakpoint: 'md', collapsed: { desktop: hideAsideAndNavbar, mobile: true } }}
             navbar={{
                 width: { base: 200, md: 300, lg: 400 },
                 breakpoint: 'sm',
-                collapsed: { mobile: hideAsideAndNavbar || !opened, desktop: hideAsideAndNavbar },
+                collapsed: { mobile: !opened },
             }}
             footer={{ height: 60 }}
             padding="md"
@@ -41,43 +42,69 @@ export default function ResponsiveShell({ children, new_article }: { children: R
                     px="md"
                     justify='space-between'
                 >
-                    <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-                    <Link
-                        href="/"
-                        style={{ height: '80%' }}
-                    >
-                        <Image
-                            src={logo}
-                            alt="logo"
-                            priority={true}
-                            fill={false}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                            }}
-                        />
-                    </Link>
-                    <Flex align="center">
+                    <Group h="100%">
+                        <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
                         <Link
-                            href={{
-                                pathname: '/edit',
-                                query: { pathname: sanitized_pathname },
-                            }}
+                            href="/"
+                            style={{ height: '80%' }}
                         >
-                            <IconEdit />
+                            <Image
+                                src={logo}
+                                alt="logo"
+                                priority={true}
+                                fill={false}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                            />
                         </Link>
-                        <Button variant='transparent' color='black'
-                            onClick={async () => {
-                                const response = await new_article({ pathname: path.dirname(sanitized_pathname) })
-                                console.log(response)
+                    </Group>
+                    <Group>
+                        <Group ml={50} gap={5}>
+                            <Link
+                                href={{
+                                    pathname: '/edit',
+                                    query: { pathname: sanitized_pathname },
+                                }}
+                            >
+                                <IconEdit />
+                            </Link>
+                            <Button variant='transparent' color='black'
+                                onClick={async () => {
+                                    const response = await new_article({ pathname: path.dirname(sanitized_pathname) })
+                                    console.log(response)
 
-                                if (response.data)
-                                    router.push(`/edit?pathname=${response.data.pathname}`)
-                            }}
-                        >
-                            <IconPlus />
-                        </Button>
-                    </Flex>
+                                    if (response.data)
+                                        router.push(`/edit?pathname=${response.data.pathname}`)
+                                }}
+                            >
+                                <IconPlus />
+                            </Button>
+                            {
+                                (isXS) ? <IconSearch style={{ width: rem(20), height: rem(20) }} /> :
+                                    <form
+                                        onSubmit={async (e) => {
+                                            e.preventDefault()
+                                            const articles = await search_articles({ search_text: searchText })
+                                            console.log(articles)
+                                        }}
+                                    >
+                                        <Autocomplete
+                                            placeholder="Search"
+                                            leftSection={<IconSearch style={{ width: rem(20), height: rem(20) }} />}
+                                            data={['jazbina']}
+                                            visibleFrom="xs"
+                                            value={searchText}
+                                            onChange={setSearchText}
+                                            onSubmit={(value) => {
+                                                console.log(value)
+                                            }}
+                                        />
+                                    </form>
+                            }
+                        </Group>
+                    </Group>
                 </Group>
             </AppShell.Header>
             <AppShell.Navbar p="md">
@@ -89,7 +116,6 @@ export default function ResponsiveShell({ children, new_article }: { children: R
                     ))}
             </AppShell.Navbar>
             <AppShell.Main style={{ height: "100vh" }}>{children}</AppShell.Main>
-            <AppShell.Aside p="md">Aside</AppShell.Aside>
             <AppShell.Footer p="md">
                 <Link href="/account">Account</Link>
             </AppShell.Footer>

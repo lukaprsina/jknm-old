@@ -9,11 +9,26 @@ import fs from 'fs-extra'
 import { FILESYSTEM_PREFIX } from "~/lib/fs";
 import { compile } from '@mdx-js/mdx'
 
-import { action } from "~/lib/safe-action"
+import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 
 export const format_pathname = (str: string) => path.normalize(str).replace(/^\/|^\\/, '').replace(/\\/g, '/')
+
+const search_schema = z.object({
+    search_text: z.string(),
+})
+
+export const search_articles = action(search_schema, async ({ search_text }): Promise<Article[]> => {
+    const result = await db.article.findMany({
+        where: {
+            content: {
+                search: search_text,
+            }
+        }
+    })
+    return result
+})
 
 const read_schema = z.object({
     pathname: z.string(),
