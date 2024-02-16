@@ -1,15 +1,20 @@
-import nextMdx from '@next/mdx'
 await import("./src/env.js");
+import nextMDX from '@next/mdx'
 
-const withMdx = nextMdx({
-    // By default only the `.mdx` extension is supported.
-    extension: /\.mdx?$/,
-    options: {/* otherOptions… */ }
+const withMDX = nextMDX({
+    extension: /\.(md|mdx)$/,
+    options: {
+
+    }
 })
 
-const nextConfig = withMdx({
-    // Support MDX files as pages:
-    pageExtensions: ['md', 'mdx', 'tsx', 'ts', 'jsx', 'js'],
-})
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    // Configure `pageExtensions` to include MDX files
+    pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+    experimental: {
+        mdxRs: true
+    }
+}
 
-export default nextConfig
+export default withMDX(nextConfig)

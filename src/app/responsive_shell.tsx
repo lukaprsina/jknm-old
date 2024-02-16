@@ -70,7 +70,7 @@ export default function ResponsiveShell({ children, new_article }: { children: R
                                     const response = await new_article({ pathname: path.dirname(sanitized_pathname) })
                                     console.log(response)
 
-                                    if (response.data)
+                                    if (typeof response.serverError == "undefined" && response.data)
                                         router.push(`/edit?pathname=${response.data.pathname}`)
                                 }}
                             >

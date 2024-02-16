@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import path from "path";
+import { ARTICLE_PREFIX } from "~/lib/fs";
 import { db } from "~/server/db";
 
 const getArticles = unstable_cache(async () => db.article.findMany(), ["find"], { tags: ["articles"], revalidate: 300 })
@@ -13,7 +14,7 @@ export default async function HomePage() {
       <h1>Articles</h1>
       {articles.map((article) => (
         <div key={article.id}>
-          <Link href={path.join("article", article.pathname)}>
+          <Link href={path.join(ARTICLE_PREFIX, article.pathname)}>
             {article.title}
           </Link>
         </div>

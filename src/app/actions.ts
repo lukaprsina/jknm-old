@@ -6,7 +6,7 @@ import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import path from "path"
 import fs from 'fs-extra'
-import { FILESYSTEM_PREFIX } from "~/lib/fs";
+import { ARTICLE_PREFIX, FILESYSTEM_PREFIX } from "~/lib/fs";
 import { compile } from '@mdx-js/mdx'
 
 import { action } from "~/lib/safe_action"
@@ -34,20 +34,23 @@ const read_schema = z.object({
     pathname: z.string(),
 })
 
-export const read_article = action(read_schema, async ({ pathname }): Promise<Article> => {
+export const read_article = action(read_schema, async ({ pathname }): Promise<Article | undefined> => {
+    debugger;
     const decoded = decodeURIComponent(pathname)
     const unmicrosofted = decoded.replace(/\\/g, "/")
-    let article_removed = path.normalize(unmicrosofted)
-    if (article_removed.startsWith("article"))
-        article_removed = path.relative("article", article_removed)
+    let pathname_without_prefix = path.normalize(unmicrosofted)
+    if (pathname_without_prefix.startsWith(ARTICLE_PREFIX))
+        pathname_without_prefix = path.relative(ARTICLE_PREFIX, pathname_without_prefix)
 
-    const article = await db.article.findUniqueOrThrow({
+    console.error("READING ARTICLE", pathname, pathname_without_prefix, format_pathname(pathname_without_prefix))
+    const article = await db.article.findUnique({
         where: {
-            pathname: format_pathname(article_removed),
+            pathname: format_pathname(pathname_without_prefix),
         }
     })
+    if (!article) console.error("NO ARTICLE FOUND!!")
 
-    return article
+    return article ?? undefined
 })
 
 const new_article_schema = z.object({ pathname: z.string() })
@@ -58,8 +61,8 @@ export const new_article = action(new_article_schema, async ({ pathname }) => {
     revalidateTag("articles")
 
     let article_removed = path.normalize(pathname)
-    if (article_removed.startsWith("article"))
-        article_removed = path.relative("article", article_removed)
+    if (article_removed.startsWith(ARTICLE_PREFIX))
+        article_removed = path.relative(ARTICLE_PREFIX, article_removed)
 
     const base_dir = await sanitize_path(article_removed)
     const temp_name = await get_temp_name()

@@ -2,8 +2,11 @@ import { db } from "~/server/db"
 import path from "path"
 import fs from "fs/promises"
 import { FILESYSTEM_PREFIX } from "~/lib/fs";
+import dotenv from "dotenv"
 
 async function clear_directory(directory: string) {
+    dotenv.config()
+
     const files = await fs.readdir(directory);
 
     for (const file of files) {

@@ -2,18 +2,18 @@ import { Box, Title } from "@mantine/core"
 import path from "path"
 import { read_article } from "~/app/actions"
 import CachedMDX from "./CachedMDX"
+import { useMemo } from "react"
 
 type ArticleType = {
     params: { name: string[] }
 }
 
 export default async function Article({ params }: ArticleType) {
-    async function get_content() {
+    const response = await useMemo(async () => {
+        console.error("READING FROM ARTICLE PAGE")
         const response = await read_article({ pathname: path.join(...params.name) })
         return response
-    }
-
-    const response = await get_content()
+    }, [params.name]);
 
     return <>
         {(response.data) ? <Box className="prose lg:prose-xl">

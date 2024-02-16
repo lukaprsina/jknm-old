@@ -80,6 +80,7 @@ export default function InitializedMDXEditor({
         if (!article) return
         setPathname(path.dirname(article.pathname))
         setTitle(article.title)
+        console.log("setting markdown", article)
         innerRef.current?.setMarkdown(article.content)
     }, [article])
 
