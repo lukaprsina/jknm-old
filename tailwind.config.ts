@@ -14,4 +14,7 @@ export default withUt({
     },
   },
   plugins: [typography],
+  corePlugins: {
+    preflight: false,
+  },
 }) satisfies Config;

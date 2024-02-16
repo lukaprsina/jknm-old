@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell, Autocomplete, Burger, Button, Group, Skeleton, px, rem, useMantineTheme } from '@mantine/core';
+import { AppShell, Autocomplete, Burger, Button, Group, px, rem, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,11 +28,6 @@ export default function ResponsiveShell({ children, new_article }: { children: R
     return (
         <AppShell
             header={{ height: { base: 60, md: 70, lg: 80 } }}
-            navbar={{
-                width: { base: 200, md: 300, lg: 400 },
-                breakpoint: 'sm',
-                collapsed: { mobile: !opened },
-            }}
             footer={{ height: 60 }}
             padding="md"
         >
@@ -107,14 +102,6 @@ export default function ResponsiveShell({ children, new_article }: { children: R
                     </Group>
                 </Group>
             </AppShell.Header>
-            <AppShell.Navbar p="md">
-                Navbar
-                {Array(15)
-                    .fill(0)
-                    .map((_, index) => (
-                        <Skeleton key={index} h={28} mt="sm" animate={false} />
-                    ))}
-            </AppShell.Navbar>
             <AppShell.Main style={{ height: "100vh" }}>{children}</AppShell.Main>
             <AppShell.Footer p="md">
                 <Link href="/account">Account</Link>
