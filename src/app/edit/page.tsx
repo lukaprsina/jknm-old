@@ -13,12 +13,12 @@ export default async function EditorServer({ searchParams }: EditorServerProps) 
     const article = await useMemo(async () => {
         if (!searchParams) return
 
-        const pathname = searchParams.pathname ?? ''
-        if (typeof pathname !== "string") return
+        const url = searchParams.url ?? ''
+        if (typeof url !== "string") return
         console.error("READING FROM EDITOR SERVER")
-        const response = await read_article({ pathname })
+        const response = await read_article({ url })
         return response.data
-    }, [searchParams?.pathname]);
+    }, [searchParams?.url]);
 
     return (
         <EditorClient article={article} save_article={save_article} />

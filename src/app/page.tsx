@@ -14,7 +14,7 @@ export default async function HomePage() {
       <h1>Articles</h1>
       {articles.map((article) => (
         <div key={article.id}>
-          <Link href={path.join(ARTICLE_PREFIX, article.pathname)}>
+          <Link href={path.join(ARTICLE_PREFIX, article.url)}>
             {article.title}
           </Link>
         </div>

@@ -11,7 +11,7 @@ type ArticleType = {
 export default async function Article({ params }: ArticleType) {
     const response = await useMemo(async () => {
         console.error("READING FROM ARTICLE PAGE")
-        const response = await read_article({ pathname: path.join(...params.name) })
+        const response = await read_article({ url: path.join(...params.name) })
         return response
     }, [params.name]);
 

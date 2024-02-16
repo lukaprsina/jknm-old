@@ -8,8 +8,8 @@ import logo from '~/content/logo.png'
 import { IconEdit, IconPlus, IconSearch } from '@tabler/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import path from 'path';
 import { search_articles, type new_article as new_type } from './actions'
+import { remove_article_name } from '~/lib/fs';
 
 export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {
     const [opened, { toggle }] = useDisclosure(false);
@@ -19,11 +19,8 @@ export default function ResponsiveShell({ children, new_article }: { children: R
     const isXS = useMediaQuery(`(max-width: ${px(breakpoints.xs)}px)`);
     const [searchText, setSearchText] = useState('');
 
-    const sanitized_pathname = useMemo<string>(() => {
-        if (pathname.startsWith("/"))
-            return pathname.slice(1)
-        else return pathname
-    }, [pathname])
+    // return everything before the first slash
+    const sanitized_pathname = useMemo(() => remove_article_name(pathname), [pathname])
 
     return (
         <AppShell
@@ -60,18 +57,18 @@ export default function ResponsiveShell({ children, new_article }: { children: R
                             <Link
                                 href={{
                                     pathname: '/edit',
-                                    query: { pathname: sanitized_pathname },
+                                    query: { url: sanitized_pathname },
                                 }}
                             >
                                 <IconEdit />
                             </Link>
                             <Button variant='transparent' color='black'
                                 onClick={async () => {
-                                    const response = await new_article({ pathname: path.dirname(sanitized_pathname) })
+                                    const response = await new_article({})
                                     console.log(response)
 
                                     if (typeof response.serverError == "undefined" && response.data)
-                                        router.push(`/edit?pathname=${response.data.pathname}`)
+                                        router.push(`/edit?url=${response.data.url}`)
                                 }}
                             >
                                 <IconPlus />
