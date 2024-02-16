@@ -101,7 +101,8 @@ export const save_article = action(save_article_schema, async ({ title, content,
     })
     if (duplicate && duplicate.id !== id) throw new Error("Duplicate URL")
 
-    await fs.move(path.join(FILESYSTEM_PREFIX, article.url), path.join(FILESYSTEM_PREFIX, sanitized_url))
+    if (article.url !== sanitized_url)
+        await fs.move(path.join(FILESYSTEM_PREFIX, article.url), path.join(FILESYSTEM_PREFIX, sanitized_url))
 
     const updated_content = content ?? article.content
     const code = String(await compile(updated_content, {

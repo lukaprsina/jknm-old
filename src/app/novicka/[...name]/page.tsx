@@ -3,6 +3,7 @@ import path from "path"
 import { read_article } from "~/app/actions"
 import CachedMDX from "./CachedMDX"
 import { useMemo } from "react"
+import { MDXRemote } from 'next-mdx-remote/rsc'
 
 type ArticleType = {
     params: { name: string[] }
@@ -23,9 +24,7 @@ export default async function Article({ params }: ArticleType) {
                     <small>cached</small>
                     <CachedMDX content={response.data.cached} />
                 </> :
-                <Box
-                    dangerouslySetInnerHTML={{ __html: response.data.content ?? "Not loaded" }}
-                />
+                <MDXRemote source={response.data.content} />
             }
         </Box> :
             <p>Not found</p>}
