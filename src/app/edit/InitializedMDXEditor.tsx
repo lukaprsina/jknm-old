@@ -19,7 +19,9 @@ import {
     markdownShortcutPlugin,
     type MDXEditorMethods,
     type MDXEditorProps,
-} from '@mdxeditor/editor'
+    // } from '@mdxeditor/editor'
+    // } from '@lukaprsina/mdxeditor'
+} from 'modified-editor'
 import { Toolbar } from "./Toolbar";
 import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";

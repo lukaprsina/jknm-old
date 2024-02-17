@@ -15,7 +15,9 @@ import {
     ListsToggle,
     Separator,
     UndoRedo
-} from "@mdxeditor/editor"
+    // } from "@mdxeditor/editor"
+    // } from "@lukaprsina/mdxeditor"
+} from "modified-editor"
 
 type DirectiveNode = {
     getMdastNode: () => {

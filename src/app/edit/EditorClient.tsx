@@ -2,7 +2,8 @@
 
 import { Suspense, useRef } from "react";
 // import type { MDXEditorMethods, MDXEditorProps } from "@lukaprsina/mdxeditor";
-import type { MDXEditorMethods, MDXEditorProps } from "@mdxeditor/editor";
+// import type { MDXEditorMethods, MDXEditorProps } from "@mdxeditor/editor";
+import type { MDXEditorMethods, MDXEditorProps } from "modified-editor";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 import type { Article } from "@prisma/client";
