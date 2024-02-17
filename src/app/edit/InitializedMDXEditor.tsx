@@ -25,14 +25,15 @@ import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./EditorClient";
-import path from "path";
+import { sanitize_for_fs } from "~/lib/fs";
 
-const imageUploadHandler = async (image: File, pathname?: string): Promise<string> => {
-    if (typeof pathname == "undefined") throw new Error("No pathname")
+const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
+    if (!image) return;
+    if (typeof url == "undefined") throw new Error("No url")
 
     const form = new FormData()
     form.append("file", image)
-    form.append("pathname", pathname)
+    form.append("url", url)
 
     const image_response = await fetch("/api/file", {
         method: "POST",
@@ -47,14 +48,14 @@ const imageUploadHandler = async (image: File, pathname?: string): Promise<strin
     }
 }
 
-const allPlugins = (diffMarkdown: string, pathname?: string) => [
+const allPlugins = (diffMarkdown: string, url?: string) => [
     toolbarPlugin({ toolbarContents: () => <Toolbar /> }),
     listsPlugin(),
     quotePlugin(),
     headingsPlugin(),
     linkPlugin(),
     linkDialogPlugin(),
-    imagePlugin({ imageUploadHandler: (image) => imageUploadHandler(image, pathname) }),
+    imagePlugin({ imageUploadHandler: (image) => imageUploadHandler(image, url) }),
     tablePlugin(),
     thematicBreakPlugin(),
     frontmatterPlugin(),
@@ -71,26 +72,31 @@ export default function InitializedMDXEditor({
     ...props
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
-    const [pathname, setPathname] = useState<string>("")
+    const [url, setUrl] = useState<string>("")
     const innerRef = useForwardedRef(editorRef);
     const search_params = useSearchParams()
     const router = useRouter()
 
     useEffect(() => {
         if (!article) return
-        setPathname(path.dirname(article.pathname))
+        setUrl(article.url)
         setTitle(article.title)
         console.log("setting markdown", article)
         innerRef.current?.setMarkdown(article.content)
     }, [article])
 
+    useEffect(() => {
+        setUrl(sanitize_for_fs(title))
+    }, [title])
+
     return <>
         <Flex align="flex-end" columnGap="md">
             <TextInput
-                label="Pathname"
+                label="Url"
+                disabled
                 w={200}
-                value={pathname}
-                onChange={(event) => setPathname(event.currentTarget.value)}
+                value={url}
+                onChange={(event) => setUrl(event.currentTarget.value)}
             />
             <TextInput
                 label="Title"
@@ -101,18 +107,19 @@ export default function InitializedMDXEditor({
             <Button
                 className="prose"
                 onClick={async () => {
-                    if (!pathname || !innerRef.current || !article) return
+                    if (!url || !innerRef.current || !article) return
 
                     const result = await save_article({
                         id: article.id,
-                        pathname,
+                        url,
                         title,
                         content: innerRef.current.getMarkdown(),
                     })
 
                     console.log("saved", result)
-                    if (result.data)
-                        router.push(`/article/${result.data}`)
+
+                    if (!result.serverError && !result.validationErrors)
+                        router.push(`/edit?url=${url}`)
                 }}
             >
                 Save
@@ -121,7 +128,7 @@ export default function InitializedMDXEditor({
 
         <Box style={{ marginTop: "2.25rem", border: "1px solid black" }}>
             <MDXEditor
-                plugins={allPlugins(markdown ?? "", search_params.get("pathname") ?? undefined)}
+                plugins={allPlugins(markdown ?? "", search_params.get("url") ?? undefined)}
                 {...props}
                 markdown={markdown ?? ""}
                 className=""
