@@ -5,7 +5,13 @@ import { ARTICLE_PREFIX } from "~/lib/fs";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 
-const getArticles = unstable_cache(async () => db.article.findMany({
+const getArticles = unstable_cache(async (id?: string) => db.article.findMany({
+  where: {
+    OR: [
+      { published: true },
+      { createdById: id }
+    ]
+  },
   select: {
     title: true,
     id: true,
@@ -15,9 +21,8 @@ const getArticles = unstable_cache(async () => db.article.findMany({
 }), ["find"], { tags: ["articles"], revalidate: 300 })
 
 export default async function HomePage() {
-  const articles = await getArticles();
   const session = await getServerAuthSession()
-  // TODO: get unpublishedPosts with session.userId
+  const articles = await getArticles(session?.user.id);
 
   return <>
     <div className="prose lg:prose-xl">

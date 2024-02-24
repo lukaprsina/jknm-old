@@ -33,7 +33,7 @@ const read_schema = z.object({
 export const read_article = action(read_schema, async ({ url }): Promise<Article | undefined> => {
     const article = await db.article.findUnique({
         where: {
-            url
+            url,            
         }
     })
     if (!article) console.error("NO ARTICLE FOUND!!, reading", { url })
@@ -56,7 +56,6 @@ export const new_article = action(new_article_schema, async ({ }) => {
             title: temp_name,
             url: temp_name,
             createdById: session.user.id,
-            published: false,
         }
     })
 
