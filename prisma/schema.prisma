@@ -17,8 +17,19 @@ model Article {
   createdById String
   url         String   @unique
   content     String   @default("")
-  published   Boolean  @default(false)
-  cached      String?  @default("")
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([title])
+}
+
+model UnpublishedArticle {
+  id          Int      @id @default(autoincrement())
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  url         String   @unique
+  content     String   @default("")
   createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([title])
@@ -51,14 +62,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  posts         Article[]
-  sessions      Session[]
+  id                String               @id @default(cuid())
+  name              String?
+  email             String?              @unique
+  emailVerified     DateTime?
+  image             String?
+  accounts          Account[]
+  published_posts   Article[]
+  unpublished_posts UnpublishedArticle[]
+  sessions          Session[]
 }
 
 model VerificationToken {

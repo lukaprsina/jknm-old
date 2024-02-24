@@ -2,12 +2,22 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import path from "path";
 import { ARTICLE_PREFIX } from "~/lib/fs";
+import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 
-const getArticles = unstable_cache(async () => db.article.findMany(), ["find"], { tags: ["articles"], revalidate: 300 })
+const getArticles = unstable_cache(async () => db.article.findMany({
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  }
+}), ["find"], { tags: ["articles"], revalidate: 300 })
 
 export default async function HomePage() {
   const articles = await getArticles();
+  const session = await getServerAuthSession()
+  // TODO: get unpublishedPosts with session.userId
 
   return <>
     <div className="prose lg:prose-xl">
