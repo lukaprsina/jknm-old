@@ -1,4 +1,3 @@
-import { Box, Title } from "@mantine/core"
 import path from "path"
 import { read_article } from "~/app/actions"
 import { useMemo } from "react"
@@ -29,13 +28,13 @@ export default async function Article({ params }: ArticleType) {
     }, [params.name]);
 
     return <>
-        {(response.data) ? <Box className="prose lg:prose-xl">
-            <Title >{response.data.title}</Title>
+        {(response.data) ? <main className="prose lg:prose-xl">
+            <h1 >{response.data.title}</h1>
             <MDXRemote
                 source={response.data.content}
                 components={custom_mdx_components}
             />
-        </Box> :
+        </main> :
             <p>Not found</p>}
     </>
 }

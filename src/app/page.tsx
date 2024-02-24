@@ -4,6 +4,7 @@ import path from "path";
 import { ARTICLE_PREFIX } from "~/lib/fs";
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { Card } from "~/components/ui/card";
 
 const getArticles = unstable_cache(async (id?: string) => db.article.findMany({
   where: {
@@ -25,15 +26,39 @@ export default async function HomePage() {
   const articles = await getArticles(session?.user.id);
 
   return <>
-    <div className="prose lg:prose-xl">
-      <h1>Articles</h1>
-      {articles.map((article) => (
-        <div key={article.id}>
-          <Link href={path.join(ARTICLE_PREFIX, article.url)}>
-            {article.title}
+    <div className="grid grid-cols-3 grid-rows-2 gap-4 h-56">
+      {articles.length === 0 ? <p>Ni novic</p> : <>
+        <Card className="col-span-1 row-span-2">
+          <Link href={path.join(ARTICLE_PREFIX, articles[0]?.url ?? '')}>
+            {articles[0]?.title ?? ''}
           </Link>
-        </div>
-      ))}
+        </Card>
+        <MultipleCards articles={articles.slice(1)} />
+      </>}
     </div>
+  </>
+}
+
+type MultipleCardsProps = {
+  articles: {
+    title: string;
+    id: number;
+    url: string;
+  }[]
+}
+
+function MultipleCards({ articles }: MultipleCardsProps) {
+  return <>
+    {
+      articles.map((article) => (
+        <div key={article.id}>
+          <Card className="col-span-1">
+            <Link href={path.join(ARTICLE_PREFIX, article.url)}>
+              {article.title}
+            </Link>
+          </Card>
+        </div>
+      ))
+    }
   </>
 }

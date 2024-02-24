@@ -1,17 +1,77 @@
 "use client";
 
-import { AppShell, Autocomplete, Burger, Button, Group, px, rem, useMantineTheme } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import Image from 'next/image';
-import Link from 'next/link';
 import logo from '~/content/logo.png'
-import { IconEdit, IconPlus, IconSearch } from '@tabler/icons-react';
+import { type new_article as new_article_type } from '../app/actions'
+import Link from 'next/link';
+import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { search_articles, type new_article as new_type } from './actions'
 import { remove_article_prefix } from '~/lib/fs';
+import { ModeToggle } from './mode_toggle';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
-export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {
+type ResponsiveShellProps = {
+    children: React.ReactNode
+    new_article: typeof new_article_type
+}
+
+export default function ResponsiveShell({ children, new_article }: ResponsiveShellProps) {
+    const pathname = usePathname()
+    const router = useRouter()
+    const [searchText, setSearchText] = useState('');
+
+    const sanitized_url = useMemo(() => remove_article_prefix(pathname), [pathname])
+
+    // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
+    return <>
+        <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 max-w-screen-2xl items-center">
+                <div className="relative h-full flex mr-4">
+                    <Image
+                        src={logo}
+                        alt="logo"
+                        width={48}
+                        height={48}
+                        sizes="100vw"
+                        placeholder='blur'
+                        className="object-contain"
+                    />
+                </div>
+                <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
+                    <Input
+                        className='w-52'
+                        type="text"
+                        placeholder="Search ..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                    <Button asChild>
+                        <Link
+                            href={{
+                                pathname: '/edit',
+                                query: { url: sanitized_url },
+                            }}
+                            className='h-fill'
+                        >
+                            <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
+                        </Link>
+                    </Button>
+                    <Button>
+                        <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
+                    </Button>
+                    <ModeToggle />
+                </div>
+            </div>
+        </nav>
+        <main className="prose lg:prose-xl container mt-4">
+            {children}
+        </main>
+    </>
+}
+
+/* export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {
     const [opened, { toggle }] = useDisclosure(false);
     const pathname = usePathname()
     const router = useRouter()
@@ -104,4 +164,4 @@ export default function ResponsiveShell({ children, new_article }: { children: R
             </AppShell.Footer>
         </AppShell>
     );
-}
+} */
