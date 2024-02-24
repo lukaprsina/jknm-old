@@ -56,7 +56,7 @@ export const new_article = action(new_article_schema, async ({ }) => {
             title: temp_name,
             url: temp_name,
             createdById: session.user.id,
-            published: true,
+            published: false,
         }
     })
 
@@ -69,10 +69,11 @@ const save_article_schema = z.object({
     title: z.string().optional(),
     url: z.string().optional(),
     content: z.string().optional(),
-    id: z.number()
+    published: z.boolean().optional(),
+    id: z.number(),
 })
 
-export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id }) => {
+export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id, published }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
     revalidateTag("articles")
@@ -103,6 +104,7 @@ export const save_article = action(save_article_schema, async ({ title, url: uns
             title: title ?? article.title,
             url: final_url,
             content: final_content,
+            published: published ?? article.published,
         }
     })
 

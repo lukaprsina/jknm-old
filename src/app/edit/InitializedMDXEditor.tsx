@@ -23,14 +23,19 @@ import {
     // } from '@lukaprsina/mdxeditor'
 } from 'modified-editor'
 import { Toolbar } from "./Toolbar";
-import { Box, Button, Flex, TextInput } from "@mantine/core";
+import { Box, Button, Checkbox, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./EditorClient";
 import { sanitize_for_fs } from "~/lib/fs";
+import { fromMarkdown } from "mdast-util-from-markdown"
+import { toMarkdown } from "mdast-util-to-markdown"
+import type { Parent, Code } from "mdast";
+import path from "path";
+import Link from "next/link";
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
-    if (!image) return;
+    if (!image) throw new Error("No image");
     if (typeof url == "undefined") throw new Error("No url")
 
     const form = new FormData()
@@ -66,6 +71,12 @@ const allPlugins = (diffMarkdown: string, url?: string) => [
     markdownShortcutPlugin(),
 ]
 
+function change_url(current_url: string, previous_url: string) {
+    if (!previous_url.startsWith("/fs/")) return previous_url
+    const name = path.basename(previous_url)
+    return path.join("/fs/", current_url, name)
+}
+
 export default function InitializedMDXEditor({
     editorRef,
     article,
@@ -75,6 +86,7 @@ export default function InitializedMDXEditor({
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
     const [url, setUrl] = useState<string>("")
+    const [published, setPublished] = useState<boolean>(false)
     const innerRef = useForwardedRef(editorRef);
     const search_params = useSearchParams()
     const router = useRouter()
@@ -90,6 +102,35 @@ export default function InitializedMDXEditor({
     useEffect(() => {
         setUrl(sanitize_for_fs(title))
     }, [title])
+
+    const rename_images = (current_url: string) => {
+        const markdown = innerRef.current?.getMarkdown()
+        if (!markdown) return
+        console.log(markdown, fromMarkdown)
+        const tree = fromMarkdown(markdown, {})
+
+        function traverse_tree(node: Parent | Code) {
+            if (node.type === "code") {
+                return;
+            }
+            node = node as Parent
+
+            for (const child of node.children) {
+                if (child.type == "image") {
+                    child.url = change_url(current_url, child.url)
+                    console.log("image found", child)
+                }
+
+                if (Object.keys(child).includes("children")) {
+                    traverse_tree(child as Parent);
+                }
+            }
+        }
+
+        traverse_tree(tree)
+
+        return toMarkdown(tree, {})
+    }
 
     return <>
         <Flex align="flex-end" columnGap="md">
@@ -111,21 +152,35 @@ export default function InitializedMDXEditor({
                 onClick={async () => {
                     if (!url || !innerRef.current || !article) return
 
+                    const content = rename_images(url)
                     const result = await save_article({
                         id: article.id,
                         url,
                         title,
-                        content: innerRef.current.getMarkdown(),
+                        content,
+                        published
                     })
 
                     console.log("saved", result)
 
-                    if (!result.serverError && !result.validationErrors)
+                    if (!result.serverError && !result.validationErrors) {
                         router.push(`/edit?url=${url}`)
+                    }
                 }}
             >
                 Save
             </Button>
+            <Checkbox
+                checked={published}
+                onChange={(event) => setPublished(event.currentTarget.checked)}
+                label="Published"
+            />
+            <Link
+                href={`/novicka/${search_params.get("url") ?? ""}`}
+                target="_blank"
+            >
+                View page
+            </Link>
         </Flex>
 
         <Box style={{ marginTop: "2.25rem", border: "1px solid black" }}>
