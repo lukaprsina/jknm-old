@@ -1,6 +1,7 @@
 {
-    "easynpm.defaultProjectRoot": "d:\\dev\\js\\jknm-next",    
-    "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit"
+  "easynpm.defaultProjectRoot": "d:\\dev\\js\\jknm-next",
+  // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always"
   },
 }

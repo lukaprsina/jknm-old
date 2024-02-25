@@ -6,37 +6,83 @@ import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import { Card } from "~/components/ui/card";
 
-const getArticles = unstable_cache(async (id?: string) => db.article.findMany({
+const getPublishedArticles = unstable_cache(async () => db.article.findMany({
   where: {
-    OR: [
-      { published: true },
-      { createdById: id }
-    ]
+    published: true
   },
   select: {
     title: true,
     id: true,
     url: true,
     createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
   }
-}), ["find"], { tags: ["articles"], revalidate: 300 })
+}), ["published_articles"], { tags: ["articles"], revalidate: 300 })
+
+const getArticlesFromOthers = unstable_cache(async (id?: string) => db.article.findMany({
+  where: {
+    published: true,
+    NOT: {
+      createdById: id
+    }
+  },
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  }
+}), ["articles_from_others"], { tags: ["articles"], revalidate: 300 })
+
+const getYourArticles = unstable_cache(async (id?: string) => db.article.findMany({
+  where: {
+    createdById: id
+  },
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  }
+}), ["your_articles"], { tags: ["articles"], revalidate: 300 })
 
 export default async function HomePage() {
   const session = await getServerAuthSession()
-  const articles = await getArticles(session?.user.id);
+  const published_articles = await getPublishedArticles();
+  const your_articles = await getYourArticles();
 
-  return <>
+  return <div className="container">
+    {/* Public articles */}
     <div className="grid grid-cols-3 grid-rows-2 gap-4 h-56">
-      {articles.length === 0 ? <p>Ni novic</p> : <>
-        <Card className="col-span-1 row-span-2">
-          <Link href={path.join(ARTICLE_PREFIX, articles[0]?.url ?? '')}>
-            {articles[0]?.title ?? ''}
+      {published_articles.length === 0 ? <p>Ni novic</p> : <>
+        <Card className="col-span-3 row-span-1 h-full">
+          <Link href={path.join(ARTICLE_PREFIX, published_articles[0]?.url ?? '')}>
+            {published_articles[0]?.title ?? ''}
           </Link>
         </Card>
-        <MultipleCards articles={articles.slice(1)} />
+        <MultipleCards articles={published_articles.slice(1)} />
       </>}
     </div>
-  </>
+    {/* Your articles */}
+    <div className="grid grid-cols-3 grid-rows-2 gap-4 h-56">
+      {your_articles.length === 0 ? <p>Ni novic</p> : <>
+        <Card className="col-span-3 row-span-1 h-full">
+          <Link href={path.join(ARTICLE_PREFIX, your_articles[0]?.url ?? '')}>
+            {your_articles[0]?.title ?? ''}
+          </Link>
+        </Card>
+        <MultipleCards articles={your_articles.slice(1)} />
+      </>}
+    </div>
+  </div>
 }
 
 type MultipleCardsProps = {
@@ -52,7 +98,7 @@ function MultipleCards({ articles }: MultipleCardsProps) {
     {
       articles.map((article) => (
         <div key={article.id}>
-          <Card className="col-span-1">
+          <Card className="col-span-1 h-full">
             <Link href={path.join(ARTICLE_PREFIX, article.url)}>
               {article.title}
             </Link>

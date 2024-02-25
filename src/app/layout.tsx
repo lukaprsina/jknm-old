@@ -8,7 +8,7 @@ import { Inter } from "next/font/google";
 
 import ResponsiveShell from "../components/responsive_shell";
 import { new_article } from './actions';
-import { ThemeProvider } from '~/components/theme-provider';
+import { ThemeProvider } from '~/components/theme_provider';
 import Providers from "~/components/providers";
 import { cn } from "~/lib/utils";
 

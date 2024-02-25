@@ -28,7 +28,7 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
     return <>
         <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 max-w-screen-2xl items-center">
-                <div className="relative h-full flex mr-4">
+                <Link href="/" className="relative h-full flex mr-4 items-center gap-3">
                     <Image
                         src={logo}
                         alt="logo"
@@ -38,7 +38,8 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
                         placeholder='blur'
                         className="object-contain"
                     />
-                </div>
+                    <h1>Jamarski klub Novo mesto</h1>
+                </Link>
                 <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
                     <Input
                         className='w-52'
@@ -47,7 +48,20 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
-                    <Button asChild>
+                    <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={async () => {
+                            const response = await new_article({})
+                            console.log(response)
+
+                            if (typeof response.serverError == "undefined" && response.data)
+                                router.push(`/edit?url=${response.data.url}`)
+                        }}
+                    >
+                        <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
+                    </Button>
+                    <Button asChild size="icon" variant="outline">
                         <Link
                             href={{
                                 pathname: '/edit',
@@ -58,14 +72,11 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
                             <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
                         </Link>
                     </Button>
-                    <Button>
-                        <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
-                    </Button>
                     <ModeToggle />
                 </div>
             </div>
         </nav>
-        <main className="prose lg:prose-xl container mt-4">
+        <main className="prose lg:prose-xl mt-4 min-w-full dark:prose-invert">
             {children}
         </main>
     </>
@@ -112,7 +123,7 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
                         </Link>
                     </Group>
                     <Group>
-                        <Group ml={50} gap={5}>
+                        <Group ml={50} gap-3={5}>
                             <Link
                                 href={{
                                     pathname: '/edit',

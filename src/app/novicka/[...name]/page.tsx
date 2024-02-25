@@ -27,14 +27,14 @@ export default async function Article({ params }: ArticleType) {
         return response
     }, [params.name]);
 
-    return <>
-        {(response.data) ? <main className="prose lg:prose-xl">
-            <h1 >{response.data.title}</h1>
+    return <div className="container">
+        {(response.data) ? <>
             <MDXRemote
                 source={response.data.content}
                 components={custom_mdx_components}
             />
-        </main> :
-            <p>Not found</p>}
-    </>
+        </>
+            : <p>Not found</p>}
+    </div>
+
 }
