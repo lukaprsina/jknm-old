@@ -10,10 +10,12 @@ datasource db {
 }
 
 model Article {
-  id          Int      @id @default(autoincrement())
-  title       String
-  url         String   @unique
-  content     String   @default("")
+  id      Int    @id @default(autoincrement())
+  title   String
+  url     String @unique
+  content String @default("")
+
+  // metadata
   createdBy   User     @relation(fields: [createdById], references: [id])
   createdById String
   createdAt   DateTime @default(now())
@@ -21,9 +23,15 @@ model Article {
   published   Boolean  @default(false)
   publishedAt DateTime @default(now())
 
+  // is this a draft
+  draft     Article?  @relation(name: "DraftRelation", fields: [articleId], references: [id])
+  Article   Article[] @relation(name: "DraftRelation")
+  articleId Int?
+
   @@index([title])
 }
 
+// Next auth
 model Account {
   id                String  @id @default(cuid())
   userId            String

@@ -33,7 +33,7 @@ import type { Parent, Code } from "mdast";
 import path from "path";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { PublishDrawer } from "~/components/publish_drawer";
+import { DrawerDialogDemo } from "~/components/publish_drawer";
 import { useTheme } from "next-themes";
 import "./InitializedMDXEditor.module.css"
 import clsx from "clsx";
@@ -193,7 +193,7 @@ export default function InitializedMDXEditor({
             >
                 Shrani
             </Button>
-            <PublishDrawer
+            <DrawerDialogDemo
                 onClick={async () => {
                     await rename_and_save()
                 }}

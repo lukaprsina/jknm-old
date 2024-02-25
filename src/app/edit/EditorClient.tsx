@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 import type { Article } from "@prisma/client";
 import type { save_article as save_type } from "../actions";
+import { Skeleton } from "~/components/ui/skeleton";
 
 const Editor = dynamic(() => import("./InitializedMDXEditor"), { ssr: false });
 
@@ -25,11 +26,23 @@ type EditorClientProps = {
     save_article: typeof save_type;
 }
 
+function EditorSkeleton() {
+    return (
+        <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+            </div>
+        </div>
+    )
+}
+
 export default function EditorClient({ article, save_article }: EditorClientProps) {
     const ref = useRef<MDXEditorMethods>(null)
 
-    return (
-        <Suspense fallback={null}>
+    return (/* TODO: skeleton doesn't work */
+        <Suspense fallback={<EditorSkeleton />}>
             <ForwardRefEditor ref={ref} article={article} save_article={save_article} />
         </Suspense>
     )
