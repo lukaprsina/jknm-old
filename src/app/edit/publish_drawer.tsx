@@ -23,8 +23,15 @@ import {
 } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Separator } from "../../components/ui/separator"
 
-export function DrawerDialogDemo() {
+type PublishDrawerProps = {
+    onClick: () => void
+    title: string
+    url: string
+}
+
+export function PublishDrawer({ onClick, title, url }: PublishDrawerProps) {
     const [open, setOpen] = React.useState(false)
     const isDesktop = useMediaQuery("(min-width: 768px)")
 
@@ -32,13 +39,18 @@ export function DrawerDialogDemo() {
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">Edit Profile</Button>
+                    <Button variant="outline">Objavi novičko</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Edit profile</DialogTitle>
+                        <DialogTitle>Objavi novičko</DialogTitle>
                         <DialogDescription>
-                            Make changes to your profile here. Click save when you're done.
+                            <span>Ime:</span>{' '}
+                            <pre className="inline">{title}</pre>
+                            <p />
+                            <span>URL:</span>{' '}
+                            <pre className="inline">{url}</pre>
+                            <Separator />
                         </DialogDescription>
                     </DialogHeader>
                     <ProfileForm />
@@ -50,13 +62,17 @@ export function DrawerDialogDemo() {
     return (
         <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>
-                <Button variant="outline">Edit Profile</Button>
+                <Button variant="outline">Objavi novičko</Button>
             </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader className="text-left">
-                    <DrawerTitle>Edit profile</DrawerTitle>
+                    <DrawerTitle>Objavi novičko</DrawerTitle>
                     <DrawerDescription>
-                        Make changes to your profile here. Click save when you're done.
+                        <span>Ime:</span>
+                        <pre>{title}</pre>
+                        <span>URL:</span>
+                        <pre>{url}</pre>
+                        <Separator />
                     </DrawerDescription>
                 </DrawerHeader>
                 <ProfileForm className="px-4" />

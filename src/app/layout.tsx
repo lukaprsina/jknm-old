@@ -6,10 +6,10 @@ import 'modified-editor/style.css'
 
 import { Inter } from "next/font/google";
 
-import ResponsiveShell from "../components/responsive_shell";
+import ResponsiveShell from "./responsive_shell";
 import { new_article } from './actions';
-import { ThemeProvider } from '~/components/theme_provider';
-import Providers from "~/components/providers";
+import { ThemeProvider } from '~/app/theme_provider';
+import Providers from "~/app/providers";
 import { cn } from "~/lib/utils";
 
 const inter = Inter({
@@ -43,9 +43,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ResponsiveShell new_article={new_article}>
-              {children}
-            </ResponsiveShell>
+            {children}
           </ThemeProvider>
         </body>
       </html>

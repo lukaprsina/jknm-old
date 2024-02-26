@@ -31,12 +31,16 @@ const read_schema = z.object({
 })
 
 export const read_article = action(read_schema, async ({ url }): Promise<Article | undefined> => {
+    const session = await getServerAuthSession()
+
     const article = await db.article.findUnique({
         where: {
-            url,            
+            url,
         }
     })
+
     if (!article) console.error("NO ARTICLE FOUND!!, reading", { url })
+    if (article?.published == false && session?.user.id != article?.createdById) return undefined
 
     return article ?? undefined
 })
@@ -104,8 +108,33 @@ export const save_article = action(save_article_schema, async ({ title, url: uns
             url: final_url,
             content: final_content,
             published: published ?? article.published,
+            publishedAt: published ? new Date() : article.publishedAt,
+            updatedAt: new Date(),
         }
     })
 
     return final_url
+})
+
+const make_or_return_draft_schema = z.object({
+    url: z.string().optional(),
+})
+
+export const make_or_return_draft = action(make_or_return_draft_schema, async ({ url }) => {
+    const session = await getServerAuthSession()
+    if (!session?.user) throw new Error("No user")
+    revalidateTag("articles")
+
+    const original_article = await db.article.findUniqueOrThrow({
+        where: {
+            url
+        },
+        include: {
+            drafts: true
+        }
+    })
+
+    if (!original_article) throw new Error("No article found")
+    console.warn(original_article.drafts)
+    // if (original_article.published)
 })

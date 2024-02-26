@@ -22,20 +22,20 @@ import {
     // } from '@mdxeditor/editor'
     // } from '@lukaprsina/mdxeditor'
 } from 'modified-editor'
-import { Toolbar } from "./Toolbar";
+import { Toolbar } from "./toolbar";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./EditorClient";
-import { sanitize_for_fs } from "~/lib/fs";
+import { WEB_FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { toMarkdown } from "mdast-util-to-markdown"
 import type { Parent, Code } from "mdast";
 import path from "path";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { DrawerDialogDemo } from "~/components/publish_drawer";
+import { PublishDrawer } from "~/app/edit/publish_drawer";
 import { useTheme } from "next-themes";
-import "./InitializedMDXEditor.module.css"
+import "./initialized.module.css"
 import clsx from "clsx";
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
@@ -75,10 +75,12 @@ const allPlugins = (diffMarkdown: string, url?: string) => [
     markdownShortcutPlugin(),
 ]
 
+const IMAGE_FS_PREFIX = `/${WEB_FILESYSTEM_PREFIX}/`
+
 function change_url(current_url: string, previous_url: string) {
-    if (!previous_url.startsWith("/fs/")) return previous_url
+    if (!previous_url.startsWith(IMAGE_FS_PREFIX)) return previous_url
     const name = path.basename(previous_url)
-    return path.join("/fs/", current_url, name)
+    return path.join(IMAGE_FS_PREFIX, current_url, name)
 }
 
 export default function InitializedMDXEditor({
@@ -193,7 +195,7 @@ export default function InitializedMDXEditor({
             >
                 Shrani
             </Button>
-            <DrawerDialogDemo
+            <PublishDrawer
                 onClick={async () => {
                     await rename_and_save()
                 }}
@@ -216,8 +218,7 @@ export default function InitializedMDXEditor({
                 plugins={allPlugins(markdown ?? "", search_params.get("url") ?? undefined)}
                 {...props}
                 markdown={markdown ?? ""}
-                className={clsx(theme.theme === "dark" ? "dark-theme dark-editor" : "")}
-
+                className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}
                 contentEditableClassName="max-w-full"
                 ref={editorRef}
             />

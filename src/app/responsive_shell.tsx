@@ -2,24 +2,31 @@
 
 import Image from 'next/image';
 import logo from '~/content/logo.png'
-import { type new_article as new_article_type } from '../app/actions'
+import { new_article, type new_article as new_article_type } from './actions'
 import Link from 'next/link';
-import { MobileIcon, Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
+import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { remove_article_prefix } from '~/lib/fs';
 import { ModeToggle } from './mode_toggle';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { Label } from './ui/label';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
+import { Label } from '../components/ui/label';
+import type { User } from '@prisma/client';
 
 type ResponsiveShellProps = {
     children: React.ReactNode
-    new_article: typeof new_article_type
+    editable?: boolean
+    user?: {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    } // user, but omit emailVerified
 }
 
-export default function ResponsiveShell({ children, new_article }: ResponsiveShellProps) {
+export default function ResponsiveShell({ user, editable, children }: ResponsiveShellProps) {
     const pathname = usePathname()
     const [searchText, setSearchText] = useState('');
 
@@ -31,6 +38,8 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
             <div className="container flex h-14 max-w-screen-2xl items-center">
                 <MobileNav />
                 <MainNav
+                    signedIn={typeof user !== "undefined"}
+                    editable={editable ?? false}
                     new_article={new_article}
                     sanitized_url={sanitized_url}
                     searchText={searchText}
@@ -38,7 +47,7 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
                 />
             </div>
         </nav>
-        <main className="prose lg:prose-xl mt-4 min-w-full dark:prose-invert">
+        <main className="mt-4 min-w-full">
             {children}
         </main>
         <footer className="py-6 md:px-8 md:py-0">
@@ -49,14 +58,16 @@ export default function ResponsiveShell({ children, new_article }: ResponsiveShe
     </>
 }
 
-type DesktopNavProps = {
+type MainNavProps = {
+    editable: boolean
+    signedIn: boolean
     new_article: typeof new_article_type
     searchText: string
     setSearchText: (value: string) => void
     sanitized_url: string
 }
 
-function MainNav({ new_article, sanitized_url, searchText, setSearchText }: DesktopNavProps) {
+function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText }: MainNavProps) {
     const router = useRouter()
 
     return <>
@@ -82,7 +93,18 @@ function MainNav({ new_article, sanitized_url, searchText, setSearchText }: Desk
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
             />
-            <Button
+            {editable && signedIn && <Button asChild size="icon" variant="outline">
+                <Link
+                    href={{
+                        pathname: '/edit',
+                        query: { url: sanitized_url },
+                    }}
+                    className='h-fill'
+                >
+                    <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
+                </Link>
+            </Button>}
+            {signedIn && <Button
                 size="icon"
                 variant="outline"
                 onClick={async () => {
@@ -94,18 +116,7 @@ function MainNav({ new_article, sanitized_url, searchText, setSearchText }: Desk
                 }}
             >
                 <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
-            </Button>
-            <Button asChild size="icon" variant="outline">
-                <Link
-                    href={{
-                        pathname: '/edit',
-                        query: { url: sanitized_url },
-                    }}
-                    className='h-fill'
-                >
-                    <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
-                </Link>
-            </Button>
+            </Button>}
             <ModeToggle />
         </div>
     </>
