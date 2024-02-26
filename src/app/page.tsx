@@ -9,7 +9,7 @@ import ResponsiveShell from "./responsive_shell";
 
 const getPublishedArticles = unstable_cache(async () => db.article.findMany({
   where: {
-    published: true
+    // published: true
   },
   select: {
     title: true,
@@ -21,39 +21,6 @@ const getPublishedArticles = unstable_cache(async () => db.article.findMany({
     createdAt: "desc"
   }
 }), ["published_articles"], { tags: ["articles"], revalidate: 300 })
-
-const getArticlesFromOthers = unstable_cache(async (id?: string) => db.article.findMany({
-  where: {
-    published: true,
-    NOT: {
-      createdById: id
-    }
-  },
-  select: {
-    title: true,
-    id: true,
-    url: true,
-    createdById: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  }
-}), ["articles_from_others"], { tags: ["articles"], revalidate: 300 })
-
-const getYourArticles = unstable_cache(async (id?: string) => db.article.findMany({
-  where: {
-    createdById: id
-  },
-  select: {
-    title: true,
-    id: true,
-    url: true,
-    createdById: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  }
-}), ["your_articles"], { tags: ["articles"], revalidate: 300 })
 
 export default async function HomePage() {
   const published_articles = await getPublishedArticles();

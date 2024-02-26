@@ -130,11 +130,37 @@ export const make_or_return_draft = action(make_or_return_draft_schema, async ({
             url
         },
         include: {
-            drafts: true
+            drafts: {
+                where: {
+                    createdById: session.user.id,
+                },
+                orderBy: {
+                    createdAt: "desc"
+                },
+                take: 1,
+            }
         }
     })
 
-    if (!original_article) throw new Error("No article found")
-    console.warn(original_article.drafts)
-    // if (original_article.published)
+    if (original_article.drafts.length > 0) {
+        return original_article.drafts[0]
+    } else {
+        const now = new Date()
+        const draft_name = `${original_article.url}-${now.getTime()}`
+
+        const new_draft = await db.article.create({
+            data: {
+                title: original_article.title,
+                url: draft_name,
+                content: original_article.content,
+                createdById: session.user.id,
+            }
+        })
+
+        await fs.mkdir(path.join(FILESYSTEM_PREFIX, draft_name), { recursive: true })
+        await fs.copy(path.join(FILESYSTEM_PREFIX, original_article.url), path.join(FILESYSTEM_PREFIX, draft_name))
+
+        return new_draft
+    }
+
 })

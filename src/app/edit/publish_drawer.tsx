@@ -27,11 +27,14 @@ import { Separator } from "../../components/ui/separator"
 
 type PublishDrawerProps = {
     onClick: () => void
+    imageUrls: string[]
     title: string
     url: string
+    published: boolean
+    setPublished: (published: boolean) => void
 }
 
-export function PublishDrawer({ onClick, title, url }: PublishDrawerProps) {
+export function PublishDrawer({ imageUrls, onClick, title, url, published, setPublished }: PublishDrawerProps) {
     const [open, setOpen] = React.useState(false)
     const isDesktop = useMediaQuery("(min-width: 768px)")
 
@@ -53,7 +56,10 @@ export function PublishDrawer({ onClick, title, url }: PublishDrawerProps) {
                             <Separator />
                         </DialogDescription>
                     </DialogHeader>
-                    <ProfileForm />
+                    <ProfileForm
+                        imageUrls={imageUrls}
+                        onClick={onClick}
+                    />
                 </DialogContent>
             </Dialog>
         )
@@ -75,7 +81,11 @@ export function PublishDrawer({ onClick, title, url }: PublishDrawerProps) {
                         <Separator />
                     </DrawerDescription>
                 </DrawerHeader>
-                <ProfileForm className="px-4" />
+                <ProfileForm
+                    className="px-4"
+                    imageUrls={imageUrls}
+                    onClick={onClick}
+                />
                 <DrawerFooter className="pt-2">
                     <DrawerClose asChild>
                         <Button variant="outline">Cancel</Button>
@@ -86,7 +96,12 @@ export function PublishDrawer({ onClick, title, url }: PublishDrawerProps) {
     )
 }
 
-function ProfileForm({ className }: React.ComponentProps<"form">) {
+type ProfileFormProps = {
+    onClick: () => void
+    imageUrls: string[]
+} & React.ComponentProps<"form">
+
+function ProfileForm({ className, imageUrls, onClick }: ProfileFormProps) {
     return (
         <form className={cn("grid items-start gap-4", className)}>
             <div className="grid gap-2">
@@ -97,7 +112,14 @@ function ProfileForm({ className }: React.ComponentProps<"form">) {
                 <Label htmlFor="username">Username</Label>
                 <Input id="username" defaultValue="@shadcn" />
             </div>
-            <Button type="submit">Save changes</Button>
+            <div className="grid gap-2">
+                {imageUrls.map((url) => (
+                    <div key={url} className="flex items-center gap-2">
+                        <img src={url} alt="image" className="w-12 h-12 rounded-lg" />
+                    </div>
+                ))}
+            </div>
+            <Button /* TODO: type="submit" */ onClick={() => onClick()}>Save changes</Button>
         </form>
     )
 }

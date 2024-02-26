@@ -25,7 +25,7 @@ import {
 import { Toolbar } from "./toolbar";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForwardedRef from "~/lib/useForwardedRef";
-import type { EditorPropsJoined } from "./EditorClient";
+import type { EditorPropsJoined } from "./editor_client";
 import { WEB_FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { toMarkdown } from "mdast-util-to-markdown"
@@ -35,8 +35,10 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { PublishDrawer } from "~/app/edit/publish_drawer";
 import { useTheme } from "next-themes";
-import "./initialized.module.css"
+import "./main.module.css"
 import clsx from "clsx";
+import ResponsiveShell from "../responsive_shell";
+import { Badge } from "~/components/ui/badge";
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
     if (!image) throw new Error("No image");
@@ -97,11 +99,13 @@ export default function InitializedMDXEditor({
     const search_params = useSearchParams()
     const router = useRouter()
     const theme = useTheme()
+    const [imageUrls, setImageUrls] = useState<string[]>([])
 
     useEffect(() => {
         if (!article) return
         setUrl(article.url)
         setTitle(article.title)
+        setPublished(article.published)
         console.log("setting markdown", article)
         innerRef.current?.setMarkdown(article.content)
     }, [article])
@@ -112,14 +116,15 @@ export default function InitializedMDXEditor({
         const markdown = innerRef.current?.getMarkdown()
         if (!markdown) return;
 
-        const { markdown: new_markdown, title: new_title } = traverse_tree(markdown)
+        const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown)
         if (typeof new_title !== "string")
             throw new Error("No title found")
 
         const new_url = sanitize_for_fs(new_title)
-        console.warn({ new_title, new_url })
+        console.warn({ new_title, new_url, image_urls })
         setTitle(new_title)
         setUrl(new_url)
+        setImageUrls(image_urls)
 
 
         const result = await save_article({
@@ -139,28 +144,31 @@ export default function InitializedMDXEditor({
 
     function traverse_tree(markdown: string) {
         const tree = fromMarkdown(markdown, {})
-        let heading: string | undefined;
 
-        function find_heading(node: Parent | Code) {
-            if (typeof heading !== "undefined" || node.type === "code") {
-                return;
-            }
+        function find_heading(node: Parent | Code): string | undefined {
             node = node as Parent
 
             for (const child of node.children) {
                 if (Object.keys(child).includes("children")) {
-                    find_heading(child as Parent);
+                    const heading = find_heading(child as Parent);
+                    if (typeof heading == "string")
+                        return heading
                 }
 
                 if (child.type == "heading" && child.depth == 1) {
                     if (child.children.length == 1 && child.children[0]?.type == "text") {
-                        heading = child.children[0].value
+                        console.warn("FOUND IT!", child.children[0].value)
+                        return child.children[0].value
                     }
                 }
             }
+
+            return
         }
 
-        function change_images(node: Parent | Code) {
+        const image_urls: string[] = []
+
+        function change_images(node: Parent | Code, new_url: string) {
             if (node.type === "code") {
                 return;
             }
@@ -168,62 +176,75 @@ export default function InitializedMDXEditor({
 
             for (const child of node.children) {
                 if (Object.keys(child).includes("children")) {
-                    change_images(child as Parent);
+                    change_images(child as Parent, new_url);
                 }
 
-                if (child.type == "image" && typeof heading === "string") {
-                    child.url = change_url(heading, child.url)
+                if (child.type == "image" && typeof new_url === "string") {
+                    child.url = change_url(new_url, child.url)
+                    image_urls.push(child.url)
                     console.log("image found", child)
                 }
             }
         }
 
-        find_heading(tree)
-        change_images(tree)
+        const heading = find_heading(tree)
+        console.warn("returned heading", heading)
+        if (typeof heading === "undefined") throw new Error("No heading found")
+        const new_url = sanitize_for_fs(heading)
+
+        change_images(tree, new_url)
 
         return {
             markdown: toMarkdown(tree, {}),
-            title: heading
+            new_title: heading,
+            image_urls
         }
     }
 
-    return <div className="container">
-        <div className="flex space-x-2 flex-end">
-            <Button
-                variant="outline"
-                onClick={async () => await rename_and_save()}
-            >
-                Shrani
-            </Button>
-            <PublishDrawer
-                onClick={async () => {
-                    await rename_and_save()
-                }}
-                title={title}
-                url={url}
-            />
-            <Button asChild variant="outline">
-                <Link
-                    className="no-underline"
-                    href={`/novicka/${search_params.get("url") ?? ""}`}
-                    target="_blank"
-                >
-                    Obišči stran
-                </Link>
-            </Button>
-        </div>
+    return (
+        <ResponsiveShell>
+            <div className="prose-xl dark:prose-invert container">
+                <div className="my-2 flex flex-end justify-between">
+                    <div className="space-x-2">
+                        <Button
+                            variant="outline"
+                            onClick={async () => await rename_and_save()}
+                        >
+                            Shrani
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link
+                                className="no-underline"
+                                href={`/novicka/${search_params.get("url") ?? ""}`}
+                                target="_blank"
+                            >
+                                Obišči stran
+                            </Link>
+                        </Button>
+                        <PublishDrawer
+                            onClick={async () => await rename_and_save()}
+                            imageUrls={imageUrls}
+                            title={title}
+                            url={url}
+                            published={published}
+                            setPublished={setPublished}
+                        />
+                    </div>
+                    <Badge className="" variant="outline">{published ? "Popravljanje" : "Neobjavljeno"}</Badge>
+                </div>
 
-        <div className="border-2 border-primary/25 rounded-md">
-            <MDXEditor
-                plugins={allPlugins(markdown ?? "", search_params.get("url") ?? undefined)}
-                {...props}
-                markdown={markdown ?? ""}
-                className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}
-                contentEditableClassName="max-w-full"
-                ref={editorRef}
-            />
-        </div>
-        <div style={{ height: "70px" }} />
-    </div>
-
+                <div className="border-2 border-primary/25 rounded-md">
+                    <MDXEditor
+                        plugins={allPlugins(markdown ?? "", search_params.get("url") ?? undefined)}
+                        {...props}
+                        markdown={markdown ?? ""}
+                        className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}
+                        contentEditableClassName="max-w-full"
+                        ref={editorRef}
+                    />
+                </div>
+                <div style={{ height: "70px" }} />
+            </div>
+        </ResponsiveShell>
+    )
 }

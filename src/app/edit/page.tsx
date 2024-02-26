@@ -1,5 +1,5 @@
 import { read_article } from "../actions";
-import EditorClient from "./EditorClient";
+import EditorClient from "./editor_client";
 import { save_article } from "../actions";
 import { useMemo } from "react";
 

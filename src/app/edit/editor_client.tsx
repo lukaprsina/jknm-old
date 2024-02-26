@@ -10,7 +10,7 @@ import type { Article } from "@prisma/client";
 import type { save_article as save_type } from "../actions";
 import { Skeleton } from "~/components/ui/skeleton";
 
-const Editor = dynamic(() => import("./initialized"), { ssr: false });
+const Editor = dynamic(() => import("./main"), { ssr: false });
 
 export type EditorPropsJoined<T> = Partial<T>
     & EditorClientProps
