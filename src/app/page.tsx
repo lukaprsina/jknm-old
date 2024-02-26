@@ -2,23 +2,109 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import path from "path";
 import { ARTICLE_PREFIX } from "~/lib/fs";
+import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { Card } from "~/components/ui/card";
 
-const getArticles = unstable_cache(async () => db.article.findMany(), ["find"], { tags: ["articles"], revalidate: 300 })
+const getPublishedArticles = unstable_cache(async () => db.article.findMany({
+  where: {
+    published: true
+  },
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  }
+}), ["published_articles"], { tags: ["articles"], revalidate: 300 })
+
+const getArticlesFromOthers = unstable_cache(async (id?: string) => db.article.findMany({
+  where: {
+    published: true,
+    NOT: {
+      createdById: id
+    }
+  },
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  }
+}), ["articles_from_others"], { tags: ["articles"], revalidate: 300 })
+
+const getYourArticles = unstable_cache(async (id?: string) => db.article.findMany({
+  where: {
+    createdById: id
+  },
+  select: {
+    title: true,
+    id: true,
+    url: true,
+    createdById: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  }
+}), ["your_articles"], { tags: ["articles"], revalidate: 300 })
 
 export default async function HomePage() {
-  const articles = await getArticles();
+  const session = await getServerAuthSession()
+  const published_articles = await getPublishedArticles();
+  const your_articles = await getYourArticles();
 
-  return <>
-    <div className="prose lg:prose-xl">
-      <h1>Articles</h1>
-      {articles.map((article) => (
-        <div key={article.id}>
-          <Link href={path.join(ARTICLE_PREFIX, article.url)}>
-            {article.title}
+  return <div className="container">
+    {/* Public articles */}
+    <div className="grid grid-cols-3 grid-rows-2 gap-4 h-56">
+      {published_articles.length === 0 ? <p>Ni novic</p> : <>
+        <Card className="col-span-3 row-span-1 h-full">
+          <Link href={path.join(ARTICLE_PREFIX, published_articles[0]?.url ?? '')}>
+            {published_articles[0]?.title ?? ''}
           </Link>
-        </div>
-      ))}
+        </Card>
+        <MultipleCards articles={published_articles.slice(1)} />
+      </>}
     </div>
+    {/* Your articles */}
+    <div className="grid grid-cols-3 grid-rows-2 gap-4 h-56">
+      {your_articles.length === 0 ? <p>Ni novic</p> : <>
+        <Card className="col-span-3 row-span-1 h-full">
+          <Link href={path.join(ARTICLE_PREFIX, your_articles[0]?.url ?? '')}>
+            {your_articles[0]?.title ?? ''}
+          </Link>
+        </Card>
+        <MultipleCards articles={your_articles.slice(1)} />
+      </>}
+    </div>
+  </div>
+}
+
+type MultipleCardsProps = {
+  articles: {
+    title: string;
+    id: number;
+    url: string;
+  }[]
+}
+
+function MultipleCards({ articles }: MultipleCardsProps) {
+  return <>
+    {
+      articles.map((article) => (
+        <div key={article.id}>
+          <Card className="col-span-1 h-full">
+            <Link href={path.join(ARTICLE_PREFIX, article.url)}>
+              {article.title}
+            </Link>
+          </Card>
+        </div>
+      ))
+    }
   </>
 }

@@ -23,14 +23,23 @@ import {
     // } from '@lukaprsina/mdxeditor'
 } from 'modified-editor'
 import { Toolbar } from "./Toolbar";
-import { Box, Button, Flex, TextInput } from "@mantine/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./EditorClient";
 import { sanitize_for_fs } from "~/lib/fs";
+import { fromMarkdown } from "mdast-util-from-markdown"
+import { toMarkdown } from "mdast-util-to-markdown"
+import type { Parent, Code } from "mdast";
+import path from "path";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
+import { DrawerDialogDemo } from "~/components/publish_drawer";
+import { useTheme } from "next-themes";
+import "./InitializedMDXEditor.module.css"
+import clsx from "clsx";
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
-    if (!image) return;
+    if (!image) throw new Error("No image");
     if (typeof url == "undefined") throw new Error("No url")
 
     const form = new FormData()
@@ -66,6 +75,12 @@ const allPlugins = (diffMarkdown: string, url?: string) => [
     markdownShortcutPlugin(),
 ]
 
+function change_url(current_url: string, previous_url: string) {
+    if (!previous_url.startsWith("/fs/")) return previous_url
+    const name = path.basename(previous_url)
+    return path.join("/fs/", current_url, name)
+}
+
 export default function InitializedMDXEditor({
     editorRef,
     article,
@@ -75,9 +90,11 @@ export default function InitializedMDXEditor({
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
     const [url, setUrl] = useState<string>("")
+    const [published, setPublished] = useState<boolean>(false)
     const innerRef = useForwardedRef(editorRef);
     const search_params = useSearchParams()
     const router = useRouter()
+    const theme = useTheme()
 
     useEffect(() => {
         if (!article) return
@@ -87,58 +104,125 @@ export default function InitializedMDXEditor({
         innerRef.current?.setMarkdown(article.content)
     }, [article])
 
-    useEffect(() => {
-        setUrl(sanitize_for_fs(title))
-    }, [title])
+    async function rename_and_save() {
+        if (!innerRef.current || !article) return
 
-    return <>
-        <Flex align="flex-end" columnGap="md">
-            <TextInput
-                label="Url"
-                disabled
-                w={200}
-                value={url}
-                onChange={(event) => setUrl(event.currentTarget.value)}
-            />
-            <TextInput
-                label="Title"
-                w={200}
-                value={title}
-                onChange={(event) => setTitle(event.currentTarget.value)}
-            />
+        const markdown = innerRef.current?.getMarkdown()
+        if (!markdown) return;
+
+        const { markdown: new_markdown, title: new_title } = traverse_tree(markdown)
+        if (typeof new_title !== "string")
+            throw new Error("No title found")
+
+        const new_url = sanitize_for_fs(new_title)
+        console.warn({ new_title, new_url })
+        setTitle(new_title)
+        setUrl(new_url)
+
+
+        const result = await save_article({
+            id: article.id,
+            url: new_url,
+            title: new_title,
+            content: new_markdown,
+            published
+        })
+
+        console.log("saved", result)
+
+        if (!result.serverError && !result.validationErrors) {
+            router.push(`/edit?url=${new_url}`)
+        }
+    }
+
+    function traverse_tree(markdown: string) {
+        const tree = fromMarkdown(markdown, {})
+        let heading: string | undefined;
+
+        function find_heading(node: Parent | Code) {
+            if (typeof heading !== "undefined" || node.type === "code") {
+                return;
+            }
+            node = node as Parent
+
+            for (const child of node.children) {
+                if (Object.keys(child).includes("children")) {
+                    find_heading(child as Parent);
+                }
+
+                if (child.type == "heading" && child.depth == 1) {
+                    if (child.children.length == 1 && child.children[0]?.type == "text") {
+                        heading = child.children[0].value
+                    }
+                }
+            }
+        }
+
+        function change_images(node: Parent | Code) {
+            if (node.type === "code") {
+                return;
+            }
+            node = node as Parent
+
+            for (const child of node.children) {
+                if (Object.keys(child).includes("children")) {
+                    change_images(child as Parent);
+                }
+
+                if (child.type == "image" && typeof heading === "string") {
+                    child.url = change_url(heading, child.url)
+                    console.log("image found", child)
+                }
+            }
+        }
+
+        find_heading(tree)
+        change_images(tree)
+
+        return {
+            markdown: toMarkdown(tree, {}),
+            title: heading
+        }
+    }
+
+    return <div className="container">
+        <div className="flex space-x-2 flex-end">
             <Button
-                className="prose"
-                onClick={async () => {
-                    if (!url || !innerRef.current || !article) return
-
-                    const result = await save_article({
-                        id: article.id,
-                        url,
-                        title,
-                        content: innerRef.current.getMarkdown(),
-                    })
-
-                    console.log("saved", result)
-
-                    if (!result.serverError && !result.validationErrors)
-                        router.push(`/edit?url=${url}`)
-                }}
+                variant="outline"
+                onClick={async () => await rename_and_save()}
             >
-                Save
+                Shrani
             </Button>
-        </Flex>
+            <DrawerDialogDemo
+                onClick={async () => {
+                    await rename_and_save()
+                }}
+                title={title}
+                url={url}
+            />
+            <Button asChild variant="outline">
+                <Link
+                    className="no-underline"
+                    href={`/novicka/${search_params.get("url") ?? ""}`}
+                    target="_blank"
+                >
+                    Obišči stran
+                </Link>
+            </Button>
+        </div>
 
-        <Box style={{ marginTop: "2.25rem", border: "1px solid black" }}>
+        <div className="border-2 border-primary/25 rounded-md">
             <MDXEditor
                 plugins={allPlugins(markdown ?? "", search_params.get("url") ?? undefined)}
                 {...props}
                 markdown={markdown ?? ""}
-                className=""
-                contentEditableClassName="prose lg:prose-xl max-w-full"
+                className={clsx(theme.theme === "dark" ? "dark-theme dark-editor" : "")}
+
+                contentEditableClassName="max-w-full"
                 ref={editorRef}
             />
-        </Box>
-        <Box style={{ height: "70px" }} />
-    </>
+        </div>
+        <div style={{ height: "70px" }} />
+    </div>
 
 }

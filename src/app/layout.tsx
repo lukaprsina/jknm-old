@@ -6,11 +6,11 @@ import 'modified-editor/style.css'
 
 import { Inter } from "next/font/google";
 
-import ResponsiveShell from "./responsive_shell";
+import ResponsiveShell from "../components/responsive_shell";
 import { new_article } from './actions';
-
-import { ColorSchemeScript, MantineProvider } from '@mantine/core';
-import Providers from "./providers";
+import { ThemeProvider } from '~/components/theme_provider';
+import Providers from "~/components/providers";
+import { cn } from "~/lib/utils";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,15 +31,22 @@ export default function RootLayout({
   return (
     <Providers>
       <html lang="en">
-        <head>
-          <ColorSchemeScript />
-        </head>
-        <body className={`font-sans ${inter.variable}`}>
-          <MantineProvider>
+        <body
+          className={cn(
+            "min-h-screen bg-background font-sans antialiased",
+            inter.variable
+          )}
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <ResponsiveShell new_article={new_article}>
               {children}
             </ResponsiveShell>
-          </MantineProvider>
+          </ThemeProvider>
         </body>
       </html>
     </Providers>
