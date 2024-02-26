@@ -10,7 +10,9 @@ export default function Account() {
         <Container>
             {session.status == "unauthenticated" ? <Button onClick={() => signIn("google", { callbackUrl: "/" })}>Sign in</Button> : null}
             {session.status == "authenticated" ? <Button onClick={() => signOut({ callbackUrl: "/" })}>Sign out</Button> : null}
-            <pre className="text-wrap">{JSON.stringify(session)}</pre>
+            <pre className="break-all min-w-0">
+                {JSON.stringify(session, null, 2)}
+            </pre>
         </Container>
     )
 }
