@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidateTag } from 'next/cache'
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import path from "path"
@@ -40,7 +39,7 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
         }
     })
 
-    console.log("from read_article", { url })
+    console.log("reading article", { url })
     if (!article) throw new Error("No article found")
     if (article?.published == false && session?.user.id != article?.createdById) return undefined
 
@@ -52,7 +51,6 @@ const new_article_schema = z.object({})
 export const new_article = action(new_article_schema, async ({ }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    revalidateTag("articles")
 
     const now = new Date()
     const temp_name = `untitled-${now.getTime()}`
@@ -83,7 +81,7 @@ export type SaveArticleType = z.infer<typeof save_article_schema>
 export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id, published }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    revalidateTag("articles")
+    console.log("saving article", { title, unsafe_url, content, id, published })
 
     const previous_article = await db.article.findUniqueOrThrow({
         where: {
@@ -127,7 +125,6 @@ const make_or_return_draft_schema = z.object({
 export const make_or_return_draft = action(make_or_return_draft_schema, async ({ url }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    revalidateTag("articles")
 
     const original_article = await db.article.findUniqueOrThrow({
         where: {

@@ -21,7 +21,7 @@ import ResponsiveShell from "../../responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../actions";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { allPlugins, traverse_tree } from "./helpers";
+import { allPlugins, traverse_tree, update_state } from "./helpers";
 import { Route } from "./routeType";
 import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
@@ -32,6 +32,7 @@ function useEditorArticle(initialArticle: Article | undefined, article_url: stri
     const { data, refetch } = useQuery({
         queryKey: ["editor_article", article_url],
         queryFn: async () => {
+            console.log("reading article", { article_url, initialArticle })
             if (typeof article_url !== "string") return
 
             const article = await read_article({ url: article_url })
@@ -43,6 +44,7 @@ function useEditorArticle(initialArticle: Article | undefined, article_url: stri
     const { mutate } = useMutation({
         mutationKey: ["save_article", article_url],
         mutationFn: async (input: SaveArticleType) => {
+            console.log("saving article", { article_url, initialArticle })
             if (typeof data === "undefined") return
 
             const article = await save_article(input)
@@ -82,25 +84,30 @@ export default function InitializedMDXEditor({
     } = useEditorArticle(initialArticle, routeParams.data?.articleUrl, router)
 
     useEffect(() => {
-        if (!innerRef.current || !article) return
-
         const markdown = innerRef.current?.getMarkdown()
-        if (!markdown) return;
+        if (!innerRef.current || !article || !markdown) return
+        const {
+            new_title,
+            new_markdown,
+            image_urls,
+            new_url
+        } = update_state(markdown)
 
-        const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown)
-        if (typeof new_title !== "string")
-            throw new Error("No title found")
-
-        const new_url = sanitize_for_fs(new_title)
         setTitle(new_title)
         setUrl(new_url)
         setImageUrls(image_urls)
+        console.log("updated state", { new_title, new_markdown, image_urls, new_url })
 
         innerRef.current?.setMarkdown(new_markdown)
     }, [article])
 
-    if (!article || routeParams.isError || !routeParams.data)
+    if (routeParams.isLoading)
+        return <p>Loading...</p>
+
+    if (!article || routeParams.isError || !routeParams.data) {
+        console.log({ article, routeParams })
         throw new Error("Article not found (ZOD)")
+    }
 
     return (
         <ResponsiveShell>

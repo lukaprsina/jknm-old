@@ -123,3 +123,18 @@ export function traverse_tree(markdown: string) {
         image_urls
     }
 }
+
+export function update_state(markdown: string) {
+    const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown)
+    if (typeof new_title !== "string")
+        throw new Error("No title found")
+
+    const new_url = sanitize_for_fs(new_title)
+
+    return {
+        new_markdown,
+        new_title,
+        new_url,
+        image_urls
+    }
+}
