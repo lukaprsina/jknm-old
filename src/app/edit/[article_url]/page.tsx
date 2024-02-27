@@ -9,7 +9,7 @@ import { Route, type RouteType } from "./routeType";
 type PageProps = InferPagePropsType<RouteType>;
 
 async function EditorServer({ routeParams }: PageProps) {
-    const response = await read_article({ url: routeParams.articleUrl })
+    const response = await read_article({ url: routeParams.article_url })
 
     return (
         <EditorClient article={response.data} />

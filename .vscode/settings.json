@@ -1,7 +1,10 @@
 {
   "easynpm.defaultProjectRoot": "d:\\dev\\js\\jknm-next",
-  // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
     "source.fixAll": "always"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
   },
 }

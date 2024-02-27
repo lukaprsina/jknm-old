@@ -6,14 +6,14 @@
 /* eslint-disable */
 
 
-import { type RouteType as Route_0 } from "./src/app/edit/[articleUrl]/routeType";
+import { type RouteType as Route_0 } from "./src/app/edit/[article_url]/routeType";
 import { type RouteType as Route_1 } from "./src/app/novicka/[novicka_name]/routeType";
 import type { InferRoute, StaticRoute } from "next-typesafe-url";
 
 declare module "@@@next-typesafe-url" {
   
   interface DynamicRouter {
-    "/edit/[articleUrl]": InferRoute<Route_0>;
+    "/edit/[article_url]": InferRoute<Route_0>;
     "/novicka/[novicka_name]": InferRoute<Route_1>;
   }
 

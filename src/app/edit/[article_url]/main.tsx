@@ -10,7 +10,6 @@ import {
 } from 'modified-editor'
 import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./editor_client";
-import { sanitize_for_fs } from "~/lib/fs";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { PublishDrawer } from "./publish_drawer";
@@ -21,19 +20,23 @@ import ResponsiveShell from "../../responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../actions";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { allPlugins, traverse_tree, update_state } from "./helpers";
+import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";
 import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-function useEditorArticle(initialArticle: Article | undefined, article_url: string | undefined, router: AppRouterInstance) {
+function useEditorArticle(
+    initialArticle: Article | undefined,
+    article_url: string | undefined,
+    router: AppRouterInstance
+) {
     const { data, refetch } = useQuery({
         queryKey: ["editor_article", article_url],
         queryFn: async () => {
-            console.log("reading article", { article_url, initialArticle })
-            if (typeof article_url !== "string") return
+            console.log("reading article queryfn", { article_url, initialArticle })
+            if (typeof article_url !== "string") return null
 
             const article = await read_article({ url: article_url })
             return article.data
@@ -45,7 +48,7 @@ function useEditorArticle(initialArticle: Article | undefined, article_url: stri
         mutationKey: ["save_article", article_url],
         mutationFn: async (input: SaveArticleType) => {
             console.log("saving article", { article_url, initialArticle })
-            if (typeof data === "undefined") return
+            if (typeof data === "undefined") return null
 
             const article = await save_article(input)
             if (article.data && !article.serverError && !article.validationErrors)
@@ -81,7 +84,7 @@ export default function InitializedMDXEditor({
     const {
         data: article,
         mutate
-    } = useEditorArticle(initialArticle, routeParams.data?.articleUrl, router)
+    } = useEditorArticle(initialArticle, routeParams.data?.article_url, router)
 
     useEffect(() => {
         const markdown = innerRef.current?.getMarkdown()
@@ -101,10 +104,10 @@ export default function InitializedMDXEditor({
         innerRef.current?.setMarkdown(new_markdown)
     }, [article])
 
-    if (routeParams.isLoading)
+    if (!article || routeParams.isLoading)
         return <p>Loading...</p>
 
-    if (!article || routeParams.isError || !routeParams.data) {
+    if (routeParams.isError || !routeParams.data) {
         console.log({ article, routeParams })
         throw new Error("Article not found (ZOD)")
     }
@@ -116,20 +119,31 @@ export default function InitializedMDXEditor({
                     <div className="space-x-2">
                         <Button
                             variant="outline"
-                            onClick={() => mutate({
-                                id: article?.id,
-                                title,
-                                url,
-                                content: innerRef.current?.getMarkdown(),
-                                published
-                            })}
+                            onClick={() => {
+                                const markdown = innerRef.current?.getMarkdown()
+                                if (!innerRef.current || !article || !markdown) return
+
+                                const {
+                                    new_title,
+                                    new_markdown,
+                                    new_url
+                                } = update_state(markdown)
+
+                                mutate({
+                                    id: article?.id,
+                                    title: new_title,
+                                    url: new_url,
+                                    content: new_markdown,
+                                    published
+                                })
+                            }}
                         >
                             Shrani
                         </Button>
                         <Button asChild variant="outline">
                             <Link
                                 className="no-underline"
-                                href={`/novicka/${routeParams.data.articleUrl}`}
+                                href={`/novicka/${routeParams.data.article_url}`}
                                 target="_blank"
                             >
                                 Obišči stran
@@ -149,7 +163,7 @@ export default function InitializedMDXEditor({
 
                 <div className="border-2 border-primary/25 rounded-md">
                     <MDXEditor
-                        plugins={allPlugins(markdown ?? "", routeParams.data.articleUrl)}
+                        plugins={allPlugins(markdown ?? "", routeParams.data.article_url)}
                         {...props}
                         markdown={markdown ?? ""}
                         className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}

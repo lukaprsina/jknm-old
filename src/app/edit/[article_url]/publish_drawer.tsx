@@ -107,19 +107,13 @@ function ProfileForm({ className, imageUrls, save }: ProfileFormProps) {
         console.log("New image urls", imageUrls)
     }, [imageUrls])
 
-    /* onSubmit={async (formData) => {
-            console.log("Submitting form", formData)
-            /* save({
-                title: formData.title,
-                url: formData.url,
-                content: formData.content,
-                published: formData.published,
-                id: formData.id,
-            })
-}} */
-
     return (
-        <form className={cn("grid items-start gap-4", className)}>
+        <form
+            className={cn("grid items-start gap-4", className)}
+            onSubmit={async (formData) => {
+                console.log("Submitting form", formData)
+            }}
+        >
             <input type="text" name="title" />
             <input type="text" name="url" />
             <input type="text" name="content" />

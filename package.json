@@ -19,7 +19,7 @@
     "db:del": "bunx tsx prisma/delete.ts",
     "shadcn": "bunx shadcn-ui@latest",
     "dev": "next dev --turbo",
-    "dev:url": "bunx next-typesafe-url -w",
+    "dev:url": "bunx next-typesafe-url",
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start"
