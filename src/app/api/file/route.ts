@@ -9,7 +9,6 @@ export const dynamic = 'force-dynamic'
 const NAME_PREFIX = "blobid-"
 
 export async function POST(request: NextRequest) {
-    console.error("Reached api/file endpoint")
     const formData = await request.formData()
     const file_contents = formData.get("file")
     const url = formData.get("url")
@@ -31,6 +30,5 @@ export async function POST(request: NextRequest) {
     const response_location = path.join(WEB_FILESYSTEM_PREFIX, decoded_url, name)
     const abolute_location = path.join("/", response_location)
 
-    console.error("Returning api/file endpoint with", { location: abolute_location })
     return NextResponse.json({ location: abolute_location })
 }

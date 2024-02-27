@@ -63,6 +63,7 @@
     "@t3-oss/env-nextjs": "^0.7.3",
     "@tabler/icons-react": "^2.46.0",
     "@tailwindcss/typography": "^0.5.10",
+    "@tanstack/react-query": "^5.24.1",
     "@types/mdx": "^2.0.11",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

@@ -23,7 +23,6 @@ ForwardRefEditor.displayName = "ForwardRefEditor";
 
 type EditorClientProps = {
     article?: Article;
-    save_article: typeof save_type;
 }
 
 function EditorSkeleton() {
@@ -38,12 +37,12 @@ function EditorSkeleton() {
     )
 }
 
-export default function EditorClient({ article, save_article }: EditorClientProps) {
+export default function EditorClient({ article }: EditorClientProps) {
     const ref = useRef<MDXEditorMethods>(null)
 
     return (/* TODO: skeleton doesn't work */
         <Suspense fallback={<EditorSkeleton />}>
-            <ForwardRefEditor ref={ref} article={article} save_article={save_article} />
+            <ForwardRefEditor ref={ref} article={article} />
         </Suspense>
     )
 }

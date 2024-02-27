@@ -2,20 +2,41 @@
 
 import { signOut, useSession } from "next-auth/react"
 import { UserAuthForm } from "~/app/account/auth_form"
+import { Skeleton } from "~/components/ui/skeleton"
+import ResponsiveShell from "../responsive_shell"
+
+function EditorSkeleton() {
+    return (
+        <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+            </div>
+        </div>
+    )
+}
 
 export default function Account() {
-    const { data: session } = useSession()
+    const { data, status } = useSession()
 
     return (
-        <div className="prose lg:prose-xl dark:prose-invert min-w-full w-full">
-            {session ? <Profile /> : <SignIn />}
-        </div>
+        <ResponsiveShell user={data?.user}>
+            <div className="prose lg:prose-xl dark:prose-invert min-w-full w-full">
+                {status == "loading" ? (
+                    <EditorSkeleton />
+                ) : <>
+                    {status == "authenticated" ? <Profile /> : <SignIn />}
+                </>
+                }
+            </div>
+        </ResponsiveShell>
     )
 }
 
 function Profile() {
     return (
-        <div>
+        <div className="prose lg:prose-xl dark:prose-invert">
             <h1>Profile</h1>
             <button onClick={() => signOut()}>Sign out</button>
         </div>

@@ -1,5 +1,3 @@
-import * as React from "react"
-
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from "~/hooks/use_media_query"
 import { Button } from "@/components/ui/button"
@@ -24,6 +22,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "../../components/ui/separator"
+import Image from "next/image"
+import { useEffect, useState } from "react"
 
 type PublishDrawerProps = {
     onClick: () => void
@@ -35,7 +35,7 @@ type PublishDrawerProps = {
 }
 
 export function PublishDrawer({ imageUrls, onClick, title, url, published, setPublished }: PublishDrawerProps) {
-    const [open, setOpen] = React.useState(false)
+    const [open, setOpen] = useState(false)
     const isDesktop = useMediaQuery("(min-width: 768px)")
 
     if (isDesktop) {
@@ -102,8 +102,12 @@ type ProfileFormProps = {
 } & React.ComponentProps<"form">
 
 function ProfileForm({ className, imageUrls, onClick }: ProfileFormProps) {
+    useEffect(() => {
+        console.log("New image urls", imageUrls)
+    }, [imageUrls])
+
     return (
-        <form className={cn("grid items-start gap-4", className)}>
+        <form action={onClick} className={cn("grid items-start gap-4", className)}>
             <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input type="email" id="email" defaultValue="shadcn@example.com" />
@@ -115,11 +119,16 @@ function ProfileForm({ className, imageUrls, onClick }: ProfileFormProps) {
             <div className="grid gap-2">
                 {imageUrls.map((url) => (
                     <div key={url} className="flex items-center gap-2">
-                        <img src={url} alt="image" className="w-12 h-12 rounded-lg" />
+                        <Image
+                            src={url}
+                            alt="image"
+                            width={48}
+                            height={48}
+                            className="rounded-lg" />
                     </div>
                 ))}
             </div>
-            <Button /* TODO: type="submit" */ onClick={() => onClick()}>Save changes</Button>
+            <Button /*  type="submit" */>Save changes</Button>
         </form>
     )
 }

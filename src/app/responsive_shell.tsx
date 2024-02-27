@@ -6,14 +6,29 @@ import { new_article, type new_article as new_article_type } from './actions'
 import Link from 'next/link';
 import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { HTMLProps, useMemo, useState } from 'react';
 import { remove_article_prefix } from '~/lib/fs';
 import { ModeToggle } from './mode_toggle';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
 import { Label } from '../components/ui/label';
-import type { User } from '@prisma/client';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "../components/ui/avatar"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu"
+import { twMerge } from 'tailwind-merge';
 
 type ResponsiveShellProps = {
     children: React.ReactNode
@@ -109,7 +124,6 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 variant="outline"
                 onClick={async () => {
                     const response = await new_article({})
-                    console.log(response)
 
                     if (typeof response.serverError == "undefined" && response.data)
                         router.push(`/edit?url=${response.data.url}`)
@@ -118,6 +132,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
             </Button>}
             <ModeToggle />
+            <UserNav />
         </div>
     </>
 }
@@ -168,6 +183,55 @@ function Footer() {
     return <>
         Footer
     </>
+}
+
+function UserNav({ className }: HTMLProps<HTMLButtonElement>) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    className={twMerge("relative h-8 w-8 rounded-full", className)}
+                >
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src="/avatars/03.png" alt="@shadcn" />
+                        <AvatarFallback>SC</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">shadcn</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                            m@example.com
+                        </p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                        Profile
+                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        Billing
+                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        Settings
+                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>New Team</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    Log out
+                    <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
 }
 
 /* export default function ResponsiveShell({ children, new_article }: { children: React.ReactNode, new_article: typeof new_type }) {

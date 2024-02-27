@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, type ForwardedRef, useState } from "react";
+import { useEffect, type ForwardedRef, useState, useMemo } from "react";
 import {
     MDXEditor,
     toolbarPlugin,
@@ -39,6 +39,8 @@ import "./main.module.css"
 import clsx from "clsx";
 import ResponsiveShell from "../responsive_shell";
 import { Badge } from "~/components/ui/badge";
+import { read_article, save_article } from "../actions";
+import { useQuery } from "@tanstack/react-query";
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
     if (!image) throw new Error("No image");
@@ -87,9 +89,8 @@ function change_url(current_url: string, previous_url: string) {
 
 export default function InitializedMDXEditor({
     editorRef,
-    article,
+    article: initialArticle,
     markdown,
-    save_article,
     ...props
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
@@ -101,14 +102,26 @@ export default function InitializedMDXEditor({
     const theme = useTheme()
     const [imageUrls, setImageUrls] = useState<string[]>([])
 
-    useEffect(() => {
+    const search_url = useMemo(() => {
+        const url = search_params.get("url")
+        if (typeof url !== "string") throw new Error("No url")
+        return decodeURIComponent(url)
+    }, [search_params])
+
+    // TODO: https://next-typesafe-url.dev/en/usage/search-route-params-app
+    const { data, refetch } = useQuery({
+        queryKey: ["editor_article", search_url],
+        queryFn: () => read_article({ url: search_url }).then(response => response.data),
+        initialData: initialArticle,
+    })
+
+    /* useEffect(() => {
         if (!article) return
         setUrl(article.url)
         setTitle(article.title)
         setPublished(article.published)
-        console.log("setting markdown", article)
         innerRef.current?.setMarkdown(article.content)
-    }, [article])
+    }, [article]) */
 
     async function rename_and_save() {
         if (!innerRef.current || !article) return
@@ -121,11 +134,9 @@ export default function InitializedMDXEditor({
             throw new Error("No title found")
 
         const new_url = sanitize_for_fs(new_title)
-        console.warn({ new_title, new_url, image_urls })
         setTitle(new_title)
         setUrl(new_url)
         setImageUrls(image_urls)
-
 
         const result = await save_article({
             id: article.id,
@@ -134,8 +145,6 @@ export default function InitializedMDXEditor({
             content: new_markdown,
             published
         })
-
-        console.log("saved", result)
 
         if (!result.serverError && !result.validationErrors) {
             router.push(`/edit?url=${new_url}`)
@@ -157,7 +166,6 @@ export default function InitializedMDXEditor({
 
                 if (child.type == "heading" && child.depth == 1) {
                     if (child.children.length == 1 && child.children[0]?.type == "text") {
-                        console.warn("FOUND IT!", child.children[0].value)
                         return child.children[0].value
                     }
                 }
@@ -182,13 +190,11 @@ export default function InitializedMDXEditor({
                 if (child.type == "image" && typeof new_url === "string") {
                     child.url = change_url(new_url, child.url)
                     image_urls.push(child.url)
-                    console.log("image found", child)
                 }
             }
         }
 
         const heading = find_heading(tree)
-        console.warn("returned heading", heading)
         if (typeof heading === "undefined") throw new Error("No heading found")
         const new_url = sanitize_for_fs(heading)
 
@@ -222,7 +228,11 @@ export default function InitializedMDXEditor({
                             </Link>
                         </Button>
                         <PublishDrawer
-                            onClick={async () => await rename_and_save()}
+                            onClick={async () => {
+                                console.log("Publishing")
+                                setPublished(true)
+                                await rename_and_save()
+                            }}
                             imageUrls={imageUrls}
                             title={title}
                             url={url}

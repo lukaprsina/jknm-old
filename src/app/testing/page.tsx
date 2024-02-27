@@ -1,14 +1,13 @@
-"use client"
+import { ArticleView } from "./ArticleView";
+import { getArticles } from "../data_layer/articles";
 
-import { Button } from "~/components/ui/button";
-import { make_or_return_draft } from "../actions";
+export default async function Testing() {
+    const articles = await getArticles()
 
-export default function Testing() {
     return (
-        <Button
-            onClick={() => make_or_return_draft({ url: "test" })}
-        >
-            Test
-        </Button>
+        <div>
+            <h1>Server page content</h1>
+            <ArticleView articles={articles} />
+        </div>
     )
 }
