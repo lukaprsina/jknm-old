@@ -1,3 +1,5 @@
+"use client"
+
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from "~/hooks/use_media_query"
 import { Button } from "@/components/ui/button"
@@ -19,14 +21,13 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "../../components/ui/separator"
+import { Separator } from "~/components/ui/separator"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { SaveArticleType } from "~/app/actions"
 
 type PublishDrawerProps = {
-    onClick: () => void
+    save: (input: SaveArticleType) => void
     imageUrls: string[]
     title: string
     url: string
@@ -34,7 +35,7 @@ type PublishDrawerProps = {
     setPublished: (published: boolean) => void
 }
 
-export function PublishDrawer({ imageUrls, onClick, title, url, published, setPublished }: PublishDrawerProps) {
+export function PublishDrawer({ imageUrls, save, title, url, published, setPublished }: PublishDrawerProps) {
     const [open, setOpen] = useState(false)
     const isDesktop = useMediaQuery("(min-width: 768px)")
 
@@ -58,7 +59,7 @@ export function PublishDrawer({ imageUrls, onClick, title, url, published, setPu
                     </DialogHeader>
                     <ProfileForm
                         imageUrls={imageUrls}
-                        onClick={onClick}
+                        save={save}
                     />
                 </DialogContent>
             </Dialog>
@@ -84,7 +85,7 @@ export function PublishDrawer({ imageUrls, onClick, title, url, published, setPu
                 <ProfileForm
                     className="px-4"
                     imageUrls={imageUrls}
-                    onClick={onClick}
+                    save={save}
                 />
                 <DrawerFooter className="pt-2">
                     <DrawerClose asChild>
@@ -97,25 +98,41 @@ export function PublishDrawer({ imageUrls, onClick, title, url, published, setPu
 }
 
 type ProfileFormProps = {
-    onClick: () => void
+    save: (input: SaveArticleType) => void
     imageUrls: string[]
 } & React.ComponentProps<"form">
 
-function ProfileForm({ className, imageUrls, onClick }: ProfileFormProps) {
+function ProfileForm({ className, imageUrls, save }: ProfileFormProps) {
     useEffect(() => {
         console.log("New image urls", imageUrls)
     }, [imageUrls])
 
+    /* onSubmit={async (formData) => {
+            console.log("Submitting form", formData)
+            /* save({
+                title: formData.title,
+                url: formData.url,
+                content: formData.content,
+                published: formData.published,
+                id: formData.id,
+            })
+}} */
+
     return (
-        <form action={onClick} className={cn("grid items-start gap-4", className)}>
-            <div className="grid gap-2">
+        <form className={cn("grid items-start gap-4", className)}>
+            <input type="text" name="title" />
+            <input type="text" name="url" />
+            <input type="text" name="content" />
+            <input type="checkbox" name="published" />
+            <input type="text" name="id" />
+            {/* <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input type="email" id="email" defaultValue="shadcn@example.com" />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input id="username" defaultValue="@shadcn" />
-            </div>
+            </div> */}
             <div className="grid gap-2">
                 {imageUrls.map((url) => (
                     <div key={url} className="flex items-center gap-2">
@@ -128,7 +145,7 @@ function ProfileForm({ className, imageUrls, onClick }: ProfileFormProps) {
                     </div>
                 ))}
             </div>
-            <Button /*  type="submit" */>Save changes</Button>
+            <Button type="submit">Save changes</Button>
         </form>
     )
 }

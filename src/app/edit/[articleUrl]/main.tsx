@@ -1,0 +1,157 @@
+"use client"
+
+import { type ForwardedRef, useState, useEffect } from "react";
+import {
+    MDXEditor,
+    type MDXEditorMethods,
+    type MDXEditorProps,
+    // } from '@mdxeditor/editor'
+    // } from '@lukaprsina/mdxeditor'
+} from 'modified-editor'
+import useForwardedRef from "~/lib/useForwardedRef";
+import type { EditorPropsJoined } from "./editor_client";
+import { sanitize_for_fs } from "~/lib/fs";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
+import { PublishDrawer } from "./publish_drawer";
+import { useTheme } from "next-themes";
+import "./main.module.css"
+import clsx from "clsx";
+import ResponsiveShell from "../../responsive_shell";
+import { Badge } from "~/components/ui/badge";
+import { SaveArticleType, read_article, save_article } from "../../actions";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { allPlugins, traverse_tree } from "./helpers";
+import { Route } from "./routeType";
+import { useRouteParams } from "next-typesafe-url/app";
+import { useRouter } from "next/navigation";
+import { Article } from "@prisma/client";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+function useEditorArticle(initialArticle: Article | undefined, article_url: string | undefined, router: AppRouterInstance) {
+    const { data, refetch } = useQuery({
+        queryKey: ["editor_article", article_url],
+        queryFn: async () => {
+            if (typeof article_url !== "string") return
+
+            const article = await read_article({ url: article_url })
+            return article.data
+        },
+        initialData: initialArticle,
+    })
+
+    const { mutate } = useMutation({
+        mutationKey: ["save_article", article_url],
+        mutationFn: async (input: SaveArticleType) => {
+            if (typeof data === "undefined") return
+
+            const article = await save_article(input)
+            if (article.data && !article.serverError && !article.validationErrors)
+                router.push(`/edit/${article.data.url}`)
+
+            return article.data
+        },
+        onSuccess: () => refetch()
+    })
+
+    return {
+        data,
+        mutate
+    }
+}
+
+export default function InitializedMDXEditor({
+    editorRef,
+    article: initialArticle,
+    markdown,
+    ...props
+}: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
+    const [title, setTitle] = useState<string>("")
+    const [url, setUrl] = useState<string>("")
+    const [published, setPublished] = useState<boolean>(false)
+
+    const innerRef = useForwardedRef(editorRef);
+    const routeParams = useRouteParams(Route.routeParams)
+    const router = useRouter()
+    const theme = useTheme()
+    const [imageUrls, setImageUrls] = useState<string[]>([])
+
+    const {
+        data: article,
+        mutate
+    } = useEditorArticle(initialArticle, routeParams.data?.articleUrl, router)
+
+    useEffect(() => {
+        if (!innerRef.current || !article) return
+
+        const markdown = innerRef.current?.getMarkdown()
+        if (!markdown) return;
+
+        const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown)
+        if (typeof new_title !== "string")
+            throw new Error("No title found")
+
+        const new_url = sanitize_for_fs(new_title)
+        setTitle(new_title)
+        setUrl(new_url)
+        setImageUrls(image_urls)
+
+        innerRef.current?.setMarkdown(new_markdown)
+    }, [article])
+
+    if (!article || routeParams.isError || !routeParams.data)
+        throw new Error("Article not found (ZOD)")
+
+    return (
+        <ResponsiveShell>
+            <div className="prose-xl dark:prose-invert container">
+                <div className="my-2 flex flex-end justify-between">
+                    <div className="space-x-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => mutate({
+                                id: article?.id,
+                                title,
+                                url,
+                                content: innerRef.current?.getMarkdown(),
+                                published
+                            })}
+                        >
+                            Shrani
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link
+                                className="no-underline"
+                                href={`/novicka/${routeParams.data.articleUrl}`}
+                                target="_blank"
+                            >
+                                Obišči stran
+                            </Link>
+                        </Button>
+                        <PublishDrawer
+                            save={(input: SaveArticleType) => mutate(input)}
+                            imageUrls={imageUrls}
+                            title={title}
+                            url={url}
+                            published={published}
+                            setPublished={setPublished}
+                        />
+                    </div>
+                    <Badge className="" variant="outline">{published ? "Popravljanje" : "Neobjavljeno"}</Badge>
+                </div>
+
+                <div className="border-2 border-primary/25 rounded-md">
+                    <MDXEditor
+                        plugins={allPlugins(markdown ?? "", routeParams.data.articleUrl)}
+                        {...props}
+                        markdown={markdown ?? ""}
+                        className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}
+                        contentEditableClassName="max-w-full"
+                        ref={editorRef}
+                    />
+                </div>
+                <div style={{ height: "70px" }} />
+            </div>
+        </ResponsiveShell>
+    )
+}

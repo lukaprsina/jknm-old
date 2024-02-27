@@ -7,7 +7,7 @@ import type { MDXEditorMethods, MDXEditorProps } from "modified-editor";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 import type { Article } from "@prisma/client";
-import type { save_article as save_type } from "../actions";
+import type { save_article as save_type } from "../../actions";
 import { Skeleton } from "~/components/ui/skeleton";
 
 const Editor = dynamic(() => import("./main"), { ssr: false });

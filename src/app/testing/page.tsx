@@ -1,3 +1,5 @@
+"use server"
+
 import { ArticleView } from "./ArticleView";
 import { getArticles } from "../data_layer/articles";
 

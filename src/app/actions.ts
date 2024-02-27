@@ -23,6 +23,7 @@ export const search_articles = action(search_schema, async ({ search_text }): Pr
             }
         }
     })
+
     return result
 })
 
@@ -39,6 +40,7 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
         }
     })
 
+    console.log("from read_article", { url })
     if (!article) throw new Error("No article found")
     if (article?.published == false && session?.user.id != article?.createdById) return undefined
 
@@ -76,44 +78,46 @@ const save_article_schema = z.object({
     id: z.number(),
 })
 
+export type SaveArticleType = z.infer<typeof save_article_schema>
+
 export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id, published }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
     revalidateTag("articles")
 
-    const article = await db.article.findUniqueOrThrow({
+    const previous_article = await db.article.findUniqueOrThrow({
         where: {
             id,
         }
     })
 
-    const final_content = typeof content == "undefined" ? article.content : content
-    let final_url = article.url
+    const final_content = typeof content == "undefined" ? previous_article.content : content
+    let final_url = previous_article.url
     if (typeof title != "undefined") {
         final_url = sanitize_for_fs(title)
     } else if (typeof unsafe_url != "undefined") {
         final_url = sanitize_for_fs(unsafe_url)
     }
 
-    if (final_url != article.url) {
-        await fs.rename(path.join(FILESYSTEM_PREFIX, article.url), path.join(FILESYSTEM_PREFIX, final_url))
+    if (final_url != previous_article.url) {
+        await fs.rename(path.join(FILESYSTEM_PREFIX, previous_article.url), path.join(FILESYSTEM_PREFIX, final_url))
     }
 
-    await db.article.update({
+    const updated_article = await db.article.update({
         where: {
             id,
         },
         data: {
-            title: title ?? article.title,
+            title: title ?? previous_article.title,
             url: final_url,
             content: final_content,
-            published: published ?? article.published,
-            publishedAt: published ? new Date() : article.publishedAt,
+            published: published ?? previous_article.published,
+            publishedAt: published ? new Date() : previous_article.publishedAt,
             updatedAt: new Date(),
         }
     })
 
-    return final_url
+    return updated_article
 })
 
 const make_or_return_draft_schema = z.object({
