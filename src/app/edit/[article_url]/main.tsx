@@ -114,6 +114,27 @@ export default function InitializedMDXEditor({
         throw new Error("Article not found (ZOD)")
     }
 
+    function save() {
+        const markdown = innerRef.current?.getMarkdown()
+        if (!innerRef.current || !article || !markdown) return
+
+        const {
+            new_title,
+            new_markdown,
+            new_url
+        } = update_state(markdown)
+
+        mutate({
+            id: article?.id,
+            title: new_title,
+            url: new_url,
+            content: new_markdown,
+            published
+        })
+    }
+
+    /* TODO: block when mutating (saving) */
+
     return (
         <ResponsiveShell user={session.data?.user}>
             <div className="prose-xl dark:prose-invert container">
@@ -121,24 +142,7 @@ export default function InitializedMDXEditor({
                     <div className="space-x-2">
                         <Button
                             variant="outline"
-                            onClick={() => {
-                                const markdown = innerRef.current?.getMarkdown()
-                                if (!innerRef.current || !article || !markdown) return
-
-                                const {
-                                    new_title,
-                                    new_markdown,
-                                    new_url
-                                } = update_state(markdown)
-
-                                mutate({
-                                    id: article?.id,
-                                    title: new_title,
-                                    url: new_url,
-                                    content: new_markdown,
-                                    published
-                                })
-                            }}
+                            onClick={() => save()}
                         >
                             Shrani
                         </Button>
@@ -152,12 +156,13 @@ export default function InitializedMDXEditor({
                             </Link>
                         </Button>
                         <PublishDrawer
-                            save={(input: SaveArticleType) => mutate(input)}
+                            save={() => save()}
+                            articleId={article.id}
+                            content={article.content}
                             imageUrls={imageUrls}
                             title={title}
                             url={url}
                             published={published}
-                            setPublished={setPublished}
                         />
                     </div>
                     <Badge className="" variant="outline">{published ? "Popravljanje" : "Neobjavljeno"}</Badge>

@@ -1,6 +1,5 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { useMediaQuery } from "~/hooks/use_media_query"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,24 +20,26 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Separator } from "~/components/ui/separator"
-import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { SaveArticleType } from "~/app/actions"
-import { Checkbox } from "@radix-ui/react-checkbox"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
-import { InputWithLabel } from "~/components/input_label"
+import { Checkbox } from "~/components/ui/checkbox"
 
 type PublishDrawerProps = {
-    save: (input: SaveArticleType) => void
+    save: () => void
     imageUrls: string[]
     title: string
+    articleId: number
+    content: string
     url: string
     published: boolean
-    setPublished: (published: boolean) => void
 }
 
-export function PublishDrawer({ imageUrls, save, title, url, published, setPublished }: PublishDrawerProps) {
+export function PublishDrawer({ imageUrls, articleId, content, save, title, url, published }: PublishDrawerProps) {
     const [open, setOpen] = useState(false)
     const isDesktop = useMediaQuery("(min-width: 768px)")
 
@@ -46,23 +47,23 @@ export function PublishDrawer({ imageUrls, save, title, url, published, setPubli
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">Objavi novičko</Button>
+                    <Button onClick={() => save()} variant="outline">Objavi novičko</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Objavi novičko</DialogTitle>
                         <DialogDescription>
-                            <span>Ime:</span>{' '}
-                            <pre className="inline">{title}</pre>
-                            <p />
-                            <span>URL:</span>{' '}
-                            <pre className="inline">{url}</pre>
-                            <Separator />
+                            Shrani in objavi urejeno novičko
                         </DialogDescription>
                     </DialogHeader>
                     <ProfileForm
                         imageUrls={imageUrls}
+                        article_id={articleId}
+                        content={content}
                         save={save}
+                        title={title}
+                        url={url}
+                        published={published}
                     />
                 </DialogContent>
             </Dialog>
@@ -78,21 +79,22 @@ export function PublishDrawer({ imageUrls, save, title, url, published, setPubli
                 <DrawerHeader className="text-left">
                     <DrawerTitle>Objavi novičko</DrawerTitle>
                     <DrawerDescription>
-                        <span>Ime:</span>
-                        <pre>{title}</pre>
-                        <span>URL:</span>
-                        <pre>{url}</pre>
-                        <Separator />
+                        Shrani in objavi urejeno novičko
                     </DrawerDescription>
                 </DrawerHeader>
                 <ProfileForm
                     className="px-4"
                     imageUrls={imageUrls}
+                    article_id={articleId}
+                    content={content}
                     save={save}
+                    title={title}
+                    url={url}
+                    published={published}
                 />
                 <DrawerFooter className="pt-2">
                     <DrawerClose asChild>
-                        <Button variant="outline">Cancel</Button>
+                        <Button variant="outline">Prekliči</Button>
                     </DrawerClose>
                 </DrawerFooter>
             </DrawerContent>
@@ -102,35 +104,123 @@ export function PublishDrawer({ imageUrls, save, title, url, published, setPubli
 
 type ProfileFormProps = {
     save: (input: SaveArticleType) => void
-    imageUrls: string[]
+    imageUrls: string[],
+    title: string,
+    url: string,
+    article_id: number,
+    content: string,
+    published: boolean,
 } & React.ComponentProps<"form">
 
-function ProfileForm({ className, imageUrls, save }: ProfileFormProps) {
-    useEffect(() => {
-        console.log("New image urls", imageUrls)
-    }, [imageUrls])
+function ProfileForm({ title, url, published, article_id, content, imageUrls, save }: ProfileFormProps) {
+    const form = useForm<z.infer<typeof profile_form_schema>>({
+        resolver: zodResolver(profile_form_schema),
+        defaultValues: {
+            title,
+            url,
+            published
+        },
+    })
+
+    function onSubmit(values: z.infer<typeof profile_form_schema>) {
+        console.log(values)
+        save({
+            id: article_id,
+            title: values.title,
+            url: values.url,
+            content,
+            published: values.published
+        })
+    }
 
     return (
-        <form
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Naslov</FormLabel>
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormDescription>
+                                Naslov novičke
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="url"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Določen URL</FormLabel>
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormDescription>
+                                Ko bo novička objavljena, bo dostopna na tem URL-ju.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="published"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel>
+                                    Objavi novičko?
+                                </FormLabel>
+                                <FormDescription>
+                                    Če je označeno, je novička objavljena, drugače je osnutek.
+                                </FormDescription>
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                <Button type="submit">Shrani</Button>
+            </form>
+        </Form>
+    )
+}
+
+const profile_form_schema = z.object({
+    title: z.string(),
+    url: z.string(),
+    published: z.boolean(),
+})
+
+/* 
+<form
             className={cn("grid items-start gap-4", className)}
             onSubmit={async (formData) => {
                 formData.preventDefault()
                 console.log("Submitting form", formData)
+
+                save({
+                    id: "1",
+                    title: "title",
+                    url: "url",
+                    content: "content",
+                    published: true
+                })
             }}
         >
-            <InputWithLabel id="title" label="title" />
-            <InputWithLabel id="url" label="url" />
-            <InputWithLabel id="content" label="content" />
-            <Checkbox name="published" />
-            <InputWithLabel id="id" label="id" />
-            {/* <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" defaultValue="shadcn@example.com" />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue="@shadcn" />
-            </div> */}
+            <InputWithLabel id="title" label="Naslov" />
+            <InputWithLabel id="url" label="Url" />
+            <CheckboxWithLabel id="published" label="Objavljeno" />
             <div className="grid gap-2">
                 {imageUrls.map((url) => (
                     <div key={url} className="flex items-center gap-2">
@@ -145,8 +235,7 @@ function ProfileForm({ className, imageUrls, save }: ProfileFormProps) {
             </div>
             <Button type="submit">Save changes</Button>
         </form>
-    )
-}
+         */
 
 /* 
 import { useState } from "react"
