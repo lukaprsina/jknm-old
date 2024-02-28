@@ -26,6 +26,7 @@ import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { useSession } from "next-auth/react";
 
 function useEditorArticle(
     initialArticle: Article | undefined,
@@ -74,6 +75,7 @@ export default function InitializedMDXEditor({
     const [title, setTitle] = useState<string>("")
     const [url, setUrl] = useState<string>("")
     const [published, setPublished] = useState<boolean>(false)
+    const session = useSession()
 
     const innerRef = useForwardedRef(editorRef);
     const routeParams = useRouteParams(Route.routeParams)
@@ -113,7 +115,7 @@ export default function InitializedMDXEditor({
     }
 
     return (
-        <ResponsiveShell>
+        <ResponsiveShell user={session.data?.user}>
             <div className="prose-xl dark:prose-invert container">
                 <div className="my-2 flex flex-end justify-between">
                     <div className="space-x-2">

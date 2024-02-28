@@ -25,6 +25,9 @@ import { Separator } from "~/components/ui/separator"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { SaveArticleType } from "~/app/actions"
+import { Checkbox } from "@radix-ui/react-checkbox"
+import { Input } from "~/components/ui/input"
+import { InputWithLabel } from "~/components/input_label"
 
 type PublishDrawerProps = {
     save: (input: SaveArticleType) => void
@@ -111,14 +114,15 @@ function ProfileForm({ className, imageUrls, save }: ProfileFormProps) {
         <form
             className={cn("grid items-start gap-4", className)}
             onSubmit={async (formData) => {
+                formData.preventDefault()
                 console.log("Submitting form", formData)
             }}
         >
-            <input type="text" name="title" />
-            <input type="text" name="url" />
-            <input type="text" name="content" />
-            <input type="checkbox" name="published" />
-            <input type="text" name="id" />
+            <InputWithLabel id="title" label="title" />
+            <InputWithLabel id="url" label="url" />
+            <InputWithLabel id="content" label="content" />
+            <Checkbox name="published" />
+            <InputWithLabel id="id" label="id" />
             {/* <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input type="email" id="email" defaultValue="shadcn@example.com" />
