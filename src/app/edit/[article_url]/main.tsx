@@ -18,7 +18,7 @@ import "./main.module.css"
 import clsx from "clsx";
 import ResponsiveShell from "../../responsive_shell";
 import { Badge } from "~/components/ui/badge";
-import { SaveArticleType, read_article, save_article } from "../../actions";
+import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";

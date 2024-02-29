@@ -24,7 +24,7 @@ import {
 import { Separator } from "~/components/ui/separator"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { SaveArticleType } from "~/app/actions"
+import { SaveArticleType } from "~/server/data_layer/actions"
 import { Checkbox } from "@radix-ui/react-checkbox"
 import { Input } from "~/components/ui/input"
 import { InputWithLabel } from "~/components/input_label"

@@ -6,7 +6,7 @@ import { ARTICLE_PREFIX } from "~/lib/fs";
 import { getServerAuthSession } from "~/server/auth";
 import { Card } from "~/components/ui/card";
 import ResponsiveShell from "./responsive_shell";
-import { getPublishedArticles } from "./data_layer/articles";
+import { getPublishedArticles } from "../server/data_layer/fake";
 
 export default async function HomePage() {
   const articles = await getPublishedArticles();
