@@ -2,7 +2,7 @@
 
 import { Article } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { getArticles } from "../data_layer/articles";
+import { getArticles } from "../../server/data_layer/fake";
 import { Button } from "~/components/ui/button";
 
 type ArticleViewProps = {

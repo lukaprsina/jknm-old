@@ -21,13 +21,13 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 import { useState } from "react"
-import { SaveArticleType } from "~/app/actions"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
+import { SaveArticleType } from "~/server/data_layer/articles"
 import { Input } from "~/components/ui/input"
 import { Checkbox } from "~/components/ui/checkbox"
+import { Form, useForm } from "react-hook-form"
+import { z } from "zod"
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 
 type PublishDrawerProps = {
     save: () => void

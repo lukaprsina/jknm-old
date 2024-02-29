@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import logo from '~/content/logo.png'
-import { new_article, type new_article as new_article_type } from './actions'
+import { new_article, type new_article as new_article_type } from '../server/data_layer/articles'
 import Link from 'next/link';
 import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,16 +30,19 @@ import {
 } from "../components/ui/dropdown-menu"
 import { twMerge } from 'tailwind-merge';
 import { $path } from 'next-typesafe-url';
+import { User } from 'next-auth';
+
+type TrimmedUser = {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+} // user, but omit emailVerified
 
 type ResponsiveShellProps = {
     children: React.ReactNode
     editable?: boolean
-    user?: {
-        id: string;
-        name?: string | null;
-        email?: string | null;
-        image?: string | null;
-    } // user, but omit emailVerified
+    user?: TrimmedUser
 }
 
 export default function ResponsiveShell({ user, editable, children }: ResponsiveShellProps) {
@@ -61,6 +64,7 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
                     sanitized_url={sanitized_url}
                     searchText={searchText}
                     setSearchText={setSearchText}
+                    user={user}
                 />
             </div>
         </nav>
@@ -82,9 +86,10 @@ type MainNavProps = {
     searchText: string
     setSearchText: (value: string) => void
     sanitized_url: string
+    user?: TrimmedUser
 }
 
-function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText }: MainNavProps) {
+function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText, user }: MainNavProps) {
     const router = useRouter()
 
     return <>
@@ -135,7 +140,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
             </Button>}
             <ModeToggle />
-            <UserNav />
+            {user ? <UserNav user={user} /> : null }
         </div>
     </>
 }
@@ -188,7 +193,11 @@ function Footer() {
     </>
 }
 
-function UserNav({ className }: HTMLProps<HTMLButtonElement>) {
+type UserNavProps = {
+    user: TrimmedUser
+} & HTMLProps<HTMLButtonElement>
+
+function UserNav({ className, user }: UserNavProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -197,7 +206,7 @@ function UserNav({ className }: HTMLProps<HTMLButtonElement>) {
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src="/avatars/03.png" alt="@shadcn" />
+                        <AvatarImage src="/avatars/03.png" alt={`user logo: ${user.name}`} />
                         <AvatarFallback>SC</AvatarFallback>
                     </Avatar>
                 </Button>

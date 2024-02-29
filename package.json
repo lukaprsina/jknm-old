@@ -73,6 +73,7 @@
     "embla-carousel-react": "^8.0.0",
     "eslint-plugin-react": "latest",
     "fs-extra": "^11.2.0",
+    "lucide-react": "^0.343.0",
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-to-markdown": "^2.1.0",
     "mime": "^4.0.1",

@@ -1,7 +1,7 @@
 "use server"
 
 import { ArticleView } from "./ArticleView";
-import { getArticles } from "../data_layer/articles";
+import { getArticles } from "../../server/data_layer/fake";
 
 export default async function Testing() {
     const articles = await getArticles()
