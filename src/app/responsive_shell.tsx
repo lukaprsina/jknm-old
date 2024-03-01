@@ -115,7 +115,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
             />
-            {editable && signedIn && <Button asChild size="icon" variant="outline">
+            {editable && signedIn && <Button asChild size="sm" variant="outline">
                 <Link
                     /* $path({
                             route: "/edit/[articleUrl]",
@@ -128,7 +128,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 </Link>
             </Button>}
             {signedIn && <Button
-                size="icon"
+                size="sm"
                 variant="outline"
                 onClick={async () => {
                     const response = await new_article({})
@@ -156,7 +156,7 @@ function MobileNav() {
                     Nav
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent position="left">
                 <SheetHeader>
                     <SheetTitle>Edit profile</SheetTitle>
                     <SheetDescription>
@@ -168,13 +168,13 @@ function MobileNav() {
                         <Label htmlFor="name" className="text-right">
                             Name
                         </Label>
-                        <Input articleId="name" value="Pedro Duarte" className="col-span-3" />
+                        <Input value="Pedro Duarte" className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="username" className="text-right">
                             Username
                         </Label>
-                        <Input articleId="username" value="@peduarte" className="col-span-3" />
+                        <Input value="@peduarte" className="col-span-3" />
                     </div>
                 </div>
                 <SheetFooter>
