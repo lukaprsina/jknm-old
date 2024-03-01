@@ -115,7 +115,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
             />
-            {editable && signedIn && <Button asChild size="sm" variant="outline">
+            {editable && signedIn && <Button asChild size="icon" variant="outline">
                 <Link
                     /* $path({
                             route: "/edit/[articleUrl]",
@@ -128,7 +128,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 </Link>
             </Button>}
             {signedIn && <Button
-                size="sm"
+                size="icon"
                 variant="outline"
                 onClick={async () => {
                     const response = await new_article({})
@@ -156,7 +156,7 @@ function MobileNav() {
                     Nav
                 </Button>
             </SheetTrigger>
-            <SheetContent position="left">
+            <SheetContent side="left">
                 <SheetHeader>
                     <SheetTitle>Edit profile</SheetTitle>
                     <SheetDescription>
