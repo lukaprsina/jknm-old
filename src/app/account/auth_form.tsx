@@ -31,7 +31,7 @@ export function UserAuthForm({ className, ...props }: HTMLAttributes<HTMLDivElem
                             Email
                         </Label>
                         <Input
-                            articleId="email"
+                            id="email"
                             placeholder="ime@jknm.si"
                             type="email"
                             autoCapitalize="none"
