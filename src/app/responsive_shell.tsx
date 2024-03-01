@@ -140,7 +140,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
             </Button>}
             <ModeToggle />
-            {user ? <UserNav user={user} /> : null }
+            {user ? <UserNav user={user} /> : null}
         </div>
     </>
 }
