@@ -22,7 +22,7 @@ import path from "path";
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { toMarkdown } from "mdast-util-to-markdown"
 import { toString as markdownToString } from "mdast-util-to-string"
-import type { Parent, Code } from "mdast";
+import type { Parent, Code } from "mdast"
 import { Article } from '@prisma/client';
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
@@ -70,7 +70,7 @@ export function change_url(current_url: string, previous_url: string) {
     return path.join(IMAGE_FS_PREFIX, current_url, name)
 }
 
-export function traverse_tree(markdown: string, article: Article) {
+export function traverse_tree(markdown: string, article: Article, title: string | undefined) {
     const tree = fromMarkdown(markdown)
 
     function find_heading(node: Parent | Code): string | undefined {
@@ -113,11 +113,16 @@ export function traverse_tree(markdown: string, article: Article) {
         }
     }
 
-    let heading = find_heading(tree)
-    if (typeof heading === "undefined") {
-        console.log("No heading found, setting title to article title.", article.title)
-        heading = article.title
+    let heading = title;
+    if (typeof heading !== "string") {
+        heading = find_heading(tree)
+
+        if (typeof heading === "undefined") {
+            console.log("No heading found, setting title to article title.", article.title)
+            heading = article.title
+        }
     }
+
     const new_url = sanitize_for_fs(heading)
 
     change_images(tree, new_url)
@@ -129,8 +134,8 @@ export function traverse_tree(markdown: string, article: Article) {
     }
 }
 
-export function update_state(markdown: string, article: Article) {
-    const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown, article)
+export function update_state(markdown: string, article: Article, title?: string) {
+    const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown, article, title)
     if (typeof new_title !== "string")
         throw new Error("No title found")
 

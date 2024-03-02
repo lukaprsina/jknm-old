@@ -3,9 +3,6 @@ import nextMDX from '@next/mdx'
 
 const withMDX = nextMDX({
     extension: /\.(md|mdx)$/,
-    options: {
-
-    }
 })
 
 /** @type {import('next').NextConfig} */

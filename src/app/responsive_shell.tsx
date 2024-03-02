@@ -93,15 +93,6 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
     return <>
         <div className="mr-4 hidden md:flex">
             <Link href="/" className="relative h-full flex mr-4 items-center gap-3">
-                {/* <Image
-                    src={logo}
-                    alt="logo"
-                    width={48}
-                    height={48}
-                    sizes="100vw"
-                    placeholder='blur'
-                    className="object-contain"
-                /> */}
                 <h1>Jamarski klub Novo mesto</h1>
             </Link>
         </div>
@@ -115,11 +106,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
             />
             {editable && signedIn && <Button asChild size="icon" variant="outline">
                 <Link
-                    /* $path({
-                            route: "/edit/[articleUrl]",
-                            routeParams: { articleUrl: sanitized_url }
-                        }) */
-                    href={`/edit/${sanitized_url}`}
+                    href={`/uredi/${sanitized_url}`}
                     className='h-fill'
                 >
                     <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
@@ -131,8 +118,8 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 onClick={async () => {
                     const response = await new_article({})
 
-                    if (typeof response.serverError == "undefined" && response.data)
-                        router.push(`/edit/${response.data.url}`)
+                    if (typeof response.serverError == "undefined" && typeof response.validationErrors == "undefined" && response.data)
+                        router.push(`/uredi/${response.data.url}`)
                 }}
             >
                 <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
@@ -188,7 +175,7 @@ function MobileNav() {
 function Footer() {
     return <>
         <Button asChild variant="link">
-            <Link href="/account">Račun</Link>
+            <Link href="/racun">Račun</Link>
         </Button>
     </>
 }
@@ -232,7 +219,7 @@ function UserNav({ className, user }: UserNavProps) {
                 </> : null}
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                        <Link href="/account">
+                        <Link href="/racun">
                             Nastavitve
                         </Link>
                     </DropdownMenuItem>
@@ -241,7 +228,7 @@ function UserNav({ className, user }: UserNavProps) {
                 <DropdownMenuItem
                     onClick={async () => {
                         await signOut()
-                        router.push("/account")
+                        router.push("/racun")
                     }}
                 >
                     Zamenjaj račun

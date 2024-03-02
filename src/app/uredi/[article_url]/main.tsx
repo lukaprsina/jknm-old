@@ -19,13 +19,12 @@ import clsx from "clsx";
 import ResponsiveShell from "../../responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
-import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";
 import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
-import { type AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useSession } from "next-auth/react";
 
 type ServerErrorProps = {
@@ -76,7 +75,7 @@ function useEditorArticle(
             if (!article.data || article.serverError || article.validationErrors)
                 throw new ServerError("Zod error", { ...article })
 
-            router.push(`/edit/${article.data.url}`)
+            router.push(`/uredi/${article.data.url}`)
 
             return article.data
         },
@@ -116,6 +115,7 @@ export default function InitializedMDXEditor({
     useEffect(() => {
         const markdown = innerRef.current?.getMarkdown()
         if (!innerRef.current || !query.data || !markdown) return
+
         const {
             new_title,
             new_markdown,
@@ -130,14 +130,6 @@ export default function InitializedMDXEditor({
 
         innerRef.current?.setMarkdown(new_markdown)
     }, [query.data])
-
-    if (!query.data || routeParams.isLoading)
-        return <p>Loading...</p>
-
-    if (routeParams.isError || !routeParams.data) {
-        console.log({ article: query.data, routeParams })
-        throw new Error("Article not found (ZOD)")
-    }
 
     function save() {
         const markdown = innerRef.current?.getMarkdown()
@@ -154,8 +146,35 @@ export default function InitializedMDXEditor({
             title: new_title,
             url: new_url,
             content: new_markdown,
-            published
+            published,
         })
+    }
+
+    function fullSave(input: SaveArticleType) {
+        const markdown = innerRef.current?.getMarkdown()
+        if (!innerRef.current || !query.data || !markdown) return
+
+        const {
+            new_title,
+            new_markdown,
+            new_url
+        } = update_state(markdown, query.data, input.title)
+
+        mutation.mutate({
+            id: query.data?.id,
+            title: new_title,
+            url: new_url,
+            content: new_markdown,
+            published,
+        })
+    }
+
+    if (!query.data || routeParams.isLoading)
+        return <p>Loading...</p>
+
+    if (routeParams.isError || !routeParams.data) {
+        console.log({ article: query.data, routeParams })
+        throw new Error("Article not found (ZOD)")
     }
 
     /* TODO: block when mutating (saving) */
@@ -182,6 +201,7 @@ export default function InitializedMDXEditor({
                         </Button>
                         <PublishDrawer
                             save={() => save()}
+                            fullSave={(input) => fullSave(input)}
                             articleId={query.data.id}
                             content={query.data.content}
                             imageUrls={imageUrls}
