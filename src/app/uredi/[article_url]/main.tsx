@@ -19,50 +19,75 @@ import clsx from "clsx";
 import ResponsiveShell from "../../responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";
 import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { type AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useSession } from "next-auth/react";
+
+type ServerErrorProps = {
+    serverError?: string | undefined;
+    validationErrors?: Partial<Record<"url" | "_root", string[]>> | undefined
+}
+
+class ServerError extends Error {
+    serverError?: ServerErrorProps["serverError"]
+    validationErrors?: ServerErrorProps["validationErrors"]
+
+    constructor(message: string, { serverError, validationErrors }: ServerErrorProps) {
+        super(message);
+        this.serverError = serverError
+        this.validationErrors = validationErrors
+    }
+}
 
 function useEditorArticle(
     initialArticle: Article | undefined,
     article_url: string | undefined,
-    router: AppRouterInstance
 ) {
-    const { data, refetch } = useQuery({
+    const queryClient = useQueryClient()
+    const router = useRouter()
+
+    const query = useQuery({
         queryKey: ["editor_article", article_url],
         queryFn: async () => {
             console.log("reading article queryfn", { article_url, initialArticle })
             if (typeof article_url !== "string") return null
 
             const article = await read_article({ url: article_url })
+            if (!article.data || article.serverError || article.validationErrors)
+                throw new ServerError("Zod error", { ...article })
+
             return article.data
         },
         initialData: initialArticle,
     })
 
-    const { mutate } = useMutation({
+    const mutation = useMutation({
         mutationKey: ["save_article", article_url],
         mutationFn: async (input: SaveArticleType) => {
             console.log("saving article", { article_url, initialArticle })
-            if (typeof data === "undefined") return null
+            if (typeof query.data === "undefined") return null
 
             const article = await save_article(input)
-            if (article.data && !article.serverError && !article.validationErrors)
-                router.push(`/edit/${article.data.url}`)
+            if (!article.data || article.serverError || article.validationErrors)
+                throw new ServerError("Zod error", { ...article })
+
+            router.push(`/edit/${article.data.url}`)
 
             return article.data
         },
-        onSuccess: () => refetch()
+        onSuccess: (data) => {
+            queryClient.setQueryData(["editor_article", article_url], data)
+        }
     })
 
     return {
-        data,
-        mutate
+        query,
+        mutation
     }
 }
 
@@ -74,29 +99,29 @@ export default function InitializedMDXEditor({
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
     const [title, setTitle] = useState<string>("")
     const [url, setUrl] = useState<string>("")
+    // TODO
     const [published, setPublished] = useState<boolean>(false)
     const session = useSession()
 
     const innerRef = useForwardedRef(editorRef);
     const routeParams = useRouteParams(Route.routeParams)
-    const router = useRouter()
     const theme = useTheme()
     const [imageUrls, setImageUrls] = useState<string[]>([])
 
     const {
-        data: article,
-        mutate
-    } = useEditorArticle(initialArticle, routeParams.data?.article_url, router)
+        query,
+        mutation
+    } = useEditorArticle(initialArticle, routeParams.data?.article_url)
 
     useEffect(() => {
         const markdown = innerRef.current?.getMarkdown()
-        if (!innerRef.current || !article || !markdown) return
+        if (!innerRef.current || !query.data || !markdown) return
         const {
             new_title,
             new_markdown,
             image_urls,
             new_url
-        } = update_state(markdown)
+        } = update_state(markdown, query.data)
 
         setTitle(new_title)
         setUrl(new_url)
@@ -104,28 +129,28 @@ export default function InitializedMDXEditor({
         console.log("updated state", { new_title, new_markdown, image_urls, new_url })
 
         innerRef.current?.setMarkdown(new_markdown)
-    }, [article])
+    }, [query.data])
 
-    if (!article || routeParams.isLoading)
+    if (!query.data || routeParams.isLoading)
         return <p>Loading...</p>
 
     if (routeParams.isError || !routeParams.data) {
-        console.log({ article, routeParams })
+        console.log({ article: query.data, routeParams })
         throw new Error("Article not found (ZOD)")
     }
 
     function save() {
         const markdown = innerRef.current?.getMarkdown()
-        if (!innerRef.current || !article || !markdown) return
+        if (!innerRef.current || !query.data || !markdown) return
 
         const {
             new_title,
             new_markdown,
             new_url
-        } = update_state(markdown)
+        } = update_state(markdown, query.data)
 
-        mutate({
-            id: article?.id,
+        mutation.mutate({
+            id: query.data?.id,
             title: new_title,
             url: new_url,
             content: new_markdown,
@@ -157,8 +182,8 @@ export default function InitializedMDXEditor({
                         </Button>
                         <PublishDrawer
                             save={() => save()}
-                            articleId={article.id}
-                            content={article.content}
+                            articleId={query.data.id}
+                            content={query.data.content}
                             imageUrls={imageUrls}
                             title={title}
                             url={url}

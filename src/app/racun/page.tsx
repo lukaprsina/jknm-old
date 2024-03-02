@@ -1,34 +1,24 @@
 "use client"
 
 import { signOut, useSession } from "next-auth/react"
-import { UserAuthForm } from "~/app/account/auth_form"
+import { UserAuthForm } from "~/app/racun/auth_form"
 import { Skeleton } from "~/components/ui/skeleton"
 import ResponsiveShell from "../responsive_shell"
-
-function EditorSkeleton() {
-    return (
-        <div className="flex items-center space-x-4">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
-            </div>
-        </div>
-    )
-}
+import { Button } from "~/components/ui/button"
+import Image from "next/image"
+import logo from '~/content/logo.png'
 
 export default function Account() {
     const { data, status } = useSession()
 
     return (
         <ResponsiveShell user={data?.user}>
-            <div className="prose lg:prose-xl dark:prose-invert min-w-full w-full">
+            <div className="prose lg:prose-xl dark:prose-invert min-w-full w-full h-full">
                 {status == "loading" ? (
                     <EditorSkeleton />
                 ) : <>
                     {status == "authenticated" ? <Profile /> : <SignIn />}
-                </>
-                }
+                </>}
             </div>
         </ResponsiveShell>
     )
@@ -36,20 +26,28 @@ export default function Account() {
 
 function Profile() {
     return (
-        <div className="prose lg:prose-xl dark:prose-invert">
-            <h1>Profile</h1>
-            <button onClick={() => signOut()}>Sign out</button>
+        <div className="container">
+            <h1>Nastavitve</h1>
+            <Button onClick={() => signOut()}>
+                Sign out
+            </Button>
         </div>
     )
 }
 
 function SignIn() {
     return (
-        <div className="container relative hidden h-[800px] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-            <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
+        <div className="relative hidden h-full min-h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+            <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r> justify-center">
                 <div className="absolute inset-0 bg-zinc-900" />
-                <div className="relative z-20 flex items-center text-lg font-medium">
-                    Jamarski klub Novo mesto
+                <div className="z-20 flex items-center text-lg font-medium justify-center">
+                    <Image
+                        src={logo}
+                        alt="logo"
+                        sizes="100vw"
+                        placeholder='blur'
+                        className="w-1/2"
+                    />
                 </div>
             </div>
             <div className="lg:p-8">
@@ -64,6 +62,18 @@ function SignIn() {
                     </div>
                     <UserAuthForm />
                 </div>
+            </div>
+        </div>
+    )
+}
+
+function EditorSkeleton() {
+    return (
+        <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
             </div>
         </div>
     )

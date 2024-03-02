@@ -1,7 +1,5 @@
 "use client";
 
-import Image from 'next/image';
-import logo from '~/content/logo.png'
 import { new_article, type new_article as new_article_type } from '../server/data_layer/articles'
 import Link from 'next/link';
 import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
@@ -25,12 +23,10 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu"
 import { twMerge } from 'tailwind-merge';
-import { $path } from 'next-typesafe-url';
-import { User } from 'next-auth';
+import { signOut } from 'next-auth/react';
 
 type TrimmedUser = {
     id: string;
@@ -52,31 +48,33 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
     const sanitized_url = useMemo(() => remove_article_prefix(pathname), [pathname])
 
     // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
-    return <>
-        {/* TODO: sticky */}
-        <nav className=" top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 max-w-screen-2xl items-center">
-                <MobileNav />
-                <MainNav
-                    signedIn={typeof user !== "undefined"}
-                    editable={editable ?? false}
-                    new_article={new_article}
-                    sanitized_url={sanitized_url}
-                    searchText={searchText}
-                    setSearchText={setSearchText}
-                    user={user}
-                />
-            </div>
-        </nav>
-        <main className="mt-4 min-w-full">
-            {children}
-        </main>
-        <footer className="py-6 md:px-8 md:py-0">
-            <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-                <Footer />
-            </div>
-        </footer>
-    </>
+    return (
+        <div className="flex flex-col h-screen justify-between">
+            <nav className=" top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-14 max-w-screen-2xl items-center">
+                    <MobileNav />
+                    <MainNav
+                        signedIn={typeof user !== "undefined"}
+                        editable={editable ?? false}
+                        new_article={new_article}
+                        sanitized_url={sanitized_url}
+                        searchText={searchText}
+                        setSearchText={setSearchText}
+                        user={user}
+                    />
+                </div>
+            </nav>
+            <main className="h-full w-full">
+                {children}
+            </main>
+            {/* TODO: fix this god awful styles */}
+            <footer /* className="py-6 md:px-8 md:py-0" */>
+                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                    <Footer />
+                </div>
+            </footer>
+        </div>
+    )
 }
 
 type MainNavProps = {
@@ -95,7 +93,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
     return <>
         <div className="mr-4 hidden md:flex">
             <Link href="/" className="relative h-full flex mr-4 items-center gap-3">
-                <Image
+                {/* <Image
                     src={logo}
                     alt="logo"
                     width={48}
@@ -103,7 +101,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                     sizes="100vw"
                     placeholder='blur'
                     className="object-contain"
-                />
+                /> */}
                 <h1>Jamarski klub Novo mesto</h1>
             </Link>
         </div>
@@ -168,13 +166,13 @@ function MobileNav() {
                         <Label htmlFor="name" className="text-right">
                             Name
                         </Label>
-                        <Input articleId="name" value="Pedro Duarte" className="col-span-3" />
+                        <Input value="Pedro Duarte" className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="username" className="text-right">
                             Username
                         </Label>
-                        <Input articleId="username" value="@peduarte" className="col-span-3" />
+                        <Input value="@peduarte" className="col-span-3" />
                     </div>
                 </div>
                 <SheetFooter>
@@ -189,7 +187,9 @@ function MobileNav() {
 
 function Footer() {
     return <>
-        Footer
+        <Button asChild variant="link">
+            <Link href="/account">Račun</Link>
+        </Button>
     </>
 }
 
@@ -198,6 +198,9 @@ type UserNavProps = {
 } & HTMLProps<HTMLButtonElement>
 
 function UserNav({ className, user }: UserNavProps) {
+    const initials = useMemo(() => user?.name?.split(" ").map((n) => n[0]).join(""), [user?.name])
+    const router = useRouter()
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -206,40 +209,45 @@ function UserNav({ className, user }: UserNavProps) {
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src="/avatars/03.png" alt={`user logo: ${user.name}`} />
-                        <AvatarFallback>SC</AvatarFallback>
+                        {user.image ?
+                            <AvatarImage src={user.image} alt={user.name ? `user logo: ${user.name}` : "user logo"} /> :
+                            <AvatarFallback>{initials}</AvatarFallback>
+                        }
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">shadcn</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                            m@example.com
-                        </p>
-                    </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                {user.name ? <>
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{user.name}</p>
+                            {user.email ? (
+                                <p className="text-xs leading-none text-muted-foreground">
+                                    {user.email}
+                                </p>
+                            ) : null}
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                </> : null}
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        Profile
-                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                    <DropdownMenuItem asChild>
+                        <Link href="/account">
+                            Nastavitve
+                        </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        Billing
-                        <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        Settings
-                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>New Team</DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    Log out
-                    <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                <DropdownMenuItem
+                    onClick={async () => {
+                        await signOut()
+                        router.push("/account")
+                    }}
+                >
+                    Zamenjaj račun
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
+                    Odjavi se
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

@@ -47,7 +47,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "_next-typesafe-url_.d.ts"
   ],
   "exclude": [
     "node_modules",
