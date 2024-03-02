@@ -53,10 +53,10 @@ function useEditorArticle(
     const query = useQuery({
         queryKey: ["editor_article", article_url],
         queryFn: async () => {
-            console.log("reading article queryfn", { article_url, initialArticle })
             if (typeof article_url !== "string") return null
 
             const article = await read_article({ url: article_url })
+            console.log("read article queryfn", { article_url, initialArticle, article })
             if (!article.data || article.serverError || article.validationErrors)
                 throw new ServerError("Zod error", { ...article })
 
@@ -68,10 +68,10 @@ function useEditorArticle(
     const mutation = useMutation({
         mutationKey: ["save_article", article_url],
         mutationFn: async (input: SaveArticleType) => {
-            console.log("saving article", { article_url, initialArticle })
             if (typeof query.data === "undefined") return null
 
             const article = await save_article(input)
+            console.log("saved article mutationFn", { article_url, initialArticle, article })
             if (!article.data || article.serverError || article.validationErrors)
                 throw new ServerError("Zod error", { ...article })
 
@@ -96,10 +96,8 @@ export default function InitializedMDXEditor({
     markdown,
     ...props
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
-    const [title, setTitle] = useState<string>("")
-    const [url, setUrl] = useState<string>("")
-    // TODO
-    const [published, setPublished] = useState<boolean>(false)
+    const [title, setTitle] = useState<string>(initialArticle?.title ?? "")
+    const [url, setUrl] = useState<string>(initialArticle?.url ?? "")
     const session = useSession()
 
     const innerRef = useForwardedRef(editorRef);
@@ -121,7 +119,7 @@ export default function InitializedMDXEditor({
             new_markdown,
             image_urls,
             new_url
-        } = update_state(markdown, query.data)
+        } = update_state(markdown, { id: query.data.id })
 
         setTitle(new_title)
         setUrl(new_url)
@@ -133,20 +131,20 @@ export default function InitializedMDXEditor({
 
     function save() {
         const markdown = innerRef.current?.getMarkdown()
-        if (!innerRef.current || !query.data || !markdown) return
+        if (!innerRef.current || !query.data || typeof markdown !== "string") return
 
         const {
             new_title,
             new_markdown,
             new_url
-        } = update_state(markdown, query.data)
+        } = update_state(markdown, { id: query.data.id })
 
         mutation.mutate({
             id: query.data?.id,
             title: new_title,
             url: new_url,
             content: new_markdown,
-            published,
+            published: query.data.published,
         })
     }
 
@@ -158,14 +156,15 @@ export default function InitializedMDXEditor({
             new_title,
             new_markdown,
             new_url
-        } = update_state(markdown, query.data, input.title)
+        } = update_state(markdown, input)
+        console.warn("Full saving", { new_title, new_markdown, new_url, input })
 
         mutation.mutate({
             id: query.data?.id,
             title: new_title,
             url: new_url,
             content: new_markdown,
-            published,
+            published: input.published,
         })
     }
 
@@ -207,10 +206,16 @@ export default function InitializedMDXEditor({
                             imageUrls={imageUrls}
                             title={title}
                             url={url}
-                            published={published}
+                            published={query.data.published}
                         />
+                        <Button
+                            variant="outline"
+                            onClick={() => console.log({ markdown: innerRef.current?.getMarkdown() })}
+                        >
+                            Log editor
+                        </Button>
                     </div>
-                    <Badge className="" variant="outline">{published ? "Popravljanje" : "Neobjavljeno"}</Badge>
+                    <Badge className="" variant="outline">{query.data.published ? "Popravljanje" : "Neobjavljeno"}</Badge>
                 </div>
 
                 <div className="border-2 border-primary/25 rounded-md">
@@ -223,7 +228,7 @@ export default function InitializedMDXEditor({
                         ref={editorRef}
                     />
                 </div>
-                <div style={{ height: "70px" }} />
+                <pre className="text-sm">{JSON.stringify(query.data, null, 2)}</pre>
             </div>
         </ResponsiveShell>
     )
