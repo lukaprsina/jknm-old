@@ -9,8 +9,7 @@ import { remove_article_prefix } from '~/lib/fs';
 import { ModeToggle } from '../app/mode_toggle';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { Label } from './ui/label';
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import {
     Avatar,
     AvatarFallback,
@@ -67,8 +66,7 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
             <main className="h-full w-full">
                 {children}
             </main>
-            {/* TODO: fix this god awful styles */}
-            <footer /* className="py-6 md:px-8 md:py-0" */>
+            <footer>
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
                     <Footer />
                 </div>
@@ -217,6 +215,7 @@ function UserNav({ className, user }: UserNavProps) {
                     onClick={async () => {
                         await signOut()
                         router.push("/racun")
+                        console.log("Navigated to /racun")
                     }}
                 >
                     Zamenjaj račun

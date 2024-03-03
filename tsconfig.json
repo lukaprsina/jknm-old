@@ -48,7 +48,8 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts",
-    "_next-typesafe-url_.d.ts"
+    "src/app/md_example/layout.tsx",
+    "src/app/md_example/ipsum/page.mdx",
   ],
   "exclude": [
     "node_modules",
