@@ -10,6 +10,24 @@ import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 
+export async function getPublishedArticles() {
+    return await db.article.findMany({
+        where: {
+            // published: true
+        },
+        select: {
+            title: true,
+            id: true,
+            url: true,
+            createdById: true,
+            imageUrl: true,
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+}
+
 const search_schema = z.object({
     search_text: z.string(),
 })

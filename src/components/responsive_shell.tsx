@@ -6,16 +6,16 @@ import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
 import { HTMLProps, useMemo, useState } from 'react';
 import { remove_article_prefix } from '~/lib/fs';
-import { ModeToggle } from './mode_toggle';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
-import { Label } from '../components/ui/label';
+import { ModeToggle } from '../app/mode_toggle';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { Label } from './ui/label';
 import {
     Avatar,
     AvatarFallback,
     AvatarImage,
-} from "../components/ui/avatar"
+} from "./ui/avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -24,7 +24,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu"
+} from "./ui/dropdown-menu"
 import { twMerge } from 'tailwind-merge';
 import { signOut } from 'next-auth/react';
 
@@ -142,30 +142,18 @@ function MobileNav() {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left">
-                <SheetHeader>
-                    <SheetTitle>Edit profile</SheetTitle>
-                    <SheetDescription>
-                        Make changes to your profile here. Click save when you're done.
-                    </SheetDescription>
+                <SheetHeader className="flex items-center mt-16">
+                    <SheetTitle>Jamarski klub Novo mesto</SheetTitle>
                 </SheetHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                            Name
-                        </Label>
-                        <Input value="Pedro Duarte" className="col-span-3" />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username" className="text-right">
-                            Username
-                        </Label>
-                        <Input value="@peduarte" className="col-span-3" />
-                    </div>
+                <div className="flex flex-col w-full h-full space-y-4 justify-center">
+                    <Button asChild variant="link">
+                        <Link href="/">Domov</Link>
+                    </Button>
+                    <Button asChild variant="link">
+                        <Link href="/">Račun</Link>
+                    </Button>
                 </div>
                 <SheetFooter>
-                    <SheetClose asChild>
-                        <Button type="submit">Save changes</Button>
-                    </SheetClose>
                 </SheetFooter>
             </SheetContent>
         </Sheet>

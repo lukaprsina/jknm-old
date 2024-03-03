@@ -12,11 +12,11 @@ import useForwardedRef from "~/lib/useForwardedRef";
 import type { EditorPropsJoined } from "./editor_client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { PublishDrawer } from "./publish_drawer";
+import { PublishDrawer, Test } from "./publish_drawer";
 import { useTheme } from "next-themes";
 import "./main.module.css"
 import clsx from "clsx";
-import ResponsiveShell from "../../responsive_shell";
+import ResponsiveShell from "../../../components/responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -131,7 +131,7 @@ export default function InitializedMDXEditor({
 
     function save() {
         const markdown = innerRef.current?.getMarkdown()
-        if (!innerRef.current || !query.data || typeof markdown !== "string") return
+        if (!innerRef.current || !query.data || typeof markdown !== "string") return Promise.resolve(null)
 
         const {
             new_title,
@@ -139,12 +139,27 @@ export default function InitializedMDXEditor({
             new_url
         } = update_state(markdown, { id: query.data.id })
 
-        mutation.mutate({
-            id: query.data?.id,
-            title: new_title,
-            url: new_url,
-            content: new_markdown,
-            published: query.data.published,
+        return new Promise<Article | null>((resolve, reject) => {
+            if (!innerRef.current || !query.data || typeof markdown !== "string") return Promise.resolve(null)
+
+            mutation.mutate({
+                id: query.data.id,
+                title: new_title,
+                url: new_url,
+                content: new_markdown,
+                published: query.data.published,
+            }, {
+                onSuccess: (data) => {
+                    setTimeout(() => {
+                        console.log("RESOLVING")
+                        resolve(data)
+                    }, 5000)
+                },
+                onError: (error) => {
+                    console.error("Error saving", error)
+                    reject(error)
+                }
+            })
         })
     }
 
@@ -185,7 +200,7 @@ export default function InitializedMDXEditor({
                     <div className="space-x-2">
                         <Button
                             variant="outline"
-                            onClick={() => save()}
+                            onClick={() => void save()}
                         >
                             Shrani
                         </Button>
@@ -198,8 +213,9 @@ export default function InitializedMDXEditor({
                                 Obišči stran
                             </Link>
                         </Button>
+                        <Test save={async () => await save()} />
                         <PublishDrawer
-                            save={() => save()}
+                            save={save}
                             fullSave={(input) => fullSave(input)}
                             articleId={query.data.id}
                             content={query.data.content}

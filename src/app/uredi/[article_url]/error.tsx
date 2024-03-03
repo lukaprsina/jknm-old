@@ -1,6 +1,6 @@
 "use client"
 
-import ResponsiveShell from "~/app/responsive_shell"
+import ResponsiveShell from "~/components/responsive_shell"
 
 export default function Error() {
     return (

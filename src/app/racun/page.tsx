@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react"
 import { UserAuthForm } from "~/app/racun/auth_form"
 import { Skeleton } from "~/components/ui/skeleton"
-import ResponsiveShell from "../responsive_shell"
+import ResponsiveShell from "../../components/responsive_shell"
 import { Button } from "~/components/ui/button"
 import Image from "next/image"
 import logo from '~/content/logo.png'

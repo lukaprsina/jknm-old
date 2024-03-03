@@ -8,7 +8,6 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import {
     Drawer,
@@ -18,14 +17,14 @@ import {
     DrawerFooter,
     DrawerHeader,
     DrawerTitle,
-    DrawerTrigger,
 } from "@/components/ui/drawer"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { PublishForm } from "./publish_form"
 import { SaveArticleType } from "~/server/data_layer/articles"
+import { Article } from "@prisma/client"
 
 type PublishDrawerProps = {
-    save: () => void
+    save: () => Promise<Article | null>
     fullSave: (input: SaveArticleType) => void
     imageUrls: string[]
     title: string
@@ -35,47 +34,89 @@ type PublishDrawerProps = {
     published: boolean
 }
 
-export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, title, url, published }: PublishDrawerProps) {
-    const [open, setOpen] = useState(false)
-    const isDesktop = useMediaQuery("(min-width: 768px)")
+export function Test({ save }: { save: () => Promise<Article | null> }) {
+    const [someNum, setNum] = useState(0)
 
-    if (isDesktop) {
-        return (
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                    <Button onClick={() => save()} variant="outline">Objavi novičko</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Objavi novičko</DialogTitle>
-                        <DialogDescription>
-                            Shrani in objavi urejeno novičko
-                        </DialogDescription>
-                    </DialogHeader>
-                    <PublishForm
-                        imageUrls={imageUrls}
-                        article_id={articleId}
-                        content={content}
-                        fullSave={fullSave}
-                        title={title}
-                        url={url}
-                        published={published}
-                    />
-                </DialogContent>
-            </Dialog>
-        )
+
+    useEffect(() => {
+        console.log("someNum is", someNum)
+        return () => {
+            console.log("COMPONENT Test REMOUNTED")
+        }
+    }, [someNum])
+
+    return (
+        <button
+            onClick={() => {
+                save()
+                    .then(() => {
+                        setNum((num) => num + 1)
+                        console.log("set someNum")
+                    })
+                    .catch((error) => console.error("Error setting: ", error, someNum))
+            }}
+        >
+            Click me {someNum}
+        </button>
+    )
+}
+
+export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, title, url, published }: PublishDrawerProps) {
+    const isDesktop = useMediaQuery("(min-width: 768px)")
+    const [drawerOpen, setDrawerOpen] = useState(false)
+
+    useEffect(() => {
+        console.log("open is ", drawerOpen)
+    }, [drawerOpen])
+
+    // TODO: the component if the article changes!!
+    return (
+        <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <Button
+                onClick={() => save().then(() => setDrawerOpen(true)).catch((error) => console.error("Error saving: ", error))}
+                variant="outline"
+            >
+                Nastavitve novičke
+            </Button>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Nastavitve novičke</DialogTitle>
+                    <DialogDescription>
+                        Uredi in objavi novičko
+                    </DialogDescription>
+                </DialogHeader>
+                <PublishForm
+                    imageUrls={imageUrls}
+                    article_id={articleId}
+                    content={content}
+                    fullSave={fullSave}
+                    title={title}
+                    url={url}
+                    published={published}
+                />
+            </DialogContent>
+        </Dialog>
+    )
+
+    /* if (isDesktop) {
+        
     }
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
+            <Button onClick={async () => {
+                await save()
+                console.log("OPENING SETTINGS MOBILE")
+                setOpen(true)
+            }}>Nastavitve novičke</Button>
             <DrawerTrigger asChild>
-                <Button variant="outline">Objavi novičko</Button>
-            </DrawerTrigger>
+                <Button variant="outline">Nastavitve novičke</Button>
+            </DrawerTrigger>}
             <DrawerContent>
                 <DrawerHeader className="text-left">
-                    <DrawerTitle>Objavi novičko</DrawerTitle>
+                    <DrawerTitle>Nastavitve novičke</DrawerTitle>
                     <DrawerDescription>
-                        Shrani in objavi urejeno novičko
+                        Uredi in objavi novičko
                     </DrawerDescription>
                 </DrawerHeader>
                 <PublishForm
@@ -95,5 +136,5 @@ export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, t
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>
-    )
+    ) */
 }

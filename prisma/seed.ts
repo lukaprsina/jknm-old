@@ -11,24 +11,24 @@ async function main() {
     })
     if (!luka_user)
         throw new Error("No user found")
-    
-        for(let i = 0; i < 10; i++) {
-            const title = `Article ${i}`
-            const url = sanitize_for_fs(title)
 
-            await fs.mkdir(path.join(FILESYSTEM_PREFIX, url), { recursive: true })
-            await db.article.create({
-                data: {
-                    title,
-                    url,
-                    imageUrl: "https://source.unsplash.com/random",
-                    content: `# Article ${i}
+    for (let i = 0; i < 10; i++) {
+        const title = `Article ${i}`
+        const url = sanitize_for_fs(title)
+
+        await fs.mkdir(path.join(FILESYSTEM_PREFIX, url), { recursive: true })
+        await db.article.create({
+            data: {
+                title,
+                url,
+                imageUrl: "https://picsum.photos/1500/1000",
+                content: `# Article ${i}
 
                     Some content`,
-                    createdById: luka_user.id
-                }
-            })
-        }
+                createdById: luka_user.id
+            }
+        })
+    }
 }
 
 await main()
