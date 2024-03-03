@@ -11,7 +11,17 @@ const nextConfig = {
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
     experimental: {
         mdxRs: true
-    }
+    },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'picsum.photos',
+                port: '',
+                pathname: '/**',
+            },
+        ],
+    },
 }
 
 export default withMDX(nextConfig)
