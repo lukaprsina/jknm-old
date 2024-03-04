@@ -18,7 +18,7 @@ export const custom_mdx_components: MDXComponents = {
         </figure>
     ),
     "a": ({ href, children, ...props }) => (
-        <Link href={href ?? ""} {...props}>{children}</Link>
+        <Link href={href ?? ""} target="_blank" {...props}>{children}</Link>
     ),
     "Image": ({ src, alt, caption }: ImageProps) => (
         <figure>
