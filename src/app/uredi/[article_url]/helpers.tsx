@@ -21,7 +21,10 @@ import { WEB_FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import path from "path";
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { toMarkdown } from "mdast-util-to-markdown"
-import type { Parent, Code } from "mdast";
+import { toString as markdownToString } from "mdast-util-to-string"
+import type { Parent, Code } from "mdast"
+import { Article } from '@prisma/client';
+import { SaveArticleType } from '~/server/data_layer/articles';
 
 const imageUploadHandler = async (image: File, url?: string): Promise<string | undefined> => {
     if (!image) throw new Error("No image");
@@ -68,8 +71,8 @@ export function change_url(current_url: string, previous_url: string) {
     return path.join(IMAGE_FS_PREFIX, current_url, name)
 }
 
-export function traverse_tree(markdown: string) {
-    const tree = fromMarkdown(markdown, {})
+export function update_state(markdown: string, article: SaveArticleType) {
+    const tree = fromMarkdown(markdown)
 
     function find_heading(node: Parent | Code): string | undefined {
         node = node as Parent
@@ -82,9 +85,9 @@ export function traverse_tree(markdown: string) {
             }
 
             if (child.type == "heading" && child.depth == 1) {
-                if (child.children.length == 1 && child.children[0]?.type == "text") {
-                    return child.children[0].value
-                }
+                const heading_md = markdownToString(child)
+                if (heading_md.length > 0)
+                    return heading_md
             }
         }
 
@@ -111,29 +114,23 @@ export function traverse_tree(markdown: string) {
         }
     }
 
-    const heading = find_heading(tree)
-    if (typeof heading === "undefined") throw new Error("No heading found")
-    const new_url = sanitize_for_fs(heading)
+    let heading = article.title;
+    if (typeof heading !== "string") {
+        const now = new Date()
+        heading = find_heading(tree) ?? `untitled-${now.getTime()}`
+    }
+
+    let new_url = article.url
+    if (typeof new_url !== "string") {
+        new_url = sanitize_for_fs(heading)
+    }
 
     change_images(tree, new_url)
-
-    return {
-        markdown: toMarkdown(tree, {}),
-        new_title: heading,
-        image_urls
-    }
-}
-
-export function update_state(markdown: string) {
-    const { markdown: new_markdown, new_title, image_urls } = traverse_tree(markdown)
-    if (typeof new_title !== "string")
-        throw new Error("No title found")
-
-    const new_url = sanitize_for_fs(new_title)
+    const new_markdown = toMarkdown(tree).trim()
 
     return {
         new_markdown,
-        new_title,
+        new_title: heading,
         new_url,
         image_urls
     }

@@ -1,11 +1,8 @@
-await import("./src/env.js");
+import "./src/env.js"
 import nextMDX from '@next/mdx'
 
 const withMDX = nextMDX({
     extension: /\.(md|mdx)$/,
-    options: {
-
-    }
 })
 
 /** @type {import('next').NextConfig} */
@@ -14,7 +11,17 @@ const nextConfig = {
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
     experimental: {
         mdxRs: true
-    }
+    },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'picsum.photos',
+                port: '',
+                pathname: '/**',
+            },
+        ],
+    },
 }
 
 export default withMDX(nextConfig)

@@ -10,6 +10,24 @@ import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 
+export async function getPublishedArticles() {
+    return await db.article.findMany({
+        where: {
+            // published: true
+        },
+        select: {
+            title: true,
+            id: true,
+            url: true,
+            createdById: true,
+            imageUrl: true,
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+}
+
 const search_schema = z.object({
     search_text: z.string(),
 })
@@ -73,15 +91,19 @@ const save_article_schema = z.object({
     url: z.string().optional(),
     content: z.string().optional(),
     published: z.boolean().optional(),
+    image_url: z.string().optional(),
+    created_at: z.date().optional(),
+    updated_at: z.date().optional(),
+    published_at: z.date().optional(),
     id: z.number(),
 })
 
 export type SaveArticleType = z.infer<typeof save_article_schema>
 
-export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id, published }) => {
+export const save_article = action(save_article_schema, async ({ title, url, content, id, published, ...props }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    console.log("saving article", { title, unsafe_url, content, id, published })
+    console.log("saving article", { title, url, content, id, published })
 
     const previous_article = await db.article.findUniqueOrThrow({
         where: {
@@ -89,16 +111,17 @@ export const save_article = action(save_article_schema, async ({ title, url: uns
         }
     })
 
-    const final_content = typeof content == "undefined" ? previous_article.content : content
-    let final_url = previous_article.url
-    if (typeof title != "undefined") {
-        final_url = sanitize_for_fs(title)
-    } else if (typeof unsafe_url != "undefined") {
-        final_url = sanitize_for_fs(unsafe_url)
-    }
+    const final_content = content ?? previous_article.content
+    const final_title = title ?? previous_article.title
+    let final_url = url ?? sanitize_for_fs(final_title)
 
-    if (final_url != previous_article.url) {
-        await fs.rename(path.join(FILESYSTEM_PREFIX, previous_article.url), path.join(FILESYSTEM_PREFIX, final_url))
+    if (fs.existsSync(path.join(FILESYSTEM_PREFIX, previous_article.url))) {
+        if (final_url != previous_article.url) {
+            await fs.rename(path.join(FILESYSTEM_PREFIX, previous_article.url), path.join(FILESYSTEM_PREFIX, final_url))
+        }
+    } else {
+        console.error("Missing url path in fs, creating", final_url)
+        await fs.mkdir(path.join(FILESYSTEM_PREFIX, final_url), { recursive: true })
     }
 
     const updated_article = await db.article.update({
@@ -106,12 +129,13 @@ export const save_article = action(save_article_schema, async ({ title, url: uns
             id,
         },
         data: {
-            title: title ?? previous_article.title,
+            title: final_title,
             url: final_url,
             content: final_content,
             published: published ?? previous_article.published,
-            publishedAt: published ? new Date() : previous_article.publishedAt,
-            updatedAt: new Date(),
+            createdAt: props.created_at ?? previous_article.createdAt,
+            updatedAt: props.updated_at ?? new Date(),
+            publishedAt: props.published_at ?? (published ? new Date() : previous_article.publishedAt),
         }
     })
 
@@ -155,9 +179,14 @@ export const make_or_return_draft = action(make_or_return_draft_schema, async ({
                 url: draft_name,
                 content: original_article.content,
                 createdById: session.user.id,
+                draftArticleId: original_article.id,
+            },
+            include: {
+                drafts: true
             }
         })
 
+        /* TODO: rename images */
         await fs.mkdir(path.join(FILESYSTEM_PREFIX, draft_name), { recursive: true })
         await fs.copy(path.join(FILESYSTEM_PREFIX, original_article.url), path.join(FILESYSTEM_PREFIX, draft_name))
 

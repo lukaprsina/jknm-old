@@ -1,5 +1,3 @@
-"use server"
-
 import { read_article } from "../../../server/data_layer/articles";
 import EditorClient from "./editor_client";
 import { withParamValidation } from "next-typesafe-url/app/hoc";

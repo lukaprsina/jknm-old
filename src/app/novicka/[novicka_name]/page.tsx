@@ -1,14 +1,13 @@
-"use server"
-
 import { read_article } from "~/server/data_layer/articles"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { custom_mdx_components } from "src/mdx-components"
 import { type Metadata } from "next"
-import ResponsiveShell from "~/app/responsive_shell"
+import ResponsiveShell from "~/components/responsive_shell"
 import { getServerAuthSession } from "~/server/auth"
 import type { InferPagePropsType } from "next-typesafe-url";
 import { Route, type RouteType } from "./routeType";
 import { withParamValidation } from "next-typesafe-url/app/hoc"
+import { type RouterOutputs } from "next-typesafe-url";
 
 type PageProps = InferPagePropsType<RouteType>;
 
