@@ -17,6 +17,7 @@ import {
     DrawerFooter,
     DrawerHeader,
     DrawerTitle,
+    DrawerTrigger,
 } from "@/components/ui/drawer"
 import { useEffect, useState } from "react"
 import { PublishForm } from "./publish_form"
@@ -69,49 +70,48 @@ export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, t
         console.log("open is ", drawerOpen)
     }, [drawerOpen])
 
-    // TODO: the component if the article changes!!
-    return (
-        <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
-            <Button
-                onClick={() => save().then(() => setDrawerOpen(true)).catch((error) => console.error("Error saving: ", error))}
-                variant="outline"
-            >
-                Nastavitve novičke
-            </Button>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Nastavitve novičke</DialogTitle>
-                    <DialogDescription>
-                        Uredi in objavi novičko
-                    </DialogDescription>
-                </DialogHeader>
-                <PublishForm
-                    imageUrls={imageUrls}
-                    article_id={articleId}
-                    content={content}
-                    fullSave={fullSave}
-                    title={title}
-                    url={url}
-                    published={published}
-                />
-            </DialogContent>
-        </Dialog>
-    )
+    // TODO: the component if the article changes!!    
 
-    /* if (isDesktop) {
-        
+    if (isDesktop) {
+        return (
+            <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+                <Button
+                    onClick={() => save().then(() => setDrawerOpen(true)).catch((error) => console.error("Error saving: ", error))}
+                    variant="outline"
+                >
+                    Nastavitve novičke
+                </Button>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Nastavitve novičke</DialogTitle>
+                        <DialogDescription>
+                            Uredi in objavi novičko
+                        </DialogDescription>
+                    </DialogHeader>
+                    <PublishForm
+                        imageUrls={imageUrls}
+                        article_id={articleId}
+                        content={content}
+                        fullSave={fullSave}
+                        title={title}
+                        url={url}
+                        published={published}
+                    />
+                </DialogContent>
+            </Dialog>
+        )
     }
 
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <Button onClick={async () => {
                 await save()
                 console.log("OPENING SETTINGS MOBILE")
-                setOpen(true)
+                setDrawerOpen(true)
             }}>Nastavitve novičke</Button>
             <DrawerTrigger asChild>
                 <Button variant="outline">Nastavitve novičke</Button>
-            </DrawerTrigger>}
+            </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader className="text-left">
                     <DrawerTitle>Nastavitve novičke</DrawerTitle>
@@ -136,5 +136,5 @@ export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, t
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>
-    ) */
+    )
 }

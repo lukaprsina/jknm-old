@@ -25,7 +25,10 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { twMerge } from 'tailwind-merge';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import { DesktopNavMenu } from './nav_menu';
+import Image from 'next/image';
+import logo from '~/content/logo.png'
 
 type TrimmedUser = {
     id: string;
@@ -48,8 +51,8 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
 
     // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
     return (
-        <div className="flex flex-col h-screen justify-between">
-            <nav className=" top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="min-h-screen h-full justify-between">
+            <header className="top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 max-w-screen-2xl items-center">
                     <MobileNav />
                     <MainNav
@@ -62,11 +65,11 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
                         user={user}
                     />
                 </div>
-            </nav>
-            <main className="h-full w-full">
+            </header>
+            <main className="min-h-screen h-full w-full">
                 {children}
             </main>
-            <footer>
+            <footer className="bottom-0 z-50">
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
                     <Footer />
                 </div>
@@ -89,10 +92,17 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
     const router = useRouter()
 
     return <>
-        <div className="mr-4 hidden md:flex">
-            <Link href="/" className="relative h-full flex mr-4 items-center gap-3">
-                <h1>Jamarski klub Novo mesto</h1>
+        <div className="mr-4 hidden md:flex items-center h-full gap-4">
+            <Link href="/" className="flex h-full w-14">
+                <Image
+                    src={logo}
+                    alt="logo"
+                    sizes="100vw"
+                    placeholder='blur'
+                    className="object-contain h-auto mr-2"
+                />
             </Link>
+            <DesktopNavMenu />
         </div>
         <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
             <Input
@@ -129,6 +139,8 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
 }
 
 function MobileNav() {
+    const session = useSession()
+
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -148,7 +160,11 @@ function MobileNav() {
                         <Link href="/">Domov</Link>
                     </Button>
                     <Button asChild variant="link">
-                        <Link href="/">Račun</Link>
+                        {session.status == "authenticated" ? (
+                            <Link href="/racun">Račun</Link>
+                        ) : (
+                            <Link href="/prijava">Prijava</Link>
+                        )}
                     </Button>
                 </div>
                 <SheetFooter>
@@ -159,9 +175,15 @@ function MobileNav() {
 }
 
 function Footer() {
+    const session = useSession()
+
     return <>
         <Button asChild variant="link">
-            <Link href="/racun">Račun</Link>
+            {session.status == "authenticated" ? (
+                <Link href="/racun">Račun</Link>
+            ) : (
+                <Link href="/prijava">Prijava</Link>
+            )}
         </Button>
     </>
 }
@@ -181,9 +203,15 @@ function UserNav({ className, user }: UserNavProps) {
                     variant="ghost"
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-9 w-9 bg-white border-2">
                         {user.image ?
-                            <AvatarImage src={user.image} alt={user.name ? `user logo: ${user.name}` : "user logo"} /> :
+                            <AvatarImage
+                                src={user.image}
+                                alt={user.name ? `user logo: ${user.name}` : "user logo"}
+                                onError={(e) => {
+                                    console.error("Error loading image", e)
+                                }}
+                            /> :
                             <AvatarFallback>{initials}</AvatarFallback>
                         }
                     </Avatar>

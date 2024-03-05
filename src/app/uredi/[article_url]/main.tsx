@@ -90,6 +90,8 @@ function useEditorArticle(
     }
 }
 
+// TODO: when saving and updating title, the new text gets deleted
+
 export default function InitializedMDXEditor({
     editorRef,
     article: initialArticle,
@@ -153,7 +155,7 @@ export default function InitializedMDXEditor({
                     setTimeout(() => {
                         console.log("RESOLVING")
                         resolve(data)
-                    }, 5000)
+                    }, 1000)
                 },
                 onError: (error) => {
                     console.error("Error saving", error)

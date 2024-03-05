@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { Card } from "~/components/ui/card";
 import { ArrayElement } from "~/lib/typescript_utils";
-import { getPublishedArticles } from "~/server/data_layer/articles";
+import { get_published_articles } from "~/server/data_layer/articles";
 
-export type PublishedArticles = ArrayElement<Awaited<ReturnType<typeof getPublishedArticles>>>;
+export type PublishedArticles = ArrayElement<Awaited<ReturnType<typeof get_published_articles>>>;
 
 type ArticleViewProps = {
     initial_articles: PublishedArticles[]
@@ -16,7 +16,7 @@ type ArticleViewProps = {
 export default function ArticleView({ initial_articles }: ArticleViewProps) {
     const { data: articles } = useQuery({
         queryKey: ["published_articles"],
-        queryFn: async () => await getPublishedArticles(),
+        queryFn: async () => await get_published_articles(),
         initialData: initial_articles,
     })
 

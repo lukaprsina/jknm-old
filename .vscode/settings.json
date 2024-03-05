@@ -1,5 +1,5 @@
 {
-  "easynpm.defaultProjectRoot": "d:\\dev\\js\\jknm-next",
+  "easynpm.defaultProjectRoot": "",
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
     "source.fixAll": "always"
@@ -12,4 +12,7 @@
   },
   "todo-tree.tree.showCountsInTree": true,
   "todo-tree.tree.showBadges": true,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
 }

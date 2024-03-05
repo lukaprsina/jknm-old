@@ -10,10 +10,10 @@ import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 
-export async function getPublishedArticles() {
+export async function get_published_articles() {
     return await db.article.findMany({
         where: {
-            // published: true
+            // TODO: published: true
         },
         select: {
             title: true,
@@ -59,7 +59,7 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
 
     console.log("reading article server", { url })
     if (!article) throw new Error("No article found")
-    if (article?.published == false && session?.user.id != article?.createdById) return undefined
+    if (!article?.published && session?.user.id != article?.createdById) return undefined
 
     return article ?? undefined
 })

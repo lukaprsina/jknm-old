@@ -7,10 +7,9 @@ import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { sign } from "crypto"
 import { signIn } from "next-auth/react"
 
-export function UserAuthForm({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function SignInForm({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
     async function onSubmit(event: SyntheticEvent) {
@@ -59,7 +58,7 @@ export function UserAuthForm({ className, ...props }: HTMLAttributes<HTMLDivElem
                 </div>
             </div>
             <Button
-                onClick={() => signIn("google")}
+                onClick={() => signIn("google", { callbackUrl: "/" })}
                 variant="outline"
                 type="button"
                 disabled={isLoading}
