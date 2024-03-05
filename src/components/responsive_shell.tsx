@@ -91,51 +91,56 @@ type MainNavProps = {
 function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText, user }: MainNavProps) {
     const router = useRouter()
 
-    return <>
-        <div className="mr-4 hidden md:flex items-center h-full gap-4">
-            <Link href="/" className="flex h-full w-14">
-                <Image
-                    src={logo}
-                    alt="logo"
-                    sizes="100vw"
-                    placeholder='blur'
-                    className="object-contain h-auto mr-2"
-                />
-            </Link>
-            <DesktopNavMenu />
-        </div>
-        <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
-            <Input
-                className='w-full flex-1 md:w-auto md:flex-none'
-                type="text"
-                placeholder="Search ..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-            />
-            {editable && signedIn && <Button asChild size="icon" variant="outline">
-                <Link
-                    href={`/uredi/${sanitized_url}`}
-                    className='h-fill'
-                >
-                    <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
+    return (
+        <div className="flex justify-between w-full">
+            <div className="mr-4 hidden lg:flex items-center h-full gap-4">
+                <Link href="/" className="flex h-full w-14">
+                    <Image
+                        src={logo}
+                        alt="logo"
+                        sizes="100vw"
+                        placeholder='blur'
+                        className="object-contain h-auto mr-2"
+                    />
                 </Link>
-            </Button>}
-            {signedIn && <Button
-                size="icon"
-                variant="outline"
-                onClick={async () => {
-                    const response = await new_article({})
+                <DesktopNavMenu />
+            </div>
+            <div className='hidden navbar:flex flex-1 items-center justify-between space-x-2 lg:justify-end'>
+                <Input
+                    className='w-full flex-1 lg:w-auto lg:flex-none'
+                    type="text"
+                    placeholder="Search ..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
+                {editable && signedIn && <Button asChild size="icon" variant="outline">
+                    <Link
+                        href={`/uredi/${sanitized_url}`}
+                        className='h-fill'
+                    >
+                        <Pencil1Icon className="h-[1.2rem] w-[1.2rem]" />
+                    </Link>
+                </Button>}
+                {signedIn && <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={async () => {
+                        const response = await new_article({})
 
-                    if (typeof response.serverError == "undefined" && typeof response.validationErrors == "undefined" && response.data)
-                        router.push(`/uredi/${response.data.url}`)
-                }}
-            >
-                <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
-            </Button>}
-            <ModeToggle />
-            {user ? <UserNav user={user} /> : null}
+                        if (typeof response.serverError == "undefined" && typeof response.validationErrors == "undefined" && response.data)
+                            router.push(`/uredi/${response.data.url}`)
+                    }}
+                >
+                    <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
+                </Button>}
+                <ModeToggle />
+                {user ? <UserNav user={user} /> : null}
+            </div>
+            <div className="flex navbar:hidden flex-1 items-center justify-end">
+                {user ? <UserNav user={user} /> : null}
+            </div>
         </div>
-    </>
+    )
 }
 
 function MobileNav() {
@@ -145,7 +150,7 @@ function MobileNav() {
         <Sheet>
             <SheetTrigger asChild>
                 <Button
-                    className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+                    className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden"
                     variant="ghost"
                 >
                     Nav
