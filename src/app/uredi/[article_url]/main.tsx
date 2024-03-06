@@ -18,7 +18,7 @@ import "./main.module.css"
 import clsx from "clsx";
 import ResponsiveShell from "../../../components/responsive_shell";
 import { Badge } from "~/components/ui/badge";
-import { SaveArticleType, save_article } from "../../../server/data_layer/articles";
+import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";
@@ -27,7 +27,6 @@ import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { ServerError } from "~/lib/server_error";
-import { read_article_safe } from "~/lib/query_helpers";
 
 function useEditorArticle(
     article_url: string | undefined,
@@ -37,7 +36,16 @@ function useEditorArticle(
 
     const query = useQuery({
         queryKey: ["editor_article", article_url],
-        queryFn: async () => await read_article_safe(article_url),
+        queryFn: async () => {
+            if (typeof article_url !== "string") return null
+
+            const article = await read_article({ url: article_url })
+            // console.log("read_article_safe", { article_url, article })
+            if (!article.data || article.serverError || article.validationErrors)
+                throw new ServerError("Zod error", { ...article })
+
+            return article.data
+        }
     })
 
     const mutation = useMutation({

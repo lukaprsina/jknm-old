@@ -15,7 +15,10 @@ export default function ArticleView() {
         queryFn: async () => await get_published_articles(),
     })
 
-    if (!articles) throw new Error("Published articles not server rendered")
+    if (!articles) {
+        console.error("Published articles not server rendered")
+        return <div>Published articles not server rendered</div>
+    }
 
     const articles_without_first = useMemo(() => {
         if (articles.length <= 1) return []

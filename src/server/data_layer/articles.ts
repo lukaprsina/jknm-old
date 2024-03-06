@@ -60,7 +60,8 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
 
     console.log("read article server", { id: article?.id, url })
     if (!article) throw new Error("No article found")
-    if (!article?.published && session?.user.id != article?.createdById) return undefined
+    // TODO
+    // if (!article?.published && session?.user.id != article?.createdById) return undefined
 
     return article ?? undefined
 })

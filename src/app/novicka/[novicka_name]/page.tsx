@@ -1,13 +1,12 @@
 import { read_article } from "~/server/data_layer/articles"
-import { read_article_safe } from "~/lib/query_helpers"
 import { type Metadata } from "next"
 import ResponsiveShell from "~/components/responsive_shell"
 import { getServerAuthSession } from "~/server/auth"
 import type { InferPagePropsType } from "next-typesafe-url";
 import { Route, type RouteType } from "./routeType";
 import { withParamValidation } from "next-typesafe-url/app/hoc"
-import { HydrationBoundary, QueryClient, dehydrate, useQuery } from "@tanstack/react-query"
-import ClientArticle from "./client"
+import { MDXRemote } from "next-mdx-remote/rsc";
+import { custom_mdx_components } from "~/mdx-components";
 
 type PageProps = InferPagePropsType<RouteType>;
 
@@ -28,22 +27,19 @@ export async function generateMetadata(
 
 async function Article({ routeParams }: PageProps) {
     const session = await getServerAuthSession()
-    const queryClient = new QueryClient()
-
-    queryClient.prefetchQuery({
-        queryKey: ["editor_article", routeParams.novicka_name],
-        queryFn: async () => await read_article_safe(routeParams.novicka_name),
-    })
-    // const article = await read_article({ url: routeParams.novicka_name })    
+    const article = await read_article({ url: routeParams.novicka_name })
 
     return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            <ResponsiveShell editable={true} user={session?.user}>
-                <div className="prose lg:prose-lg dark:prose-invert container">
-                    <ClientArticle />
-                </div>
-            </ResponsiveShell>
-        </HydrationBoundary>
+        <ResponsiveShell editable={true} user={session?.user}>
+            <div className="prose lg:prose-lg dark:prose-invert container">
+                {article.data?.content ? (
+                    <MDXRemote
+                        source={article.data?.content}
+                        components={custom_mdx_components}
+                    />
+                ) : null}
+            </div>
+        </ResponsiveShell>
     )
 }
 
