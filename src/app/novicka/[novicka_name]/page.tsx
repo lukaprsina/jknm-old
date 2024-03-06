@@ -19,7 +19,7 @@ type ArticleType = {
 export async function generateMetadata(
     { params }: ArticleType,
 ): Promise<Metadata> {
-    const response = await read_article({ url: params.novicka_name })
+    const response = await read_article({ url: decodeURIComponent(params.novicka_name) })
     return {
         title: response.data?.title
     }
@@ -27,7 +27,7 @@ export async function generateMetadata(
 
 async function Article({ routeParams }: PageProps) {
     const session = await getServerAuthSession()
-    const article = await read_article({ url: routeParams.novicka_name })
+    const article = await read_article({ url: decodeURIComponent(routeParams.novicka_name) })
 
     return (
         <ResponsiveShell editable={true} user={session?.user}>

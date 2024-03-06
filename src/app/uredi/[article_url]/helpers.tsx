@@ -71,7 +71,7 @@ export function change_url(current_url: string, previous_url: string) {
     return path.join(IMAGE_FS_PREFIX, current_url, name)
 }
 
-export function update_state(markdown: string, article: SaveArticleType) {
+export function recurse_article(markdown: string, article: SaveArticleType, overwrite?: boolean) {
     const tree = fromMarkdown(markdown)
 
     function find_heading(node: Parent | Code): string | undefined {
@@ -115,15 +115,17 @@ export function update_state(markdown: string, article: SaveArticleType) {
     }
 
     let heading = article.title;
-    if (typeof heading !== "string") {
+    if (overwrite || typeof heading !== "string") {
         const now = new Date()
         heading = find_heading(tree) ?? `untitled-${now.getTime()}`
     }
 
     let new_url = article.url
-    if (typeof new_url !== "string") {
+    if (overwrite || typeof new_url !== "string") {
         new_url = sanitize_for_fs(heading)
     }
+
+    console.log("recurse_article", { heading, new_url })
 
     change_images(tree, new_url)
     const new_markdown = toMarkdown(tree).trim()

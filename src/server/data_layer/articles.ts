@@ -60,8 +60,7 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
 
     console.log("read article server", { id: article?.id, url })
     if (!article) throw new Error("No article found")
-    // TODO
-    // if (!article?.published && session?.user.id != article?.createdById) return undefined
+    if (!article?.published && session?.user.id != article?.createdById) return undefined
 
     return article ?? undefined
 })
@@ -116,6 +115,15 @@ export const save_article = action(save_article_schema, async ({ title, url, con
     const final_content = content ?? previous_article.content
     const final_title = title ?? previous_article.title
     let final_url = url ?? sanitize_for_fs(final_title)
+
+    const duplicate = await db.article.findFirst({
+        where: {
+            url: final_url,
+            id: { not: id }
+        }
+    })
+
+    if (duplicate) throw new Error("Duplicate URL")
 
     if (fs.existsSync(path.join(FILESYSTEM_PREFIX, previous_article.url))) {
         if (final_url != previous_article.url) {

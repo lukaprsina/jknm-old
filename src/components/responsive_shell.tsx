@@ -2,7 +2,7 @@
 
 import { new_article, type new_article as new_article_type } from '../server/data_layer/articles'
 import Link from 'next/link';
-import { HamburgerMenuIcon, Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
+import { HamburgerMenuIcon, MagnifyingGlassIcon, Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
 import { HTMLProps, useMemo, useState } from 'react';
 import { remove_article_prefix } from '~/lib/fs';
@@ -31,6 +31,7 @@ import Image from 'next/image';
 import logo from '~/content/logo.png'
 import { useMediaQuery } from '~/hooks/use_media_query';
 import useLog from '~/hooks/use_log';
+import { cn } from '~/lib/utils';
 
 type TrimmedUser = {
     id: string;
@@ -54,7 +55,7 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
     // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
     return (
         <div className="min-h-screen h-full justify-between">
-            <header className="top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <header className="mb-10 top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 max-w-screen-2xl items-center">
                     <MobileNav />
                     <MainNav
@@ -92,10 +93,6 @@ type MainNavProps = {
 
 function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText, user }: MainNavProps) {
     const router = useRouter()
-    const isLg = useMediaQuery("(min-width: 768px)")
-    const isNavbar = useMediaQuery("(min-width: 1024px)")
-
-    useLog({ isLg, isNavbar })
 
     return (
         <div className="flex justify-between w-full">
@@ -111,14 +108,17 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 </Link>
                 <DesktopNavMenu />
             </div>
-            <div className='hidden navbar:flex flex-1 items-center justify-between space-x-2 lg:justify-end'>
+            <div className='flex flex-1 items-center justify-between space-x-2 lg:justify-end'            >
                 <Input
-                    className='w-full flex-1 lg:w-auto lg:flex-none'
+                    className='block lg:hidden navbar:block w-full ml-5 flex-1 lg:w-auto lg:flex-none'
                     type="text"
                     placeholder="Search ..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                 />
+                <Button size="icon" variant="outline" className='hidden lg:flex navbar:hidden'>
+                    <MagnifyingGlassIcon className="h-[1.2rem] w-[1.2rem]" />
+                </Button>
                 {editable && signedIn && <Button asChild size="icon" variant="outline">
                     <Link
                         href={`/uredi/${sanitized_url}`}
@@ -141,9 +141,6 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 </Button>}
                 <ModeToggle />
                 {user ? <UserNav user={user} /> : null}
-            </div>
-            <div className="flex navbar:hidden flex-1 items-center justify-end">
-                <UserNav user={user} buttons={isLg && !isNavbar} />
             </div>
         </div>
     )
@@ -215,25 +212,23 @@ function UserNav({ className, user, buttons }: UserNavProps) {
                     variant="ghost"
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
-                    {buttons ? (
-                        <Avatar className="h-9 w-9 flex items-center justify-center">
-                            <HamburgerMenuIcon width={30} height={30} />
-                        </Avatar>
-                    ) : (
-
-                        <Avatar className="h-9 w-9 bg-white">
-                            {user?.image ?
-                                <AvatarImage
-                                    src={user.image}
-                                    alt={user.name ? `user logo: ${user.name}` : "user logo"}
-                                    onError={(e) => {
-                                        console.error("Error loading image", e)
-                                    }}
-                                /> :
-                                <AvatarFallback>{initials}</AvatarFallback>
-                            }
-                        </Avatar>
-                    )}
+                    <Avatar className="h-9 w-9 bg-white">
+                        {user?.image ?
+                            <AvatarImage
+                                src={user.image}
+                                alt={user.name ? `user logo: ${user.name}` : "user logo"}
+                                onError={(e) => {
+                                    console.error("Error loading image", e)
+                                }}
+                            /> : <>
+                                {buttons ? (
+                                    <HamburgerMenuIcon className="h-8 w-8 flex items-center justify-center" />
+                                ) : (
+                                    <AvatarFallback>{initials}</AvatarFallback>
+                                )}
+                            </>
+                        }
+                    </Avatar>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>

@@ -1,6 +1,6 @@
 "use client"
 
-import { type ForwardedRef, useState, useEffect } from "react";
+import { type ForwardedRef, useState, useEffect, useMemo } from "react";
 import {
     MDXEditor,
     type MDXEditorMethods,
@@ -20,7 +20,7 @@ import ResponsiveShell from "../../../components/responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { allPlugins, update_state } from "./helpers";
+import { allPlugins, recurse_article } from "./helpers";
 import { Route } from "./routeType";
 import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,7 @@ import { ServerError } from "~/lib/server_error";
 
 function useEditorArticle(
     article_url: string | undefined,
+    update_state: () => void
 ) {
     const queryClient = useQueryClient()
     const router = useRouter()
@@ -39,13 +40,13 @@ function useEditorArticle(
         queryFn: async () => {
             if (typeof article_url !== "string") return null
 
-            const article = await read_article({ url: article_url })
-            // console.log("read_article_safe", { article_url, article })
-            if (!article.data || article.serverError || article.validationErrors)
-                throw new ServerError("Zod error", { ...article })
+            const response = await read_article({ url: article_url })
+            console.log("queryFn", { article_url, response })
+            if (!response.data || response.serverError || response.validationErrors)
+                throw new ServerError("Zod error", { ...response })
 
-            return article.data
-        }
+            return response.data
+        },
     })
 
     const mutation = useMutation({
@@ -53,17 +54,19 @@ function useEditorArticle(
         mutationFn: async (input: SaveArticleType) => {
             if (typeof query.data === "undefined") return null
 
-            const article = await save_article(input)
-            console.log("saved article mutationFn", { article_url, article })
-            if (!article.data || article.serverError || article.validationErrors)
-                throw new ServerError("Zod error", { ...article })
+            update_state()
+            const response = await save_article(input)
+            console.log("mutationFn", { article_url, response })
+            if (!response.data || response.serverError || response.validationErrors)
+                throw new ServerError("Zod error", { ...response })
 
-            router.push(`/uredi/${article.data.url}`)
+            router.push(`/uredi/${response.data.url}`)
 
-            return article.data
+            return response.data
         },
         onSuccess: (data) => {
             queryClient.setQueryData(["editor_article", article_url], data)
+            update_state()
         }
     })
 
@@ -88,13 +91,16 @@ export default function InitializedMDXEditor({
     const routeParams = useRouteParams(Route.routeParams)
     const theme = useTheme()
     const [imageUrls, setImageUrls] = useState<string[]>([])
+    const article_url = useMemo(() => (
+        decodeURIComponent(routeParams.data?.article_url ?? "")
+    ), [routeParams.data?.article_url])
 
     const {
         query,
         mutation
-    } = useEditorArticle(routeParams.data?.article_url)
+    } = useEditorArticle(article_url, update_state)
 
-    useEffect(() => {
+    function update_state() {
         const markdown = innerRef.current?.getMarkdown()
         if (!innerRef.current || !query.data || !markdown) return
 
@@ -103,15 +109,23 @@ export default function InitializedMDXEditor({
             new_markdown,
             image_urls,
             new_url
-        } = update_state(markdown, { id: query.data.id })
+        } = recurse_article(markdown, {
+            id: query.data.id,
+            title: query.data.title,
+            url: query.data.url,
+        })
 
         setTitle(new_title)
         setUrl(new_url)
         setImageUrls(image_urls)
-        console.log("updated state", { new_title, new_markdown, image_urls, new_url })
+        console.log("update_state", { new_title, new_markdown, image_urls, new_url, query: query.data })
 
         innerRef.current?.setMarkdown(new_markdown)
-    }, [query.data])
+    }
+
+    useEffect(() => {
+        update_state()
+    }, [])
 
     function save() {
         const markdown = innerRef.current?.getMarkdown()
@@ -121,7 +135,11 @@ export default function InitializedMDXEditor({
             new_title,
             new_markdown,
             new_url
-        } = update_state(markdown, { id: query.data.id })
+        } = recurse_article(markdown, {
+            id: query.data.id
+        }, true)
+
+        console.log("save", { new_title, new_markdown, new_url, query: query.data })
 
         return new Promise<Article | null>((resolve, reject) => {
             if (!innerRef.current || !query.data || typeof markdown !== "string") return Promise.resolve(null)
@@ -137,7 +155,7 @@ export default function InitializedMDXEditor({
                     setTimeout(() => {
                         console.log("RESOLVING")
                         resolve(data)
-                    }, 1000)
+                    }, 5000)
                 },
                 onError: (error) => {
                     console.error("Error saving", error)
@@ -155,8 +173,8 @@ export default function InitializedMDXEditor({
             new_title,
             new_markdown,
             new_url
-        } = update_state(markdown, input)
-        console.warn("Full saving", { new_title, new_markdown, new_url, input })
+        } = recurse_article(markdown, input)
+        console.log("fullSave", { new_title, new_markdown, new_url, query: query.data })
 
         mutation.mutate({
             id: query.data?.id,
@@ -191,13 +209,12 @@ export default function InitializedMDXEditor({
                         <Button asChild variant="outline">
                             <Link
                                 className="no-underline"
-                                href={`/novicka/${routeParams.data.article_url}`}
+                                href={`/novicka/${article_url}`}
                                 target="_blank"
                             >
                                 Obišči stran
                             </Link>
                         </Button>
-                        <Test save={async () => await save()} />
                         <PublishDrawer
                             save={save}
                             fullSave={(input) => fullSave(input)}
@@ -220,9 +237,9 @@ export default function InitializedMDXEditor({
 
                 <div className="border-2 border-primary/25 rounded-md">
                     <MDXEditor
-                        plugins={allPlugins(markdown ?? "", routeParams.data.article_url)}
+                        plugins={allPlugins(query.data.content, routeParams.data.article_url)}
                         {...props}
-                        markdown={markdown ?? ""}
+                        markdown={query.data.content}
                         className={clsx(theme.resolvedTheme === "dark" ? "dark-theme dark-editor" : "")}
                         contentEditableClassName="max-w-full"
                         ref={editorRef}

@@ -6,17 +6,22 @@ import { Suspense, useRef } from "react";
 import type { MDXEditorMethods, MDXEditorProps } from "modified-editor";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
+import type { Article } from "@prisma/client";
 import { Skeleton } from "~/components/ui/skeleton";
 
 const Editor = dynamic(() => import("./main"), { ssr: false });
 
 export type EditorPropsJoined<T> = Partial<T>
+    & EditorClientProps
 
 export const ForwardRefEditor = forwardRef<MDXEditorMethods, EditorPropsJoined<MDXEditorProps>>(
     (props, ref) => <Editor {...props} editorRef={ref} />,
 );
 
 ForwardRefEditor.displayName = "ForwardRefEditor";
+
+type EditorClientProps = {
+}
 
 function EditorSkeleton() {
     return (
@@ -30,7 +35,7 @@ function EditorSkeleton() {
     )
 }
 
-export default function EditorClient() {
+export default function EditorClient({ }: EditorClientProps) {
     const ref = useRef<MDXEditorMethods>(null)
 
     return (/* TODO: skeleton doesn't work */
