@@ -1,6 +1,7 @@
 # TODO
 
 css full height ne štima
+db index
 
 editor:
 - ko se naslov zamenja se editor zbriše

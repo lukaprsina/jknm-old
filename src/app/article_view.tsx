@@ -9,16 +9,13 @@ import { get_published_articles } from "~/server/data_layer/articles";
 
 export type PublishedArticles = ArrayElement<Awaited<ReturnType<typeof get_published_articles>>>;
 
-type ArticleViewProps = {
-    initial_articles: PublishedArticles[]
-}
-
-export default function ArticleView({ initial_articles }: ArticleViewProps) {
+export default function ArticleView() {
     const { data: articles } = useQuery({
         queryKey: ["published_articles"],
         queryFn: async () => await get_published_articles(),
-        initialData: initial_articles,
     })
+
+    if (!articles) throw new Error("Published articles not server rendered")
 
     const articles_without_first = useMemo(() => {
         if (articles.length <= 1) return []

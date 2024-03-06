@@ -18,7 +18,7 @@ import "./main.module.css"
 import clsx from "clsx";
 import ResponsiveShell from "../../../components/responsive_shell";
 import { Badge } from "~/components/ui/badge";
-import { SaveArticleType, read_article, save_article } from "../../../server/data_layer/articles";
+import { SaveArticleType, save_article } from "../../../server/data_layer/articles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, update_state } from "./helpers";
 import { Route } from "./routeType";
@@ -26,25 +26,10 @@ import { useRouteParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
 import { useSession } from "next-auth/react";
-
-type ServerErrorProps = {
-    serverError?: string | undefined;
-    validationErrors?: Partial<Record<"url" | "_root", string[]>> | undefined
-}
-
-class ServerError extends Error {
-    serverError?: ServerErrorProps["serverError"]
-    validationErrors?: ServerErrorProps["validationErrors"]
-
-    constructor(message: string, { serverError, validationErrors }: ServerErrorProps) {
-        super(message);
-        this.serverError = serverError
-        this.validationErrors = validationErrors
-    }
-}
+import { ServerError } from "~/lib/server_error";
+import { read_article_safe } from "~/lib/query_helpers";
 
 function useEditorArticle(
-    initialArticle: Article | undefined,
     article_url: string | undefined,
 ) {
     const queryClient = useQueryClient()
@@ -52,17 +37,7 @@ function useEditorArticle(
 
     const query = useQuery({
         queryKey: ["editor_article", article_url],
-        queryFn: async () => {
-            if (typeof article_url !== "string") return null
-
-            const article = await read_article({ url: article_url })
-            console.log("read article queryfn", { article_url, initialArticle, article })
-            if (!article.data || article.serverError || article.validationErrors)
-                throw new ServerError("Zod error", { ...article })
-
-            return article.data
-        },
-        initialData: initialArticle,
+        queryFn: async () => await read_article_safe(article_url),
     })
 
     const mutation = useMutation({
@@ -71,7 +46,7 @@ function useEditorArticle(
             if (typeof query.data === "undefined") return null
 
             const article = await save_article(input)
-            console.log("saved article mutationFn", { article_url, initialArticle, article })
+            console.log("saved article mutationFn", { article_url, article })
             if (!article.data || article.serverError || article.validationErrors)
                 throw new ServerError("Zod error", { ...article })
 
@@ -94,12 +69,11 @@ function useEditorArticle(
 
 export default function InitializedMDXEditor({
     editorRef,
-    article: initialArticle,
     markdown,
     ...props
 }: { editorRef: ForwardedRef<MDXEditorMethods> | null } & EditorPropsJoined<MDXEditorProps>) {
-    const [title, setTitle] = useState<string>(initialArticle?.title ?? "")
-    const [url, setUrl] = useState<string>(initialArticle?.url ?? "")
+    const [title, setTitle] = useState<string>("")
+    const [url, setUrl] = useState<string>("")
     const session = useSession()
 
     const innerRef = useForwardedRef(editorRef);
@@ -110,7 +84,7 @@ export default function InitializedMDXEditor({
     const {
         query,
         mutation
-    } = useEditorArticle(initialArticle, routeParams.data?.article_url)
+    } = useEditorArticle(routeParams.data?.article_url)
 
     useEffect(() => {
         const markdown = innerRef.current?.getMarkdown()

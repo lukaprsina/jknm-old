@@ -25,7 +25,9 @@ async function main() {
                 content: `# Article ${i}
 
                     Some content`,
-                createdById: luka_user.id
+                createdById: luka_user.id,
+                published: true,
+                publishedAt: new Date(),
             }
         })
     }

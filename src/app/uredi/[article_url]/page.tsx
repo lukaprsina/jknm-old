@@ -1,16 +1,24 @@
-import { read_article } from "../../../server/data_layer/articles";
 import EditorClient from "./editor_client";
 import { withParamValidation } from "next-typesafe-url/app/hoc";
 import type { InferPagePropsType } from "next-typesafe-url";
 import { Route, type RouteType } from "./routeType";
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
+import { read_article_safe } from "~/lib/query_helpers";
 
 type PageProps = InferPagePropsType<RouteType>;
 
 async function EditorServer({ routeParams }: PageProps) {
-    const response = await read_article({ url: routeParams.article_url })
+    const queryClient = new QueryClient()
+
+    await queryClient.prefetchQuery({
+        queryKey: ["editor_article", routeParams.article_url],
+        queryFn: async () => await read_article_safe(routeParams.article_url),
+    })
 
     return (
-        <EditorClient article={response.data} />
+        <HydrationBoundary state={(dehydrate(queryClient))}>
+            <EditorClient />
+        </HydrationBoundary>
     )
 }
 
