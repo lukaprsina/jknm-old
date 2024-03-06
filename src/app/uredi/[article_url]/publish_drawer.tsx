@@ -66,10 +66,6 @@ export function PublishDrawer({ imageUrls, articleId, content, save, fullSave, t
     const isDesktop = useMediaQuery("(min-width: 768px)")
     const [drawerOpen, setDrawerOpen] = useState(false)
 
-    useEffect(() => {
-        console.log("open is ", drawerOpen)
-    }, [drawerOpen])
-
     // TODO: the component if the article changes!!    
 
     if (isDesktop) {

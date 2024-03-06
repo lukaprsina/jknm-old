@@ -2,7 +2,7 @@
 
 import { new_article, type new_article as new_article_type } from '../server/data_layer/articles'
 import Link from 'next/link';
-import { Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
+import { HamburgerMenuIcon, Pencil1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { usePathname, useRouter } from 'next/navigation';
 import { HTMLProps, useMemo, useState } from 'react';
 import { remove_article_prefix } from '~/lib/fs';
@@ -29,6 +29,8 @@ import { signOut, useSession } from 'next-auth/react';
 import { DesktopNavMenu } from './nav_menu';
 import Image from 'next/image';
 import logo from '~/content/logo.png'
+import { useMediaQuery } from '~/hooks/use_media_query';
+import useLog from '~/hooks/use_log';
 
 type TrimmedUser = {
     id: string;
@@ -90,6 +92,10 @@ type MainNavProps = {
 
 function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, setSearchText, user }: MainNavProps) {
     const router = useRouter()
+    const isLg = useMediaQuery("(min-width: 768px)")
+    const isNavbar = useMediaQuery("(min-width: 1024px)")
+
+    useLog({ isLg, isNavbar })
 
     return (
         <div className="flex justify-between w-full">
@@ -137,7 +143,7 @@ function MainNav({ editable, signedIn, new_article, sanitized_url, searchText, s
                 {user ? <UserNav user={user} /> : null}
             </div>
             <div className="flex navbar:hidden flex-1 items-center justify-end">
-                {user ? <UserNav user={user} /> : null}
+                <UserNav user={user} buttons={isLg && !isNavbar} />
             </div>
         </div>
     )
@@ -194,10 +200,11 @@ function Footer() {
 }
 
 type UserNavProps = {
-    user: TrimmedUser
+    user?: TrimmedUser
+    buttons?: boolean
 } & HTMLProps<HTMLButtonElement>
 
-function UserNav({ className, user }: UserNavProps) {
+function UserNav({ className, user, buttons }: UserNavProps) {
     const initials = useMemo(() => user?.name?.split(" ").map((n) => n[0]).join(""), [user?.name])
     const router = useRouter()
 
@@ -208,22 +215,29 @@ function UserNav({ className, user }: UserNavProps) {
                     variant="ghost"
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
-                    <Avatar className="h-9 w-9 bg-white border-2">
-                        {user.image ?
-                            <AvatarImage
-                                src={user.image}
-                                alt={user.name ? `user logo: ${user.name}` : "user logo"}
-                                onError={(e) => {
-                                    console.error("Error loading image", e)
-                                }}
-                            /> :
-                            <AvatarFallback>{initials}</AvatarFallback>
-                        }
-                    </Avatar>
+                    {buttons ? (
+                        <Avatar className="h-9 w-9 flex items-center justify-center">
+                            <HamburgerMenuIcon width={30} height={30} />
+                        </Avatar>
+                    ) : (
+
+                        <Avatar className="h-9 w-9 bg-white">
+                            {user?.image ?
+                                <AvatarImage
+                                    src={user.image}
+                                    alt={user.name ? `user logo: ${user.name}` : "user logo"}
+                                    onError={(e) => {
+                                        console.error("Error loading image", e)
+                                    }}
+                                /> :
+                                <AvatarFallback>{initials}</AvatarFallback>
+                            }
+                        </Avatar>
+                    )}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
-                {user.name ? <>
+                {user?.name ? <>
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -247,8 +261,7 @@ function UserNav({ className, user }: UserNavProps) {
                 <DropdownMenuItem
                     onClick={async () => {
                         await signOut()
-                        router.push("/racun")
-                        console.log("Navigated to /racun")
+                        router.push("/prijava")
                     }}
                 >
                     Zamenjaj račun
