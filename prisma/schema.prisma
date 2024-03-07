@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  previewFeatures = []
 }
 
 datasource db {
@@ -12,7 +12,7 @@ datasource db {
 model Article {
   id       Int     @id @default(autoincrement())
   title    String
-  url      String  @unique
+  url      String  @unique()
   content  String  @default("")
   imageUrl String?
 
@@ -28,7 +28,7 @@ model Article {
   draftArticle   Article?  @relation(name: "draftRelation", fields: [draftArticleId], references: [id])
   draftArticleId Int?
 
-  @@index([title])
+  @@index(fields: [title, content])
 }
 
 // Next auth
@@ -64,6 +64,7 @@ model User {
   email           String?   @unique
   emailVerified   DateTime?
   image           String?
+  role            String    @default("writer")
   accounts        Account[]
   published_posts Article[]
   sessions        Session[]

@@ -29,22 +29,6 @@ export async function get_published_articles() {
     })
 }
 
-const search_schema = z.object({
-    search_text: z.string(),
-})
-
-export const search_articles = action(search_schema, async ({ search_text }): Promise<Article[]> => {
-    const result = await db.article.findMany({
-        where: {
-            content: {
-                search: search_text,
-            }
-        }
-    })
-
-    return result
-})
-
 const read_schema = z.object({
     url: z.string(),
 })

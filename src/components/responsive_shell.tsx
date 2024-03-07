@@ -248,7 +248,7 @@ function UserNav({ className, user, buttons }: UserNavProps) {
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
                         <Link href="/racun">
-                            Nastavitve
+                            Profil
                         </Link>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>

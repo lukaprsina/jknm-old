@@ -6,20 +6,19 @@
 /* eslint-disable */
 
 
-import { type RouteType as Route_0 } from "./src/app/isci/[search_string]/routeType";
-import { type RouteType as Route_1 } from "./src/app/novicka/[novicka_name]/routeType";
-import { type RouteType as Route_2 } from "./src/app/uredi/[article_url]/routeType";
+import { type RouteType as Route_0 } from "./src/app/novicka/[novicka_name]/routeType";
+import { type RouteType as Route_1 } from "./src/app/uredi/[article_url]/routeType";
 import type { InferRoute, StaticRoute } from "next-typesafe-url";
 
 declare module "@@@next-typesafe-url" {
   
   interface DynamicRouter {
-    "/isci/[search_string]": InferRoute<Route_0>;
-    "/novicka/[novicka_name]": InferRoute<Route_1>;
-    "/uredi/[article_url]": InferRoute<Route_2>;
+    "/novicka/[novicka_name]": InferRoute<Route_0>;
+    "/uredi/[article_url]": InferRoute<Route_1>;
   }
 
   interface StaticRouter {
+    "/isci": StaticRoute;
     "/": StaticRoute;
     "/prijava": StaticRoute;
     "/racun": StaticRoute;

@@ -6,30 +6,21 @@ import ResponsiveShell from "~/components/responsive_shell"
 import { getServerAuthSession } from "~/server/auth"
 
 export const metadata: Metadata = {
-    title: "Forms",
-    description: "Advanced form example using react-hook-form and Zod.",
+    title: "Profil"
 }
 
 const sidebarNavItems = [
     {
-        title: "Profile",
-        href: "/examples/forms",
+        title: "Profil",
+        href: "/racun/profil",
     },
     {
-        title: "Account",
-        href: "/examples/forms/account",
+        title: "Novičke",
+        href: "/racun/novicke",
     },
     {
-        title: "Appearance",
-        href: "/examples/forms/appearance",
-    },
-    {
-        title: "Notifications",
-        href: "/examples/forms/notifications",
-    },
-    {
-        title: "Display",
-        href: "/examples/forms/display",
+        title: "Dostop",
+        href: "/racun/dostop",
     },
 ]
 
@@ -39,14 +30,17 @@ interface SettingsLayoutProps {
 
 export default async function SettingsLayout({ children }: SettingsLayoutProps) {
     const session = await getServerAuthSession()
+    const name = session?.user.name?.split(" ")[0]
 
     return (
         <ResponsiveShell user={session?.user}>
-            <div className="prose-lg dark:prose-invert container space-y-6 p-10 pb-16 md:block">
+            <div className="prose-lg dark:prose-invert container md:block"> {/* space-y-6 p-10 pb-16 */}
                 <div className="space-y-0.5">
-                    <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">
+                        {session ? `Živjo, ${name}! 👋` : "Moj Profil"}
+                    </h2>
                     <p className="text-muted-foreground">
-                        Manage your account settings and set e-mail preferences.
+                        Upravljaj svoj račun in novičke
                     </p>
                 </div>
                 <Separator className="my-6" />
