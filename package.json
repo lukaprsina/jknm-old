@@ -17,7 +17,7 @@
     "db:studio": "prisma studio",
     "db:seed": "bunx tsx prisma/seed.ts",
     "db:del": "bunx tsx prisma/delete.ts",
-    "db:meili": "meilisearch --master-key=$NEXT_PUBLIC_MEILI_MASTER_KEY --config-file-path=$NEXT_PUBLIC_MEILI_CONFIG_FILE",
+    "meili": "meilisearch --master-key=$NEXT_PUBLIC_MEILI_MASTER_KEY --config-file-path=$NEXT_PUBLIC_MEILI_CONFIG_FILE",
     "shadcn": "bunx shadcn-ui@latest",
     "dev": "next dev --turbo",
     "url": "bunx next-typesafe-url",
