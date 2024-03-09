@@ -1,5 +1,3 @@
-"use client";
-
 import { InstantMeiliSearchInstance, instantMeiliSearch, type InstantMeiliSearchObject } from '@meilisearch/instant-meilisearch'
 import { MeiliSearch, Index } from 'meilisearch';
 import { env } from '~/env';

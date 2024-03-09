@@ -6,7 +6,6 @@ import dotenv from "dotenv"
 import { meilisearchClient } from "~/lib/meilisearch";
 
 async function clear_directory(directory: string) {
-    dotenv.config()
 
     const files = await fs.readdir(directory);
 
@@ -20,6 +19,7 @@ async function clear_directory(directory: string) {
 }
 
 async function main() {
+    dotenv.config()
     await db.article.deleteMany({})
 
     await clear_directory(path.join(process.cwd(), FILESYSTEM_PREFIX))

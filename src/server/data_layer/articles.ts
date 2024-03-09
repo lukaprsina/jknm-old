@@ -9,7 +9,8 @@ import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
-import { ServerError } from "~/lib/server_error";
+import compileMDXOnServer from "~/lib/compileMDX";
+import { meilisearchClient } from "~/lib/meilisearch";
 
 export async function get_published_articles() {
     return await db.article.findMany({
@@ -57,11 +58,13 @@ export const new_article = action(new_article_schema, async ({ }) => {
 
     const now = new Date()
     const temp_name = `untitled-${now.getTime()}`
+    const cached = await compileMDXOnServer(`# ${temp_name}`)
 
     const article = await db.article.create({
         data: {
             title: temp_name,
             url: temp_name,
+            cached,
             createdById: session.user.id,
         }
     })
@@ -85,7 +88,7 @@ const save_article_schema = z.object({
 
 export type SaveArticleType = z.infer<typeof save_article_schema>
 
-export const save_article = action(save_article_schema, async ({ title, url, content, id, published, ...props }) => {
+export const save_article = action(save_article_schema, async ({ title, url, content, id, published, image_url, created_at, published_at, updated_at }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
     console.log("saving article", { title, url, content, id, published })
@@ -118,6 +121,17 @@ export const save_article = action(save_article_schema, async ({ title, url, con
         await fs.mkdir(path.join(FILESYSTEM_PREFIX, final_url), { recursive: true })
     }
 
+    const final_image_url = image_url ?? previous_article.imageUrl
+
+    const novicke = meilisearchClient.getIndex("novicke")
+    await novicke.updateDocuments([{
+        id,
+        title: final_title,
+        url: final_url,
+        content: final_content,
+        imageUrl: image_url ?? previous_article.imageUrl,
+    }])
+
     const updated_article = await db.article.update({
         where: {
             id,
@@ -127,9 +141,10 @@ export const save_article = action(save_article_schema, async ({ title, url, con
             url: final_url,
             content: final_content,
             published: published ?? previous_article.published,
-            createdAt: props.created_at ?? previous_article.createdAt,
-            updatedAt: props.updated_at ?? new Date(),
-            publishedAt: props.published_at ?? (published ? new Date() : previous_article.publishedAt),
+            imageUrl: final_image_url,
+            createdAt: created_at ?? previous_article.createdAt,
+            updatedAt: updated_at ?? new Date(),
+            publishedAt: published_at ?? (published ? new Date() : previous_article.publishedAt),
         }
     })
 
@@ -167,11 +182,16 @@ export const make_or_return_draft = action(make_or_return_draft_schema, async ({
         const now = new Date()
         const draft_name = `${original_article.url}-${now.getTime()}`
 
+        // TODO: rename images
+        const final_content = original_article.content
+        const cached = await compileMDXOnServer(final_content)
+
         const new_draft = await db.article.create({
             data: {
                 title: original_article.title,
                 url: draft_name,
-                content: original_article.content,
+                content: final_content,
+                cached,
                 createdById: session.user.id,
                 draftArticleId: original_article.id,
             },
@@ -180,7 +200,6 @@ export const make_or_return_draft = action(make_or_return_draft_schema, async ({
             }
         })
 
-        /* TODO: rename images */
         await fs.mkdir(path.join(FILESYSTEM_PREFIX, draft_name), { recursive: true })
         await fs.copy(path.join(FILESYSTEM_PREFIX, original_article.url), path.join(FILESYSTEM_PREFIX, draft_name))
 

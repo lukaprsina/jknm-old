@@ -4,6 +4,7 @@ import path from "path"
 import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs"
 import { meilisearchClient } from "~/lib/meilisearch"
 import { faker } from "@faker-js/faker"
+import compileMDXOnServer from "~/lib/compileMDX"
 
 async function main() {
     const luka_user = await db.user.findFirst({
@@ -21,24 +22,31 @@ async function main() {
         const url = sanitize_for_fs(title)
 
         const index = meilisearchClient.getIndex("novicke")
-        const content = `# Article ${i}
+        const content = `# ${title}
+        
+${i}
+Some content`
 
-                    Some content`
+        const imageUrl = "https://picsum.photos/1500/1000"
 
         await index.addDocuments([{
             id: i,
             title,
             url,
+            imageUrl,
             content
         }])
+
+        const cached = await compileMDXOnServer(content)
 
         await fs.mkdir(path.join(FILESYSTEM_PREFIX, url), { recursive: true })
         await db.article.create({
             data: {
                 title,
                 url,
-                imageUrl: "https://picsum.photos/1500/1000",
+                imageUrl,
                 content,
+                cached,
                 createdById: luka_user.id,
                 published: true,
                 publishedAt: new Date(),

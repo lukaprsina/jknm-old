@@ -112,7 +112,6 @@ export default function InitializedMDXEditor({
         } = recurse_article(markdown, {
             id: query.data.id,
             title: query.data.title,
-            url: query.data.url,
         })
 
         setTitle(new_title)
@@ -136,8 +135,9 @@ export default function InitializedMDXEditor({
             new_markdown,
             new_url
         } = recurse_article(markdown, {
-            id: query.data.id
-        }, true)
+            id: query.data.id,
+            title: query.data.title,
+        })
 
         console.log("save", { new_title, new_markdown, new_url, query: query.data })
 
@@ -155,7 +155,7 @@ export default function InitializedMDXEditor({
                     setTimeout(() => {
                         console.log("RESOLVING")
                         resolve(data)
-                    }, 5000)
+                    }, 3000)
                 },
                 onError: (error) => {
                     console.error("Error saving", error)
@@ -173,7 +173,10 @@ export default function InitializedMDXEditor({
             new_title,
             new_markdown,
             new_url
-        } = recurse_article(markdown, input)
+        } = recurse_article(markdown, {
+            id: query.data.id,
+            title: query.data.title,
+        })
         console.log("fullSave", { new_title, new_markdown, new_url, query: query.data })
 
         mutation.mutate({
