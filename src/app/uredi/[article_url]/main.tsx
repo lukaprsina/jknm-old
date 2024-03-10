@@ -8,7 +8,7 @@ import {
     // } from '@mdxeditor/editor'
     // } from '@lukaprsina/mdxeditor'
 } from 'modified-editor'
-import useForwardedRef from "~/lib/useForwardedRef";
+import useForwardedRef from "~/hooks/use_forwarded_ref";
 import type { EditorPropsJoined } from "./editor_client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";

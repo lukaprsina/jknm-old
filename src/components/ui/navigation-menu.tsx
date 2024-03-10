@@ -4,6 +4,7 @@ import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
 
 import { cn } from "~/lib/utils"
+import useForwardedRef from "~/hooks/use_forwarded_ref"
 
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
@@ -44,22 +45,82 @@ const navigationMenuTriggerStyle = cva(
   "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
 )
 
+type Mutation = MutationRecord & {
+  target: {
+    dataset?: {
+      state: "open" | "closed"
+    }
+  }
+}
+
 const NavigationMenuTrigger = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <NavigationMenuPrimitive.Trigger
-    ref={ref}
-    className={cn(navigationMenuTriggerStyle(), "group", className)}
-    {...props}
-  >
-    {children}{" "}
-    <ChevronDownIcon
-      className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180"
-      aria-hidden="true"
-    />
-  </NavigationMenuPrimitive.Trigger>
-))
+>(({ className, children, onClick, ...props }, ref) => {
+  // Fix: When hovering the trigger and clicking, it opens and closes.
+  // This adds a timer which ignores the click, modified from
+  // https://github.com/radix-ui/primitives/issues/1630#issuecomment-1545995075
+
+  // init disable state
+  const [disable, setDisable] = React.useState(false);
+  const forwarded_ref = useForwardedRef(ref)
+
+  // Create observer on first render
+  React.useEffect(() => {
+    // Callback function
+    const observerCallback = (mutationsList: Mutation[]) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-state" &&
+          mutation.target?.dataset?.state === "open"
+        ) {
+          setDisable(true);
+          const timeout = setTimeout(() => {
+            setDisable(false);
+            clearTimeout(timeout);
+          }, 1000);
+        }
+      }
+    };
+
+    // Init MutationObserver
+    const observer = new MutationObserver(observerCallback);
+
+    // Add ref nodes to observer watch
+    if (forwarded_ref?.current) {
+      observer.observe(forwarded_ref.current, {
+        attributes: true,
+      });
+    }
+
+
+    // Disconnect on dismount
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <NavigationMenuPrimitive.Trigger
+      ref={forwarded_ref}
+      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      onClick={(e) => {
+        if (disable) {
+          e.preventDefault();
+        }
+        onClick && onClick(e)
+      }}
+      {...props}
+    >
+      {children}{" "}
+      <ChevronDownIcon
+        className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180"
+        aria-hidden="true"
+      />
+    </NavigationMenuPrimitive.Trigger>
+  )
+})
 NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName
 
 const NavigationMenuContent = React.forwardRef<

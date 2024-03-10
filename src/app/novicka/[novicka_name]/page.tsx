@@ -7,6 +7,7 @@ import { Route, type RouteType } from "./routeType";
 import { withParamValidation } from "next-typesafe-url/app/hoc"
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { custom_mdx_components } from "~/mdx-components";
+import { useState } from "react";
 
 type PageProps = InferPagePropsType<RouteType>;
 

@@ -29,9 +29,6 @@ import { signOut, useSession } from 'next-auth/react';
 import { DesktopNavMenu } from './nav_menu';
 import Image from 'next/image';
 import logo from '~/content/logo.png'
-import { useMediaQuery } from '~/hooks/use_media_query';
-import useLog from '~/hooks/use_log';
-import { cn } from '~/lib/utils';
 
 type TrimmedUser = {
     id: string;
@@ -55,7 +52,7 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
     // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
     return (
         <div className="min-h-screen h-full justify-between">
-            <header className="mb-10 top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <header className="mb-10 top-0 z-20 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 max-w-screen-2xl items-center">
                     <MobileNav />
                     <MainNav
@@ -69,10 +66,10 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
                     />
                 </div>
             </header>
-            <main className="min-h-screen h-full w-full">
+            <main className="min-h-screen h-full w-full relative -z-10">
                 {children}
             </main>
-            <footer className="bottom-0 z-50">
+            <footer className="bottom-0 z-10">
                 <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
                     <Footer />
                 </div>

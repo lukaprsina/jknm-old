@@ -18,9 +18,10 @@ declare module "@@@next-typesafe-url" {
   }
 
   interface StaticRouter {
-    "/isci": StaticRoute;
+    "/arhiv": StaticRoute;
     "/": StaticRoute;
     "/prijava": StaticRoute;
+    "/racun/novicke": StaticRoute;
     "/racun": StaticRoute;
   }
 }
