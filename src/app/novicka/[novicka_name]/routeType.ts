@@ -6,4 +6,5 @@ export const Route = {
         novicka_name: z.string(),
     }),
 } satisfies DynamicRoute;
+
 export type RouteType = typeof Route;

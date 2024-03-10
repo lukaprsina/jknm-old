@@ -1,14 +1,13 @@
-"use server"
-
 import { read_article } from "~/server/data_layer/articles"
-import { MDXRemote } from "next-mdx-remote/rsc"
-import { custom_mdx_components } from "src/mdx-components"
 import { type Metadata } from "next"
-import ResponsiveShell from "~/app/responsive_shell"
+import ResponsiveShell from "~/components/responsive_shell"
 import { getServerAuthSession } from "~/server/auth"
 import type { InferPagePropsType } from "next-typesafe-url";
 import { Route, type RouteType } from "./routeType";
 import { withParamValidation } from "next-typesafe-url/app/hoc"
+import { MDXRemote } from "next-mdx-remote/rsc";
+import { custom_mdx_components } from "~/mdx-components";
+import { useState } from "react";
 
 type PageProps = InferPagePropsType<RouteType>;
 
@@ -21,7 +20,7 @@ type ArticleType = {
 export async function generateMetadata(
     { params }: ArticleType,
 ): Promise<Metadata> {
-    const response = await read_article({ url: params.novicka_name })
+    const response = await read_article({ url: decodeURIComponent(params.novicka_name) })
     return {
         title: response.data?.title
     }
@@ -29,18 +28,17 @@ export async function generateMetadata(
 
 async function Article({ routeParams }: PageProps) {
     const session = await getServerAuthSession()
-    const article = await read_article({ url: routeParams.novicka_name })
+    const article = await read_article({ url: decodeURIComponent(routeParams.novicka_name) })
 
     return (
         <ResponsiveShell editable={true} user={session?.user}>
             <div className="prose lg:prose-lg dark:prose-invert container">
-                {(article.data) ? <>
+                {article.data?.content ? (
                     <MDXRemote
-                        source={article.data.content}
+                        source={article.data?.content}
                         components={custom_mdx_components}
                     />
-                </>
-                    : <p>Not found</p>}
+                ) : null}
             </div>
         </ResponsiveShell>
     )

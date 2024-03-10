@@ -47,7 +47,9 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/app/md_example/layout.tsx",
+    "src/app/md_example/ipsum/page.mdx",
   ],
   "exclude": [
     "node_modules",

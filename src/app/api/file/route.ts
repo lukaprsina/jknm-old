@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     const url = formData.get("url")
 
     if (!(file_contents instanceof File) || typeof url !== "string") return NextResponse.error()
+    if (!(file_contents instanceof File) || typeof url !== "string") return NextResponse.error()
 
     const file_extension = extension(file_contents.type)
     // unix time in miliseconds 

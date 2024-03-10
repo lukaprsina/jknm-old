@@ -9,22 +9,26 @@ import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import { action } from "~/lib/safe_action"
 import { z } from "zod";
 import type { Article } from "@prisma/client";
+import compileMDXOnServer from "~/lib/compileMDX";
+import { meilisearchClient } from "~/lib/meilisearch";
 
-const search_schema = z.object({
-    search_text: z.string(),
-})
-
-export const search_articles = action(search_schema, async ({ search_text }): Promise<Article[]> => {
-    const result = await db.article.findMany({
+export async function get_published_articles() {
+    return await db.article.findMany({
         where: {
-            content: {
-                search: search_text,
-            }
+            // TODO: published: true
+        },
+        select: {
+            title: true,
+            id: true,
+            url: true,
+            createdById: true,
+            imageUrl: true,
+        },
+        orderBy: {
+            createdAt: "desc"
         }
     })
-
-    return result
-})
+}
 
 const read_schema = z.object({
     url: z.string(),
@@ -39,9 +43,9 @@ export const read_article = action(read_schema, async ({ url }): Promise<Article
         }
     })
 
-    console.log("reading article server", { url })
+    console.log("read article server", { id: article?.id, url })
     if (!article) throw new Error("No article found")
-    if (article?.published == false && session?.user.id != article?.createdById) return undefined
+    if (!article?.published && session?.user.id != article?.createdById) return undefined
 
     return article ?? undefined
 })
@@ -54,11 +58,13 @@ export const new_article = action(new_article_schema, async ({ }) => {
 
     const now = new Date()
     const temp_name = `untitled-${now.getTime()}`
+    const cached = await compileMDXOnServer(`# ${temp_name}`)
 
     const article = await db.article.create({
         data: {
             title: temp_name,
             url: temp_name,
+            cached,
             createdById: session.user.id,
         }
     })
@@ -73,15 +79,19 @@ const save_article_schema = z.object({
     url: z.string().optional(),
     content: z.string().optional(),
     published: z.boolean().optional(),
+    image_url: z.string().optional(),
+    created_at: z.date().optional(),
+    updated_at: z.date().optional(),
+    published_at: z.date().optional(),
     id: z.number(),
 })
 
 export type SaveArticleType = z.infer<typeof save_article_schema>
 
-export const save_article = action(save_article_schema, async ({ title, url: unsafe_url, content, id, published }) => {
+export const save_article = action(save_article_schema, async ({ title, url, content, id, published, image_url, created_at, published_at, updated_at }) => {
     const session = await getServerAuthSession()
     if (!session?.user) throw new Error("No user")
-    console.log("saving article", { title, unsafe_url, content, id, published })
+    console.log("saving article", { title, url, content, id, published })
 
     const previous_article = await db.article.findUniqueOrThrow({
         where: {
@@ -89,29 +99,52 @@ export const save_article = action(save_article_schema, async ({ title, url: uns
         }
     })
 
-    const final_content = typeof content == "undefined" ? previous_article.content : content
-    let final_url = previous_article.url
-    if (typeof title != "undefined") {
-        final_url = sanitize_for_fs(title)
-    } else if (typeof unsafe_url != "undefined") {
-        final_url = sanitize_for_fs(unsafe_url)
+    const final_content = content ?? previous_article.content
+    const final_title = title ?? previous_article.title
+    let final_url = url ?? sanitize_for_fs(final_title)
+
+    const duplicate = await db.article.findFirst({
+        where: {
+            url: final_url,
+            id: { not: id }
+        }
+    })
+
+    if (duplicate) throw new Error("Duplicate URL")
+
+    if (fs.existsSync(path.join(FILESYSTEM_PREFIX, previous_article.url))) {
+        if (final_url != previous_article.url) {
+            await fs.rename(path.join(FILESYSTEM_PREFIX, previous_article.url), path.join(FILESYSTEM_PREFIX, final_url))
+        }
+    } else {
+        console.error("Missing url path in fs, creating", final_url)
+        await fs.mkdir(path.join(FILESYSTEM_PREFIX, final_url), { recursive: true })
     }
 
-    if (final_url != previous_article.url) {
-        await fs.rename(path.join(FILESYSTEM_PREFIX, previous_article.url), path.join(FILESYSTEM_PREFIX, final_url))
-    }
+    const final_image_url = image_url ?? previous_article.imageUrl
+
+    const novicke = meilisearchClient.getIndex("novicke")
+    await novicke.updateDocuments([{
+        id,
+        title: final_title,
+        url: final_url,
+        content: final_content,
+        imageUrl: image_url ?? previous_article.imageUrl,
+    }])
 
     const updated_article = await db.article.update({
         where: {
             id,
         },
         data: {
-            title: title ?? previous_article.title,
+            title: final_title,
             url: final_url,
             content: final_content,
             published: published ?? previous_article.published,
-            publishedAt: published ? new Date() : previous_article.publishedAt,
-            updatedAt: new Date(),
+            imageUrl: final_image_url,
+            createdAt: created_at ?? previous_article.createdAt,
+            updatedAt: updated_at ?? new Date(),
+            publishedAt: published_at ?? (published ? new Date() : previous_article.publishedAt),
         }
     })
 
@@ -149,12 +182,21 @@ export const make_or_return_draft = action(make_or_return_draft_schema, async ({
         const now = new Date()
         const draft_name = `${original_article.url}-${now.getTime()}`
 
+        // TODO: rename images
+        const final_content = original_article.content
+        const cached = await compileMDXOnServer(final_content)
+
         const new_draft = await db.article.create({
             data: {
                 title: original_article.title,
                 url: draft_name,
-                content: original_article.content,
+                content: final_content,
+                cached,
                 createdById: session.user.id,
+                draftArticleId: original_article.id,
+            },
+            include: {
+                drafts: true
             }
         })
 

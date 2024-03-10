@@ -1,9 +1,10 @@
 import * as React from "react"
+import { ChevronDownIcon } from "@radix-ui/react-icons"
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
-import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "~/lib/utils"
+import useForwardedRef from "~/hooks/use_forwarded_ref"
 
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
@@ -12,7 +13,7 @@ const NavigationMenu = React.forwardRef<
   <NavigationMenuPrimitive.Root
     ref={ref}
     className={cn(
-      "relative z-10 flex flex-1 items-center justify-center",
+      "relative z-10 flex max-w-max flex-1 items-center justify-center",
       className
     )}
     {...props}
@@ -41,25 +42,85 @@ NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName
 const NavigationMenuItem = NavigationMenuPrimitive.Item
 
 const navigationMenuTriggerStyle = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:bg-accent focus:text-accent-foreground disabled:opacity-50 disabled:pointer-events-none bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent/50 data-[active]:bg-accent/50 h-10 py-2 px-4 group w-max"
+  "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
 )
+
+type Mutation = MutationRecord & {
+  target: {
+    dataset?: {
+      state: "open" | "closed"
+    }
+  }
+}
 
 const NavigationMenuTrigger = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <NavigationMenuPrimitive.Trigger
-    ref={ref}
-    className={cn(navigationMenuTriggerStyle(), "group", className)}
-    {...props}
-  >
-    {children}{" "}
-    <ChevronDown
-      className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180"
-      aria-hidden="true"
-    />
-  </NavigationMenuPrimitive.Trigger>
-))
+>(({ className, children, onClick, ...props }, ref) => {
+  // Fix: When hovering the trigger and clicking, it opens and closes.
+  // This adds a timer which ignores the click, modified from
+  // https://github.com/radix-ui/primitives/issues/1630#issuecomment-1545995075
+
+  // init disable state
+  const [disable, setDisable] = React.useState(false);
+  const forwarded_ref = useForwardedRef(ref)
+
+  // Create observer on first render
+  React.useEffect(() => {
+    // Callback function
+    const observerCallback = (mutationsList: Mutation[]) => {
+      for (const mutation of mutationsList) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-state" &&
+          mutation.target?.dataset?.state === "open"
+        ) {
+          setDisable(true);
+          const timeout = setTimeout(() => {
+            setDisable(false);
+            clearTimeout(timeout);
+          }, 1000);
+        }
+      }
+    };
+
+    // Init MutationObserver
+    const observer = new MutationObserver(observerCallback);
+
+    // Add ref nodes to observer watch
+    if (forwarded_ref?.current) {
+      observer.observe(forwarded_ref.current, {
+        attributes: true,
+      });
+    }
+
+
+    // Disconnect on dismount
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <NavigationMenuPrimitive.Trigger
+      ref={forwarded_ref}
+      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      onClick={(e) => {
+        if (disable) {
+          e.preventDefault();
+        }
+        onClick && onClick(e)
+      }}
+      {...props}
+    >
+      {children}{" "}
+      <ChevronDownIcon
+        className="relative top-[1px] ml-1 h-3 w-3 transition duration-300 group-data-[state=open]:rotate-180"
+        aria-hidden="true"
+      />
+    </NavigationMenuPrimitive.Trigger>
+  )
+})
 NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName
 
 const NavigationMenuContent = React.forwardRef<
@@ -86,7 +147,7 @@ const NavigationMenuViewport = React.forwardRef<
   <div className={cn("absolute left-0 top-full flex justify-center")}>
     <NavigationMenuPrimitive.Viewport
       className={cn(
-        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
+        "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
         className
       )}
       ref={ref}
