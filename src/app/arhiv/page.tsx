@@ -9,7 +9,7 @@ export default async function Page() {
 
     return (
         <ResponsiveShell editable={true} user={session?.user}>
-            <div className="prose-lg dark:prose-invert container">
+            <div className="pt-10 prose-lg dark:prose-invert container">
                 <Search />
             </div>
         </ResponsiveShell>

@@ -17,7 +17,7 @@ export default async function HomePage() {
   return (
     <HydrationBoundary state={(dehydrate(queryClient))}>
       <ResponsiveShell user={session?.user}>
-        <div className="prose-xl dark:prose-invert container">
+        <div className="pt-10 prose-xl dark:prose-invert container">
           {/* Public articles */}
           <div className="grid grid-cols-3 gap-4">
             <ArticleView />

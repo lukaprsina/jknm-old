@@ -34,7 +34,7 @@ export default async function SettingsLayout({ children }: SettingsLayoutProps) 
 
     return (
         <ResponsiveShell user={session?.user}>
-            <div className="prose-lg dark:prose-invert container md:block"> {/* space-y-6 p-10 pb-16 */}
+            <div className="pt-10 prose-lg dark:prose-invert container md:block"> {/* space-y-6 p-10 pb-16 */}
                 <div className="space-y-0.5">
                     <h2 className="text-2xl font-bold tracking-tight">
                         {session ? `Živjo, ${name}! 👋` : "Moj Profil"}

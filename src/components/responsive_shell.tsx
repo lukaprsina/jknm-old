@@ -29,6 +29,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { DesktopNavMenu } from './nav_menu';
 import Image from 'next/image';
 import logo from '~/content/logo.png'
+import useLog from '~/hooks/use_log';
 
 type TrimmedUser = {
     id: string;
@@ -51,8 +52,8 @@ export default function ResponsiveShell({ user, editable, children }: Responsive
 
     // https://github.dev/shadcn-ui/ui/tree/main/apps/www/components/site-header.tsx
     return (
-        <div className="min-h-screen h-full justify-between">
-            <header className="mb-10 top-0 z-20 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="min-h-screen h-full justify-between relative -z-20">
+            <header className="top-0 z-20 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-14 max-w-screen-2xl items-center">
                     <MobileNav />
                     <MainNav
@@ -201,6 +202,7 @@ type UserNavProps = {
 function UserNav({ className, user, buttons }: UserNavProps) {
     const initials = useMemo(() => user?.name?.split(" ").map((n) => n[0]).join(""), [user?.name])
     const router = useRouter()
+    useLog(user?.image, "current user")
 
     return (
         <DropdownMenu>
@@ -209,7 +211,7 @@ function UserNav({ className, user, buttons }: UserNavProps) {
                     variant="ghost"
                     className={twMerge("relative h-8 w-8 rounded-full", className)}
                 >
-                    <Avatar className="h-9 w-9 bg-white">
+                    <Avatar className="h-9 w-9 bg-primary/20">
                         {user?.image ?
                             <AvatarImage
                                 src={user.image}
