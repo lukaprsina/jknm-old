@@ -1,58 +1,59 @@
-import { db } from "~/server/db"
-import fs from "fs/promises"
-import path from "path"
-import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs"
-import { meilisearchClient } from "~/lib/meilisearch"
-import { faker } from "@faker-js/faker"
-import compileMDXOnServer from "~/lib/compileMDX"
+import { db } from "~/server/db";
+import fs from "fs/promises";
+import path from "path";
+import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
+import { meilisearchClient } from "~/lib/meilisearch";
+import { faker } from "@faker-js/faker";
+import compileMDXOnServer from "~/lib/compileMDX";
 
 async function main() {
-    const luka_user = await db.user.findFirst({
-        where: {
-            email: "prsinaluka@gmail.com",
-        }
-    })
-    if (!luka_user)
-        throw new Error("No user found")
+  const luka_user = await db.user.findFirst({
+    where: {
+      email: "prsinaluka@gmail.com",
+    },
+  });
+  if (!luka_user) throw new Error("No user found");
 
-    meilisearchClient.createIndex("novicke")
+  meilisearchClient.createIndex("novicke");
 
-    for (let i = 0; i < 10; i++) {
-        const title = `${faker.commerce.productName()} ${i}`
-        const url = sanitize_for_fs(title)
+  for (let i = 0; i < 10; i++) {
+    const title = `${faker.commerce.productName()} ${i}`;
+    const url = sanitize_for_fs(title);
 
-        const index = meilisearchClient.getIndex("novicke")
-        const content = `# ${title}
+    const index = meilisearchClient.getIndex("novicke");
+    const content = `# ${title}
         
 ${i}
-Some content`
+Some content`;
 
-        const imageUrl = "https://picsum.photos/1500/1000"
+    const imageUrl = "https://picsum.photos/1500/1000";
 
-        await index.addDocuments([{
-            id: i,
-            title,
-            url,
-            imageUrl,
-            content
-        }])
+    await index.addDocuments([
+      {
+        id: i,
+        title,
+        url,
+        imageUrl,
+        content,
+      },
+    ]);
 
-        const cached = await compileMDXOnServer(content)
+    const cached = await compileMDXOnServer(content);
 
-        await fs.mkdir(path.join(FILESYSTEM_PREFIX, url), { recursive: true })
-        await db.article.create({
-            data: {
-                title,
-                url,
-                imageUrl,
-                content,
-                cached,
-                createdById: luka_user.id,
-                published: true,
-                publishedAt: new Date(),
-            }
-        })
-    }
+    await fs.mkdir(path.join(FILESYSTEM_PREFIX, url), { recursive: true });
+    await db.article.create({
+      data: {
+        title,
+        url,
+        imageUrl,
+        content,
+        cached,
+        createdById: luka_user.id,
+        published: true,
+        publishedAt: new Date(),
+      },
+    });
+  }
 }
 
-await main()
+await main();
