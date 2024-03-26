@@ -1,14 +1,14 @@
-import type { Config } from "tailwindcss"
-import animate from "tailwindcss-animate"
-import typography from "@tailwindcss/typography"
+import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
 
 const config = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
   theme: {
@@ -21,7 +21,7 @@ const config = {
     },
     extend: {
       screens: {
-        "navbar": "1148px"
+        navbar: "1148px",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -80,6 +80,6 @@ const config = {
     },
   },
   plugins: [animate, typography],
-} satisfies Config
+} satisfies Config;
 
-export default config
+export default config;

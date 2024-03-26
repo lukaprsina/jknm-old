@@ -2,22 +2,26 @@ import ResponsiveShell from "../components/responsive_shell";
 import { get_published_articles } from "~/server/data_layer/articles";
 import { getServerAuthSession } from "~/server/auth";
 import ArticleView from "./article_view";
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
 
 export default async function HomePage() {
-  const queryClient = new QueryClient()
+  const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ["published_articles"],
     queryFn: async () => await get_published_articles(),
-  })
+  });
 
   const session = await getServerAuthSession();
 
   return (
-    <HydrationBoundary state={(dehydrate(queryClient))}>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <ResponsiveShell user={session?.user}>
-        <div className="pt-10 prose-xl dark:prose-invert container">
+        <div className="container prose-xl pt-10 dark:prose-invert">
           {/* Public articles */}
           <div className="grid grid-cols-3 gap-4">
             <ArticleView />
@@ -25,5 +29,5 @@ export default async function HomePage() {
         </div>
       </ResponsiveShell>
     </HydrationBoundary>
-  )
+  );
 }

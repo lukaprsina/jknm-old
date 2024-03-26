@@ -2,11 +2,11 @@
 import "~/styles/globals.css";
 // import '@lukaprsina/mdxeditor/style.css'
 // import '@mdxeditor/editor/style.css'
-import 'modified-editor/style.css'
+import "modified-editor/style.css";
 
 import { Inter } from "next/font/google";
 
-import { ThemeProvider } from '~/app/theme_provider';
+import { ThemeProvider } from "~/app/theme_provider";
 import Providers from "~/app/providers";
 import { cn } from "~/lib/utils";
 
@@ -30,8 +30,8 @@ export default function RootLayout({
     <html lang="sl" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased relative -z-30",
-          inter.variable
+          "relative -z-30 min-h-screen bg-background font-sans antialiased",
+          inter.variable,
         )}
       >
         <ThemeProvider
@@ -40,9 +40,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>
-            {children}
-          </Providers>
+          <Providers>{children}</Providers>
         </ThemeProvider>
       </body>
     </html>
