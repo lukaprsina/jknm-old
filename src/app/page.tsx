@@ -1,7 +1,10 @@
 import ResponsiveShell from "../components/responsive_shell";
 import { get_published_articles } from "~/server/data_layer/articles";
 import { getServerAuthSession } from "~/server/auth";
-import ArticleView from "./article_view";
+import ArticleView, {
+  ArticleViewSwitch,
+  ArticleViewSwitchProvider,
+} from "./article_view";
 import {
   HydrationBoundary,
   QueryClient,
@@ -22,10 +25,13 @@ export default async function HomePage() {
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ResponsiveShell user={session?.user}>
         <div className="container prose-xl pt-10 dark:prose-invert">
-          {/* Public articles */}
-          <div className="grid grid-cols-3 gap-4">
-            <ArticleView />
-          </div>
+          <ArticleViewSwitchProvider>
+            <ArticleViewSwitch />
+            {/* Public articles */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ArticleView />
+            </div>
+          </ArticleViewSwitchProvider>
         </div>
       </ResponsiveShell>
     </HydrationBoundary>

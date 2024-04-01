@@ -245,7 +245,6 @@ function UserNav({ className, user, buttons }: UserNavProps) {
     [user?.name],
   );
   const router = useRouter();
-  useLog(user?.image, "current user");
 
   return (
     <DropdownMenu>

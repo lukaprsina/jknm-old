@@ -72,9 +72,9 @@ export function DesktopNavMenu() {
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/publiciranje" legacyBehavior passHref>
+          <Link href="/varstvo" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Publiciranje
+              Varstvo jam
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
@@ -97,7 +97,7 @@ export function DesktopNavMenu() {
         <NavigationMenuItem>
           <Link href="/arhiv" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Arhiv novic
+              Novice
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
