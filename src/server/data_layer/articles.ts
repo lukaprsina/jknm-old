@@ -10,7 +10,7 @@ import { action } from "~/lib/safe_action";
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 import compileMDXOnServer from "~/lib/compileMDX";
-import { meilisearchClient } from "~/lib/meilisearch";
+import { algoliaInstance } from "~/lib/algolia";
 
 export async function get_published_articles() {
   return await db.article.findMany({
@@ -56,7 +56,7 @@ export const read_article = action(
 
 const new_article_schema = z.object({});
 
-export const new_article = action(new_article_schema, async ({}) => {
+export const new_article = action(new_article_schema, async ({ }) => {
   const session = await getServerAuthSession();
   if (!session?.user) throw new Error("No user");
 
@@ -144,16 +144,16 @@ export const save_article = action(
 
     const final_image_url = image_url ?? previous_article.imageUrl;
 
-    const novicke = meilisearchClient.getIndex("novicke");
-    await novicke.updateDocuments([
-      {
-        id,
-        title: final_title,
-        url: final_url,
-        content: final_content,
-        imageUrl: image_url ?? previous_article.imageUrl,
-      },
-    ]);
+    // TODO: algolia
+    const algolia = algoliaInstance.getClient()
+    const index = algolia.initIndex("novicke");
+    index.saveObject({
+      id: id,
+      title: final_title,
+      url: final_url,
+      content: final_content,
+      imageUrl: final_image_url,
+    })
 
     const updated_article = await db.article.update({
       where: {

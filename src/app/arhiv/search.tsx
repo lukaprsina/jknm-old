@@ -3,11 +3,10 @@
 import { compile, run } from "@mdx-js/mdx";
 import { Fragment, useEffect, useState } from "react";
 import * as runtime from "react/jsx-runtime";
-import { meilisearchClient } from "~/lib/meilisearch";
 import "instantsearch.css/themes/reset.css";
-import { SearchBox, Hits, InstantSearch } from "react-instantsearch";
+import { SearchBox, Hits } from "react-instantsearch";
 import { Hit as SearchHit } from "instantsearch.js";
-// import { InstantSearchNext } from 'react-instantsearch-nextjs';
+import { InstantSearchNext } from 'react-instantsearch-nextjs';
 import { Jsx } from "hast-util-to-jsx-runtime";
 import { Card, CardContent } from "~/components/ui/card";
 import Image from "next/image";
@@ -15,28 +14,23 @@ import { Suspense } from "react";
 import { MDXModule } from "mdx/types";
 import Link from "next/link";
 import { ARTICLE_PREFIX } from "~/lib/fs";
-// import historyRouter from 'instantsearch.js/es/lib/routers/history';
-
-/* const { searchClient } = instantMeiliSearch(
-    'https://ms-adf78ae33284-106.lon.meilisearch.io',
-    'a63da4928426f12639e19d62886f621130f3fa9ff3c7534c5d179f0f51c4f303',
-    {
-        finitePagination: true,
-    }
-); */
+import { algoliaInstance } from "~/lib/algolia";
 
 export function Search() {
   return (
-    <InstantSearch
+    <InstantSearchNext
       future={{ preserveSharedStateOnUnmount: true }}
       indexName="novicke"
-      // indexName="steam-video-games"
-      // searchClient={searchClient}
-      searchClient={meilisearchClient.getInstantSearchClient()}
+      routing={{
+        router: {
+          cleanUrlOnDispose: false
+        }
+      }}
+      searchClient={algoliaInstance.getClient()}
     >
       <SearchBox autoCapitalize="none" />
       <Hits hitComponent={Hit} />
-    </InstantSearch>
+    </InstantSearchNext>
   );
 }
 

@@ -25,6 +25,7 @@ export const env = createEnv({
     ),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
+    ALGOLIA_ADMIN_KEY: z.string()
   },
 
   /**
@@ -39,6 +40,8 @@ export const env = createEnv({
       .default("development"),
     NEXT_PUBLIC_MEILI_CONFIG_FILE: z.string(),
     NEXT_PUBLIC_MEILI_MASTER_KEY: z.string(),
+    NEXT_PUBLIC_ALGOLIA_ID: z.string(),
+    NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: z.string()
   },
 
   /**
@@ -56,6 +59,9 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXT_PUBLIC_MEILI_CONFIG_FILE: process.env.NEXT_PUBLIC_MEILI_CONFIG_FILE,
     NEXT_PUBLIC_MEILI_MASTER_KEY: process.env.NEXT_PUBLIC_MEILI_MASTER_KEY,
+    NEXT_PUBLIC_ALGOLIA_ID: process.env.NEXT_PUBLIC_ALGOLIA_ID,
+    NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY,
+    ALGOLIA_ADMIN_KEY: process.env.ALGOLIA_ADMIN_KEY
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
