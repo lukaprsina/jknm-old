@@ -41,6 +41,7 @@ import { DesktopNavMenu } from "./nav_menu";
 import Image from "next/image";
 import logo from "~/content/logo.png";
 import useLog from "~/hooks/use_log";
+import Autocomplete, { NovickeAutocomplete } from "./autocomplete";
 
 type TrimmedUser = {
   id: string;
@@ -61,7 +62,6 @@ export default function ResponsiveShell({
   children,
 }: ResponsiveShellProps) {
   const pathname = usePathname();
-  const [searchText, setSearchText] = useState("");
 
   const sanitized_url = useMemo(
     () => remove_article_prefix(pathname),
@@ -79,8 +79,6 @@ export default function ResponsiveShell({
             editable={editable ?? false}
             new_article={new_article}
             sanitized_url={sanitized_url}
-            searchText={searchText}
-            setSearchText={setSearchText}
             user={user}
           />
         </div>
@@ -101,8 +99,6 @@ type MainNavProps = {
   editable: boolean;
   signedIn: boolean;
   new_article: typeof new_article_type;
-  searchText: string;
-  setSearchText: (value: string) => void;
   sanitized_url: string;
   user?: TrimmedUser;
 };
@@ -112,8 +108,6 @@ function MainNav({
   signedIn,
   new_article,
   sanitized_url,
-  searchText,
-  setSearchText,
   user,
 }: MainNavProps) {
   const router = useRouter();
@@ -133,13 +127,12 @@ function MainNav({
         <DesktopNavMenu />
       </div>
       <div className="flex flex-1 items-center justify-between space-x-2 lg:justify-end">
-        <Input
+        {/* <Input
           className="ml-5 block w-full flex-1 lg:hidden lg:w-auto lg:flex-none navbar:block"
           type="text"
           placeholder="Search ..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+        /> */}
+        <NovickeAutocomplete />
         <Button
           size="icon"
           variant="outline"

@@ -35,7 +35,7 @@ export function Search() {
 }
 
 export type NovickeHit = {
-  id: number;
+  objectID: number;
   title: string;
   url: string;
   content: string;
