@@ -2,14 +2,18 @@
 
 import { type ForwardedRef, useState, useEffect, useMemo } from "react";
 import {
+  headingsPlugin,
+  listsPlugin,
+  markdownShortcutPlugin,
   MDXEditor,
+  quotePlugin,
+  thematicBreakPlugin,
   type MDXEditorMethods,
   type MDXEditorProps,
-  // } from '@mdxeditor/editor'
-  // } from '@lukaprsina/mdxeditor'
-} from "modified-editor";
+} from '@mdxeditor/editor'
+// } from '@lukaprsina/mdxeditor'
+// } from "modified-editor";
 import useForwardedRef from "~/hooks/use_forwarded_ref";
-import type { EditorPropsJoined } from "./editor_client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { PublishDrawer, Test } from "./publish_drawer";
@@ -32,6 +36,10 @@ import { Article } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { ServerError } from "~/lib/server_error";
 
+// import '@lukaprsina/mdxeditor/style.css'
+import '@mdxeditor/editor/style.css'
+// import "modified-editor/style.css";
+
 function useEditorArticle(
   article_url: string | undefined,
   update_state: () => void,
@@ -42,7 +50,10 @@ function useEditorArticle(
   const query = useQuery({
     queryKey: ["editor_article", article_url],
     queryFn: async () => {
-      if (typeof article_url !== "string") return null;
+      if (!article_url) {
+        console.log("throwing error query: no article url")
+        throw new Error("No article url");
+      }
 
       const response = await read_article({ url: article_url });
       console.log("queryFn", { article_url, response });
@@ -56,7 +67,10 @@ function useEditorArticle(
   const mutation = useMutation({
     mutationKey: ["save_article", article_url],
     mutationFn: async (input: SaveArticleType) => {
-      if (typeof query.data === "undefined") return null;
+      if (typeof query.data === "undefined") {
+        console.log("throwing error mutation: no query.data")
+        throw new Error("No query.data");
+      }
 
       update_state();
       const response = await save_article(input);
@@ -80,15 +94,12 @@ function useEditorArticle(
   };
 }
 
-// TODO: when saving and updating title, the new text gets deleted
-
 export default function InitializedMDXEditor({
   editorRef,
-  markdown,
   ...props
 }: {
   editorRef: ForwardedRef<MDXEditorMethods> | null;
-} & EditorPropsJoined<MDXEditorProps>) {
+} & MDXEditorProps) {
   const [title, setTitle] = useState<string>("");
   const [url, setUrl] = useState<string>("");
   const session = useSession();
@@ -103,6 +114,13 @@ export default function InitializedMDXEditor({
   );
 
   const { query, mutation } = useEditorArticle(article_url, update_state);
+
+  useEffect(() => {
+    if (article_url) {
+      query.refetch();
+      update_state();
+    }
+  }, [article_url, query.refetch]);
 
   function update_state() {
     const markdown = innerRef.current?.getMarkdown();
@@ -130,12 +148,9 @@ export default function InitializedMDXEditor({
     innerRef.current?.setMarkdown(new_markdown);
   }
 
-  useEffect(() => {
-    update_state();
-  }, []);
-
   function save() {
     const markdown = innerRef.current?.getMarkdown();
+    console.log("save 2", { markdown, query: query.data })
     if (!innerRef.current || !query.data || typeof markdown !== "string")
       return Promise.resolve(null);
 
@@ -255,10 +270,17 @@ export default function InitializedMDXEditor({
 
         <div className="rounded-md border-2 border-primary/25">
           <MDXEditor
-            plugins={allPlugins(
+            /* plugins={allPlugins(
               query.data.content,
               routeParams.data.article_url,
-            )}
+            )} */
+            plugins={[
+              headingsPlugin(),
+              listsPlugin(),
+              quotePlugin(),
+              thematicBreakPlugin(),
+              markdownShortcutPlugin()
+            ]}
             {...props}
             markdown={query.data.content}
             className={clsx(

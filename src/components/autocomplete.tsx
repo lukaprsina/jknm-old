@@ -1,7 +1,6 @@
 import { autocomplete, AutocompleteComponents, AutocompleteSource, getAlgoliaResults } from '@algolia/autocomplete-js';
 import { NoviceHit } from '~/app/novice/search';
 import { algoliaInstance } from '~/lib/algolia';
-import { Hit as SearchHit } from "instantsearch.js";
 import React, { createElement, Fragment, useEffect, useRef } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 
@@ -27,7 +26,7 @@ export function Autocomplete(props: AutocompleteProps) {
         const search = autocomplete({
             container: containerRef.current,
             renderer: { createElement, Fragment, render: () => { } },
-            // detachedMediaQuery: '',
+            defaultActiveItemId: 0,
             render({ children }, root) {
                 if (!panelRootRef.current || rootRef.current !== root) {
                     rootRef.current = root;
@@ -72,13 +71,17 @@ export function NoviceAutocomplete() {
                     });
                 },
                 templates: {
-                    footer({ }) {
+                    header({ }) {
                         return <>
-                            <p>Hi</p>
+                            <span className="aa-SourceHeaderTitle">Novice</span>
+                            <div className="aa-SourceHeaderLine" />
                         </>
                     },
                     item({ item, components }) {
                         return <ProductItem hit={item} components={components} />;
+                    },
+                    noResults() {
+                        return 'Ni ujemajočih novic.';
                     },
                 },
             },

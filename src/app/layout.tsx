@@ -1,8 +1,5 @@
 // order matters
 import "~/styles/globals.css";
-// import '@lukaprsina/mdxeditor/style.css'
-// import '@mdxeditor/editor/style.css'
-import "modified-editor/style.css";
 
 import { Inter } from "next/font/google";
 

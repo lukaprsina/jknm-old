@@ -10,7 +10,7 @@ import { action } from "~/lib/safe_action";
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 import compileMDXOnServer from "~/lib/compileMDX";
-import { algoliaInstance } from "~/lib/algolia";
+import { algoliaElevatedInstance } from "~/lib/algoliaElevated";
 
 export async function get_published_articles() {
   return await db.article.findMany({
@@ -145,10 +145,10 @@ export const save_article = action(
     const final_image_url = image_url ?? previous_article.imageUrl;
 
     // TODO: algolia
-    const algolia = algoliaInstance.getClient()
+    const algolia = algoliaElevatedInstance.getClient()
     const index = algolia.initIndex("novice");
     index.saveObject({
-      id: id,
+      objectID: id,
       title: final_title,
       url: final_url,
       content: final_content,
