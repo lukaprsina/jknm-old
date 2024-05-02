@@ -16,7 +16,7 @@ const sidebarNavItems = [
   },
   {
     title: "Novičke",
-    href: "/racun/novicke",
+    href: "/racun/novice",
   },
   {
     title: "Dostop",

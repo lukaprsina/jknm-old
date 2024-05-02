@@ -146,7 +146,7 @@ export const save_article = action(
 
     // TODO: algolia
     const algolia = algoliaInstance.getClient()
-    const index = algolia.initIndex("novicke");
+    const index = algolia.initIndex("novice");
     index.saveObject({
       id: id,
       title: final_title,

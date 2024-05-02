@@ -29,7 +29,7 @@ export const ArticleViewSwitchContext = createContext<{
   setNewLook: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   newLook: true,
-  setNewLook: () => {},
+  setNewLook: () => { },
 });
 
 export function ArticleViewSwitchProvider({
@@ -115,7 +115,7 @@ type ArticleCardProps = {
 
 function ArticleCard({ article }: ArticleCardProps) {
   return (
-    <Link href={`/novicka/${article.url}`} className="flex h-full gap-2">
+    <Link href={`/novica/${article.url}`} className="flex h-full gap-2">
       <div className="h-full w-2/3 rounded-xl bg-primary/10">
         {article.imageUrl ? (
           <>
@@ -135,7 +135,7 @@ function ArticleCard({ article }: ArticleCardProps) {
 function ArticleCardNew({ article }: ArticleCardProps) {
   return (
     <Link
-      href={`/novicka/${article.url}`}
+      href={`/novica/${article.url}`}
       className="flex h-full flex-col gap-2"
     >
       <div className="h-2/3 w-full rounded-xl bg-primary/10">

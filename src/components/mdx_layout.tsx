@@ -10,7 +10,7 @@ export default async function MdxLayout({
 
   return (
     <ResponsiveShell user={session?.user}>
-      <div className="container prose mt-12 dark:prose-invert xl:prose-xl">
+      <div className="container prose pt-12 dark:prose-invert xl:prose-xl">
         {children}
       </div>
     </ResponsiveShell>

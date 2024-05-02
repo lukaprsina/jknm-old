@@ -10,15 +10,15 @@ declare module "@@@next-typesafe-url" {
   import type { InferRoute, StaticRoute } from "next-typesafe-url";
   
   interface DynamicRouter {
-    "/novicka/[novicka_name]": InferRoute<import("./src/app/novicka/[novicka_name]/routeType").RouteType>;
+    "/novica/[novica_name]": InferRoute<import("./src/app/novica/[novica_name]/routeType").RouteType>;
     "/uredi/[article_url]": InferRoute<import("./src/app/uredi/[article_url]/routeType").RouteType>;
   }
 
   interface StaticRouter {
-    "/novicke": StaticRoute;
+    "/novice": StaticRoute;
     "/": StaticRoute;
     "/prijava": StaticRoute;
-    "/racun/novicke": StaticRoute;
+    "/racun/novice": StaticRoute;
     "/racun": StaticRoute;
   }
 }

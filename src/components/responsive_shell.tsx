@@ -41,7 +41,7 @@ import { DesktopNavMenu } from "./nav_menu";
 import Image from "next/image";
 import logo from "~/content/logo.png";
 import useLog from "~/hooks/use_log";
-import Autocomplete, { NovickeAutocomplete } from "./autocomplete";
+import { NoviceAutocomplete } from "./autocomplete";
 
 type TrimmedUser = {
   id: string;
@@ -132,7 +132,7 @@ function MainNav({
           type="text"
           placeholder="Search ..."
         /> */}
-        <NovickeAutocomplete />
+        <NoviceAutocomplete />
         <Button
           size="icon"
           variant="outline"

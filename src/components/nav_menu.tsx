@@ -95,7 +95,7 @@ export function DesktopNavMenu() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/arhiv" legacyBehavior passHref>
+          <Link href="/novice" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Novice
             </NavigationMenuLink>

@@ -223,7 +223,7 @@ export default function InitializedMDXEditor({
             <Button asChild variant="outline">
               <Link
                 className="no-underline"
-                href={`/novicka/${article_url}`}
+                href={`/novica/${article_url}`}
                 target="_blank"
               >
                 Obišči stran

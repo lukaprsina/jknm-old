@@ -1,5 +1,5 @@
 import { autocomplete, AutocompleteComponents, AutocompleteSource, getAlgoliaResults } from '@algolia/autocomplete-js';
-import { NovickeHit } from '~/app/novicke/search';
+import { NoviceHit } from '~/app/novice/search';
 import { algoliaInstance } from '~/lib/algolia';
 import { Hit as SearchHit } from "instantsearch.js";
 import React, { createElement, Fragment, useEffect, useRef } from 'react';
@@ -7,10 +7,11 @@ import { createRoot, Root } from 'react-dom/client';
 
 import '@algolia/autocomplete-theme-classic';
 import Link from 'next/link';
+import { ARTICLE_PREFIX } from '~/lib/fs';
 
 type AutocompleteProps = {
     openOnFocus: boolean;
-    getSources: (props: { query: string }) => AutocompleteSource<NovickeHit>[];
+    getSources: (props: { query: string }) => AutocompleteSource<NoviceHit>[];
 }
 
 export function Autocomplete(props: AutocompleteProps) {
@@ -26,6 +27,7 @@ export function Autocomplete(props: AutocompleteProps) {
         const search = autocomplete({
             container: containerRef.current,
             renderer: { createElement, Fragment, render: () => { } },
+            // detachedMediaQuery: '',
             render({ children }, root) {
                 if (!panelRootRef.current || rootRef.current !== root) {
                     rootRef.current = root;
@@ -47,7 +49,7 @@ export function Autocomplete(props: AutocompleteProps) {
     return <div ref={containerRef} />;
 }
 
-export function NovickeAutocomplete() {
+export function NoviceAutocomplete() {
     const searchClient = algoliaInstance.getClient();
 
     return <Autocomplete
@@ -60,7 +62,7 @@ export function NovickeAutocomplete() {
                         searchClient,
                         queries: [
                             {
-                                indexName: 'novicke',
+                                indexName: 'novice',
                                 query,
                                 params: {
                                     hitsPerPage: 8
@@ -85,13 +87,13 @@ export function NovickeAutocomplete() {
 }
 
 type ProductItemProps = {
-    hit: SearchHit<NovickeHit>
+    hit: NoviceHit
     components: AutocompleteComponents
 }
 
 function ProductItem({ hit, components }: ProductItemProps) {
     return (
-        <Link className="aa-ItemLink" href={hit.url}>
+        <Link className="aa-ItemLink" href={`/${ARTICLE_PREFIX}/${hit.url}`}>
             <div className="aa-ItemContent">
                 <div className="aa-ItemIcon">
                     <img src={hit.imageUrl} alt="TODO: alt" width="40" height="40" />

@@ -20,7 +20,7 @@ export function Search() {
   return (
     <InstantSearchNext
       future={{ preserveSharedStateOnUnmount: true }}
-      indexName="novicke"
+      indexName="novice"
       routing={{
         router: {
           cleanUrlOnDispose: false
@@ -34,7 +34,7 @@ export function Search() {
   );
 }
 
-export type NovickeHit = {
+export type NoviceHit = {
   objectID: number;
   title: string;
   url: string;
@@ -42,7 +42,7 @@ export type NovickeHit = {
   imageUrl: string;
 };
 
-function Hit({ hit }: { hit: SearchHit<NovickeHit> }) {
+function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
   const [mdxModule, setMdxModule] = useState<MDXModule>();
   const Content = mdxModule ? mdxModule.default : Fragment;
 
@@ -81,7 +81,7 @@ function Hit({ hit }: { hit: SearchHit<NovickeHit> }) {
             height={1000}
             className="m-0 h-full w-auto origin-right rounded-xl border text-xs shadow transition-all hover:scale-105"
           />
-          <Suspense fallback={<p>Loading next-mdx-remote-client</p>}>
+          <Suspense fallback={<p>Loading content</p>}>
             <div className="m-2 h-full max-h-full w-full overflow-hidden text-xs">
               <Content />
             </div>

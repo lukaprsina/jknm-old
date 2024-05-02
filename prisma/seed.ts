@@ -26,7 +26,7 @@ Some content`;
     const imageUrl = "https://picsum.photos/1500/1000";
 
     const algolia = algoliaElevatedInstance.getClient();
-    const index = algolia.initIndex("novicke");
+    const index = algolia.initIndex("novice");
     await index.saveObject({
       objectID: i,
       title,

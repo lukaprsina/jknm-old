@@ -1,4 +1,5 @@
-
+import algoliasearch, { SearchClient } from "algoliasearch";
+import { env } from "~/env";
 
 class AlgoliaElevatedClient {
     private static instance: AlgoliaElevatedClient;

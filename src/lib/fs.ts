@@ -3,7 +3,7 @@ import sanitize from "sanitize-filename";
 
 export const FILESYSTEM_PREFIX = "public/fs";
 export const WEB_FILESYSTEM_PREFIX = "fs";
-export const ARTICLE_PREFIX = "novicka";
+export const ARTICLE_PREFIX = "novica";
 
 // turn to relative path and remove backslashes
 export function fix_slashes(str: string) {
