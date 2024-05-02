@@ -2,12 +2,15 @@
 
 import { type ForwardedRef, useState, useEffect, useMemo } from "react";
 import {
+  BoldItalicUnderlineToggles,
   headingsPlugin,
   listsPlugin,
   markdownShortcutPlugin,
   MDXEditor,
   quotePlugin,
   thematicBreakPlugin,
+  toolbarPlugin,
+  UndoRedo,
   type MDXEditorMethods,
   type MDXEditorProps,
 } from '@mdxeditor/editor'
@@ -180,10 +183,10 @@ export default function InitializedMDXEditor({
         },
         {
           onSuccess: (data) => {
-            setTimeout(() => {
+            resolve(data);
+            /* setTimeout(() => {
               console.log("RESOLVING");
-              resolve(data);
-            }, 3000);
+            }, 3000); */
           },
           onError: (error) => {
             console.error("Error saving", error);
@@ -270,17 +273,10 @@ export default function InitializedMDXEditor({
 
         <div className="rounded-md border-2 border-primary/25">
           <MDXEditor
-            /* plugins={allPlugins(
+            plugins={allPlugins(
               query.data.content,
-              routeParams.data.article_url,
-            )} */
-            plugins={[
-              headingsPlugin(),
-              listsPlugin(),
-              quotePlugin(),
-              thematicBreakPlugin(),
-              markdownShortcutPlugin()
-            ]}
+              routeParams.data.article_url
+            )}
             {...props}
             markdown={query.data.content}
             className={clsx(

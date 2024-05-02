@@ -15,7 +15,9 @@ import {
   AdmonitionDirectiveDescriptor,
   diffSourcePlugin,
   markdownShortcutPlugin,
-} from "modified-editor";
+} from '@mdxeditor/editor'
+// } from '@lukaprsina/mdxeditor'
+// } from "modified-editor";
 import { Toolbar } from "./toolbar";
 import { WEB_FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
 import path from "path";
@@ -23,7 +25,6 @@ import { fromMarkdown } from "mdast-util-from-markdown";
 import { toMarkdown } from "mdast-util-to-markdown";
 import { toString as markdownToString } from "mdast-util-to-string";
 import type { Parent, Code } from "mdast";
-import { Article } from "@prisma/client";
 import { SaveArticleType } from "~/server/data_layer/articles";
 
 const imageUploadHandler = async (
@@ -50,23 +51,28 @@ const imageUploadHandler = async (
   }
 };
 
-export const allPlugins = (diffMarkdown: string, url?: string) => [
-  toolbarPlugin({ toolbarContents: () => <Toolbar /> }),
-  listsPlugin(),
-  quotePlugin(),
-  headingsPlugin(),
-  linkPlugin(),
-  linkDialogPlugin(),
-  imagePlugin({
-    imageUploadHandler: (image) => imageUploadHandler(image, url),
-  }),
-  tablePlugin(),
-  thematicBreakPlugin(),
-  frontmatterPlugin(),
-  directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
-  diffSourcePlugin({ viewMode: "rich-text", diffMarkdown }),
-  markdownShortcutPlugin(),
-];
+export function allPlugins(diffMarkdown: string, url?: string) {
+  return [
+    toolbarPlugin({ toolbarContents: () => <Toolbar /> }),
+    headingsPlugin(),
+    listsPlugin(),
+    quotePlugin(),
+    linkPlugin(),
+    linkDialogPlugin(),
+    imagePlugin({
+      imageUploadHandler: async (image) => {
+        const imageUrl = await imageUploadHandler(image, url);
+        return imageUrl || '';
+      },
+    }),
+    tablePlugin(),
+    thematicBreakPlugin(),
+    frontmatterPlugin(),
+    directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+    diffSourcePlugin({ viewMode: "rich-text", diffMarkdown }),
+    markdownShortcutPlugin(),
+  ];
+}
 
 export const IMAGE_FS_PREFIX = `/${WEB_FILESYSTEM_PREFIX}/`;
 
