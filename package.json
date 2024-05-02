@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@algolia/autocomplete-js": "^1.17.0",
+    "@algolia/autocomplete-theme-classic": "^1.17.0",
     "@faker-js/faker": "^8.4.1",
     "@hookform/resolvers": "^3.3.4",
     "@mdx-js/loader": "^3.0.1",
