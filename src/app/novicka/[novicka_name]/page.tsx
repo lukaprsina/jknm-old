@@ -1,3 +1,5 @@
+"use client"
+
 import { read_article } from "~/server/data_layer/articles";
 import { type Metadata } from "next";
 import ResponsiveShell from "~/components/responsive_shell";
@@ -7,7 +9,6 @@ import { Route, type RouteType } from "./routeType";
 import { withParamValidation } from "next-typesafe-url/app/hoc";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { custom_mdx_components } from "~/mdx-components";
-import { useState } from "react";
 
 type PageProps = InferPagePropsType<RouteType>;
 
@@ -17,7 +18,7 @@ type ArticleType = {
 
 // TODO: maybe search params do better, because react_devtools_backend_compact.js.map
 // and other junk ddoses server
-export async function generateMetadata({
+/* export async function generateMetadata({
   params,
 }: ArticleType): Promise<Metadata> {
   const response = await read_article({
@@ -26,7 +27,7 @@ export async function generateMetadata({
   return {
     title: response.data?.title,
   };
-}
+} */
 
 async function Article({ routeParams }: PageProps) {
   const session = await getServerAuthSession();
