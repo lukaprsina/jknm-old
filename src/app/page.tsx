@@ -24,14 +24,15 @@ export default async function HomePage() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ResponsiveShell user={session?.user}>
-        <Parallax />
-        <div className="container prose-xl pt-10 dark:prose-invert">
-          <ArticleViewSwitch />
-          {/* Public articles */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <ArticleView />
+        <Parallax>
+          <div className="container prose-xl pt-10 dark:prose-invert">
+            <ArticleViewSwitch />
+            {/* Public articles */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ArticleView />
+            </div>
           </div>
-        </div>
+        </Parallax>
       </ResponsiveShell>
     </HydrationBoundary>
   );

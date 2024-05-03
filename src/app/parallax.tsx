@@ -15,7 +15,7 @@ import { useContext } from "react";
 
 const PARLLAX_LAYERS = 7 // its 8
 
-export default function Parallax() {
+export default function Parallax({ children }: { children: React.ReactNode }) {
     const { perspective } = useContext(ArticleViewSwitchContext)
 
     return (
@@ -23,7 +23,7 @@ export default function Parallax() {
             onClick={(e) => e.preventDefault()}
             style={{
                 perspective: `${100 * perspective}px`,
-                marginLeft: `${-1030 / 4}px`,
+                marginLeft: `${-3500 / 4}px`,
             }}
             className="w-full h-screen z-40 overflow-x-hidden overflow-y-auto absolute top-0 left-1/2 right-0 bottom-0"
         >
@@ -36,9 +36,11 @@ export default function Parallax() {
             <ParallaxImage image={p6} index={6} />
             <ParallaxImage image={p7} index={7} />
             <div
-                style={{ height: `${687 + 1500}px` }}
-                className="block absolute top-[700px] left-0 right-0 z-50 bg-zinc-950"
-            />
+                // style={{ height: `${2000}px` }}
+                className="block absolute top-[543px] left-0 right-0 z-50 bg-zinc-950"
+            >
+                {children}
+            </div>
         </div>
     )
 }
@@ -54,20 +56,21 @@ function ParallaxImage({ image, index }: { image: StaticImageData, index: number
                 // transformOrigin: "65% 70%"
             }}
         >
-            <img
+            {/* <img
                 src={image.src}
                 // manjka bottom-0
                 className="block absolute"
-            />
-            {/* <Image
+            /> */}
+            <Image
                 src={image}
                 alt={`parallax layer ${index}`}
-                className="absolute bottom-0"
-                sizes="300px"
+                className="absolute" // bottom-0
+                sizes="100vh"
+                placeholder="blur"
                 style={{
                     objectFit: "contain",
                 }}
-            /> */}
+            />
         </div>
     )
 }
