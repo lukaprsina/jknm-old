@@ -251,9 +251,6 @@ function UserNav({ className, user, buttons }: UserNavProps) {
               <AvatarImage
                 src={user.image}
                 alt={user.name ? `user logo: ${user.name}` : "user logo"}
-                onError={(e) => {
-                  console.error("Error loading image", e);
-                }}
               />
             ) : (
               <>

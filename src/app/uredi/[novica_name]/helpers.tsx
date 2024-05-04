@@ -76,13 +76,13 @@ export function allPlugins(diffMarkdown: string, url?: string) {
 
 export const IMAGE_FS_PREFIX = `/${WEB_FILESYSTEM_PREFIX}/`;
 
-export function change_url(current_url: string, previous_url: string) {
+export function change_url(previous_url: string, current_url: string) {
   if (!previous_url.startsWith(IMAGE_FS_PREFIX)) return previous_url;
   const name = path.basename(previous_url);
   return path.join(IMAGE_FS_PREFIX, current_url, name);
 }
 
-export function recurse_article(markdown: string, article: SaveArticleType) {
+export function recurse_article(markdown: string, forced_title: string | undefined, forced_url: string | undefined) {
   const tree = fromMarkdown(markdown);
 
   function find_heading(node: Parent | Code): string | undefined {
@@ -123,22 +123,26 @@ export function recurse_article(markdown: string, article: SaveArticleType) {
     }
   }
 
-  let heading = find_heading(tree);
-  if (typeof heading !== "string") {
+  let new_url = forced_url;
+  let new_title = forced_title;
+  if (typeof new_title !== "string") new_title = find_heading(tree);
+
+  // if no heading is found, generate a new one
+  if (typeof new_title !== "string") {
     const now = new Date();
-    heading = article.title ?? `untitled-${now.getTime()}`;
+    new_title = `untitled-${now.getTime()}`;
   }
 
-  let new_url = sanitize_for_fs(heading);
+  if (typeof new_url !== "string") new_url = sanitize_for_fs(new_title);
 
-  console.log("recurse_article", { heading, new_url });
+  // console.log("recurse_article", { heading: new_title, new_url });
 
   change_images(tree, new_url);
   const new_markdown = toMarkdown(tree).trim();
 
   return {
     new_markdown,
-    new_title: heading,
+    new_title,
     new_url,
     image_urls,
   };

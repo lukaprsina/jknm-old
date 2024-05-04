@@ -19,7 +19,7 @@ import {
 import useForwardedRef from "~/hooks/use_forwarded_ref";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { PublishDrawer, Test } from "./publish_drawer";
+import { PublishDrawer } from "./publish_drawer";
 import { useTheme } from "next-themes";
 import "./main.module.css";
 import clsx from "clsx";
@@ -33,7 +33,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, recurse_article } from "./helpers";
 import { Route } from "./routeType";
-import { useRouteParams } from "next-typesafe-url/app";
+import { useRouteParams, useSearchParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
 import { Article } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -41,20 +41,20 @@ import { ServerError } from "~/lib/server_error";
 
 // import '@lukaprsina/mdxeditor/style.css'
 import '@mdxeditor/editor/style.css'
+import useLog from "~/hooks/use_log";
 // import "modified-editor/style.css";
 
 function useEditorArticle(
-  novica_name: string | undefined,
-  update_state: () => void,
+  novica_name: string | undefined
 ) {
-  const queryClient = useQueryClient();
   const router = useRouter();
+  const searchParams = useSearchParams(Route.searchParams);
+  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ["editor_article", novica_name],
     queryFn: async () => {
       if (!novica_name) {
-        console.log("throwing error query: no article url")
         throw new Error("No article url");
       }
 
@@ -71,11 +71,10 @@ function useEditorArticle(
     mutationKey: ["save_article", novica_name],
     mutationFn: async (input: SaveArticleType) => {
       if (typeof query.data === "undefined") {
-        console.log("throwing error mutation: no query.data")
+        console.error("mutation: No query.data", { query, input })
         throw new Error("No query.data");
       }
 
-      update_state();
       const response = await save_article(input);
       console.log("mutationFn", { novica_name, response });
       if (!response.data || response.serverError || response.validationErrors)
@@ -87,7 +86,6 @@ function useEditorArticle(
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["editor_article", novica_name], data);
-      update_state();
     },
   });
 
@@ -116,7 +114,7 @@ export default function InitializedMDXEditor({
     [routeParams.data?.novica_name],
   );
 
-  const { query, mutation } = useEditorArticle(novica_name, update_state);
+  const { query, mutation } = useEditorArticle(novica_name);
 
   useEffect(() => {
     if (novica_name) {
@@ -130,101 +128,76 @@ export default function InitializedMDXEditor({
     if (!innerRef.current || !query.data || !markdown) return;
 
     const { new_title, new_markdown, image_urls, new_url } = recurse_article(
-      markdown,
-      {
-        id: query.data.id,
-        title: query.data.title,
-      },
+      markdown, undefined, undefined
     );
 
     setTitle(new_title);
     setUrl(new_url);
     setImageUrls(image_urls);
-    console.log("update_state", {
+
+    /* console.log("update_state", {
       new_title,
       new_markdown,
       image_urls,
       new_url,
       query: query.data,
-    });
+    }); */
 
     innerRef.current?.setMarkdown(new_markdown);
   }
 
-  function save() {
+  function save_content() {
     const markdown = innerRef.current?.getMarkdown();
-    console.log("save 2", { markdown, query: query.data })
     if (!innerRef.current || !query.data || typeof markdown !== "string")
-      return Promise.resolve(null);
+      return undefined;
 
-    const { new_title, new_markdown, new_url } = recurse_article(markdown, {
-      id: query.data.id,
-      title: query.data.title,
-    });
+    const { new_title, new_markdown, new_url } = recurse_article(markdown, undefined, undefined);
 
-    console.log("save", {
+    /* console.log("save", {
       new_title,
       new_markdown,
       new_url,
       query: query.data,
-    });
-
-    return new Promise<Article | null>((resolve, reject) => {
-      if (!innerRef.current || !query.data || typeof markdown !== "string")
-        return Promise.resolve(null);
-
-      mutation.mutate(
-        {
-          id: query.data.id,
-          title: new_title,
-          url: new_url,
-          content: new_markdown,
-          published: query.data.published,
-        },
-        {
-          onSuccess: (data) => {
-            resolve(data);
-            /* setTimeout(() => {
-              console.log("RESOLVING");
-            }, 3000); */
-          },
-          onError: (error) => {
-            console.error("Error saving", error);
-            reject(error);
-          },
-        },
-      );
-    });
-  }
-
-  function fullSave(input: SaveArticleType) {
-    const markdown = innerRef.current?.getMarkdown();
-    if (!innerRef.current || !query.data || !markdown) return;
-
-    const { new_title, new_markdown, new_url } = recurse_article(markdown, {
-      id: query.data.id,
-      title: query.data.title,
-    });
-    console.log("fullSave", {
-      new_title,
-      new_markdown,
-      new_url,
-      query: query.data,
-    });
+    }); */
 
     mutation.mutate({
       id: query.data?.id,
       title: new_title,
       url: new_url,
       content: new_markdown,
-      published: input.published,
+      published: query.data.published
+    });
+
+    return new_url
+  }
+
+  function configure_article(forced_title: string | undefined, forced_url: string | undefined, published: boolean) {
+    const markdown = innerRef.current?.getMarkdown();
+    if (!innerRef.current || !query.data || typeof markdown !== "string")
+      return;
+
+    const { new_title, new_markdown, new_url } = recurse_article(markdown, forced_title, forced_url);
+
+    /* console.log("save", {
+      new_title,
+      new_markdown,
+      new_url,
+      query: query.data,
+    }); */
+
+    mutation.mutate({
+      id: query.data?.id,
+      title: new_title,
+      url: new_url,
+      content: new_markdown,
+      published
     });
   }
 
   if (!query.data || routeParams.isLoading) return <p>Loading...</p>;
 
   if (routeParams.isError || !routeParams.data) {
-    console.log({ article: query.data, routeParams });
+    console.error({ article: query.data, routeParams });
     throw new Error("Article not found (ZOD)");
   }
 
@@ -232,10 +205,10 @@ export default function InitializedMDXEditor({
 
   return (
     <ResponsiveShell user={session.data?.user}>
-      <div className="container prose-xl dark:prose-invert">
-        <div className="flex-end my-2 flex justify-between">
+      <div className="container prose-xl dark:prose-invert pt-4">
+        <div className="flex-end py-2 flex justify-between">
           <div className="space-x-2">
-            <Button variant="outline" onClick={() => void save()}>
+            <Button variant="outline" onClick={() => save_content()}>
               Shrani
             </Button>
             <Button asChild variant="outline">
@@ -248,8 +221,8 @@ export default function InitializedMDXEditor({
               </Link>
             </Button>
             <PublishDrawer
-              save={save}
-              fullSave={(input) => fullSave(input)}
+              configure_article={configure_article}
+              save_content={save_content}
               articleId={query.data.id}
               content={query.data.content}
               imageUrls={imageUrls}
@@ -257,14 +230,6 @@ export default function InitializedMDXEditor({
               url={url}
               published={query.data.published}
             />
-            <Button
-              variant="outline"
-              onClick={() =>
-                console.log({ markdown: innerRef.current?.getMarkdown() })
-              }
-            >
-              Log editor
-            </Button>
           </div>
           <Badge className="" variant="outline">
             {query.data.published ? "Objavljeno" : "Neobjavljeno"}

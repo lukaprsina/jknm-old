@@ -95,7 +95,6 @@ type ProductItemProps = {
 }
 
 function ProductItem({ hit, components }: ProductItemProps) {
-    if (!hit.content) console.log(hit)
     return (
         <Link className="aa-ItemLink" href={`/${ARTICLE_PREFIX}/${hit.url}`}>
             <div className="aa-ItemContent">

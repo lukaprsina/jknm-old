@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 type PublishFormProps = {
-  fullSave: (input: SaveArticleType) => void;
+  configure_article: (forced_title: string | undefined, forced_url: string | undefined, published: boolean) => void;
   imageUrls: string[];
   title: string;
   url: string;
@@ -43,7 +43,7 @@ export function PublishForm({
   article_id,
   content,
   imageUrls,
-  fullSave,
+  configure_article
 }: PublishFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,11 +55,7 @@ export function PublishForm({
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    fullSave({
-      id: article_id,
-      content,
-      ...values,
-    });
+    configure_article(values.title, values.url, values.published);
   }
 
   return (

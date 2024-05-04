@@ -107,7 +107,7 @@ export const save_article = action(
   }) => {
     const session = await getServerAuthSession();
     if (!session?.user) throw new Error("No user");
-    console.log("saving article", { title, url, content, id, published });
+    console.log("saving article server", { title, url, content, id, published });
 
     const previous_article = await db.article.findUniqueOrThrow({
       where: {

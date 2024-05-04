@@ -18,7 +18,6 @@ export default function ArticleView() {
   });
 
   if (!articles) {
-    console.error("Published articles not server rendered");
     return <div>Published articles not server rendered</div>;
   }
 
