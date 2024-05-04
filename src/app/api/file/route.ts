@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import { extension } from "mime-types";
-import { FILESYSTEM_PREFIX, WEB_FILESYSTEM_PREFIX } from "~/lib/fs";
+import { FILESYSTEM_PREFIX, normalize_slashes_to_absolute, normalize_slashes_to_relative, WEB_FILESYSTEM_PREFIX } from "~/lib/fs";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
   const image_file = path.join(image_folder, name);
   await fs.writeFile(image_file, data);
   const response_location = path.join(WEB_FILESYSTEM_PREFIX, decoded_url, name);
-  const abolute_location = path.join("/", response_location);
 
-  return NextResponse.json({ location: abolute_location });
+  return NextResponse.json({ location: normalize_slashes_to_absolute(response_location) });
 }

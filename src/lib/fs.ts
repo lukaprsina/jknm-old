@@ -6,21 +6,26 @@ export const WEB_FILESYSTEM_PREFIX = "fs";
 export const ARTICLE_PREFIX = "novica";
 
 // turn to relative path and remove backslashes
-export function fix_slashes(str: string) {
-  return path
-    .normalize(str)
-    .replace(/^\/|^\\/, "")
-    .replace(/\\/g, "/");
+export function normalize_slashes_to_relative(str: string) {
+  const normalized = path.normalize(str);
+
+  return normalized.replace(/^\/|^\\/, "").replace(/\\/g, "/");
+}
+
+export function normalize_slashes_to_absolute(str: string) {
+  const normalized = path.normalize(str);
+
+  return path.join("/", normalized).replace(/\\/g, "/")
 }
 
 export function remove_article_prefix(str: string) {
-  const slashes = fix_slashes(str);
+  const slashes = normalize_slashes_to_relative(str);
   const removed_prefix = slashes.split("/").slice(1).join("/");
   return removed_prefix;
 }
 
 export function sanitize_for_fs(str: string) {
-  const slashes = fix_slashes(str);
+  const slashes = normalize_slashes_to_relative(str);
   const sanitized = sanitize(slashes);
   return sanitized.replace(/\s/g, "-");
 }

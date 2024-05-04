@@ -117,7 +117,7 @@ export function recurse_article(markdown: string, forced_title: string | undefin
       }
 
       if (child.type == "image" && typeof new_url === "string") {
-        child.url = change_url(new_url, child.url);
+        child.url = change_url(child.url, new_url);
         image_urls.push(child.url);
       }
     }
@@ -135,7 +135,6 @@ export function recurse_article(markdown: string, forced_title: string | undefin
 
   if (typeof new_url !== "string") new_url = sanitize_for_fs(new_title);
 
-  // console.log("recurse_article", { heading: new_title, new_url });
 
   change_images(tree, new_url);
   const new_markdown = toMarkdown(tree).trim();

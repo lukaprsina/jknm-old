@@ -42,13 +42,14 @@ import { ServerError } from "~/lib/server_error";
 // import '@lukaprsina/mdxeditor/style.css'
 import '@mdxeditor/editor/style.css'
 import useLog from "~/hooks/use_log";
+import { SelectImage } from "./publish_form";
 // import "modified-editor/style.css";
 
 function useEditorArticle(
-  novica_name: string | undefined
+  novica_name: string | undefined,
+  update_state: () => void
 ) {
   const router = useRouter();
-  const searchParams = useSearchParams(Route.searchParams);
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -86,6 +87,7 @@ function useEditorArticle(
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["editor_article", novica_name], data);
+      update_state();
     },
   });
 
@@ -114,22 +116,29 @@ export default function InitializedMDXEditor({
     [routeParams.data?.novica_name],
   );
 
-  const { query, mutation } = useEditorArticle(novica_name);
+  const { query, mutation } = useEditorArticle(novica_name, update_state);
 
   useEffect(() => {
-    if (novica_name) {
+    console.log("useEffect", routeParams.data?.novica_name, novica_name)
+    if (routeParams.data?.novica_name !== novica_name) {
       query.refetch();
       update_state();
     }
   }, [novica_name, query.refetch]);
 
+  useEffect(() => {
+    if (query.data) update_state();
+  }, [query.data])
+
   function update_state() {
+    console.log("update_state 1")
     const markdown = innerRef.current?.getMarkdown();
     if (!innerRef.current || !query.data || !markdown) return;
 
     const { new_title, new_markdown, image_urls, new_url } = recurse_article(
       markdown, undefined, undefined
     );
+    console.log("update_state 2")
 
     setTitle(new_title);
     setUrl(new_url);
@@ -149,7 +158,7 @@ export default function InitializedMDXEditor({
   function save_content() {
     const markdown = innerRef.current?.getMarkdown();
     if (!innerRef.current || !query.data || typeof markdown !== "string")
-      return undefined;
+      return;
 
     const { new_title, new_markdown, new_url } = recurse_article(markdown, undefined, undefined);
 
@@ -205,6 +214,9 @@ export default function InitializedMDXEditor({
 
   return (
     <ResponsiveShell user={session.data?.user}>
+      <div className="w-full">
+        <SelectImage imageUrls={imageUrls} />
+      </div>
       <div className="container prose-xl dark:prose-invert pt-4">
         <div className="flex-end py-2 flex justify-between">
           <div className="space-x-2">

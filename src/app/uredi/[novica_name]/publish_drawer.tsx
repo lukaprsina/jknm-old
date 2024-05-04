@@ -66,21 +66,23 @@ export function PublishDrawer({
     localstorage_open_settings()
   }
 
+  const onOpenSettings = () => {
+    const new_url = save_content()
+
+    if (new_url == routeParams.data?.novica_name) {
+      setNewUrlAfterReload(undefined)
+      setDrawerOpen(true)
+    } else {
+      setNewUrlAfterReload(new_url)
+      localStorage.setItem("nastavitve", JSON.stringify(true))
+    }
+  }
+
   if (isDesktop) {
     return (
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
         <Button
-          onClick={async () => {
-            const new_url = save_content()
-
-            if (new_url == routeParams.data?.novica_name) {
-              setNewUrlAfterReload(undefined)
-              setDrawerOpen(true)
-            } else {
-              setNewUrlAfterReload(new_url)
-              localStorage.setItem("nastavitve", JSON.stringify(true))
-            }
-          }}
+          onClick={() => onOpenSettings()}
           variant="outline"
         >
           Nastavitve novičke
@@ -98,6 +100,7 @@ export function PublishDrawer({
             title={title}
             url={url}
             published={published}
+            setDrawerOpen={setDrawerOpen}
           />
         </DialogContent>
       </Dialog>
@@ -107,24 +110,19 @@ export function PublishDrawer({
   return (
     <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <Button
-        onClick={() => {
-          save_content();
-          console.error("TODO MOBILE DRAWER");
-          setDrawerOpen(true);
-        }}
+        onClick={() => onOpenSettings()}
       >
         Nastavitve novičke
       </Button>
       <DrawerTrigger asChild>
         <Button variant="outline">Nastavitve novičke</Button>
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="px-4">
         <DrawerHeader className="text-left">
           <DrawerTitle>Nastavitve novičke</DrawerTitle>
           <DrawerDescription>Uredi in objavi novičko</DrawerDescription>
         </DrawerHeader>
         <PublishForm
-          className="px-4"
           imageUrls={imageUrls}
           article_id={articleId}
           content={content}
@@ -132,6 +130,7 @@ export function PublishDrawer({
           title={title}
           url={url}
           published={published}
+          setDrawerOpen={setDrawerOpen}
         />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>

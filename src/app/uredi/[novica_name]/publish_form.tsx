@@ -19,6 +19,9 @@ import {
   save_article,
   type SaveArticleType,
 } from "~/server/data_layer/articles";
+import Image from "next/image";
+import useLog from "~/hooks/use_log";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 const formSchema = z.object({
   title: z.string(),
@@ -34,7 +37,8 @@ type PublishFormProps = {
   article_id: number;
   content: string;
   published: boolean;
-} & React.ComponentProps<"form">;
+  setDrawerOpen: (open: boolean) => void;
+}
 
 export function PublishForm({
   title,
@@ -43,7 +47,8 @@ export function PublishForm({
   article_id,
   content,
   imageUrls,
-  configure_article
+  configure_article,
+  setDrawerOpen
 }: PublishFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +61,7 @@ export function PublishForm({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     configure_article(values.title, values.url, values.published);
+    setDrawerOpen(false)
   }
 
   return (
@@ -91,6 +97,7 @@ export function PublishForm({
             </FormItem>
           )}
         />
+        <SelectImage imageUrls={imageUrls} />
         <FormField
           control={form.control}
           name="published"
@@ -116,3 +123,37 @@ export function PublishForm({
     </Form>
   );
 }
+
+export function SelectImage({ imageUrls }: { imageUrls: string[] }) {
+  return (
+    <div className="space-y-2 ">
+      <span>Naslovna slika</span>
+      <ToggleGroup
+        type="single"
+        className="justify-start"
+      >
+        {imageUrls.map((url) => (
+          <ToggleGroupItem value={url} key={url} className="h-auto">
+            <Image
+              key={url}
+              src={url}
+              alt="Slika"
+              width={100}
+              height={100}
+              className="rounded-md h-auto"
+            />
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+}
+
+{/* <Image
+            key={url}
+            src={url}
+            alt="Slika"
+            width={100}
+            height={100}
+            className="rounded-md"
+          /> */}
