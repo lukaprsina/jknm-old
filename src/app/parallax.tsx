@@ -10,20 +10,17 @@ import p4 from "~/../public/parallax/4.png"
 import p5 from "~/../public/parallax/5.png"
 import p6 from "~/../public/parallax/6.png"
 import p7 from "~/../public/parallax/7.png"
-import { ArticleViewSwitchContext } from "./article_view";
 import { useContext } from "react";
 
 const PARLLAX_LAYERS = 7 // its 8
 
 export default function Parallax({ children }: { children: React.ReactNode }) {
-    const { perspective } = useContext(ArticleViewSwitchContext)
-
     return (
         <div
             onClick={(e) => e.preventDefault()}
             style={{
-                perspective: `${100 * perspective}px`,
-                marginLeft: `${-3500 / 4}px`,
+                perspective: `${100}px`,
+                marginLeft: `${-window.innerWidth / 2}px`,
             }}
             className="w-full h-screen z-40 overflow-x-hidden overflow-y-auto absolute top-0 left-1/2 right-0 bottom-0"
         >

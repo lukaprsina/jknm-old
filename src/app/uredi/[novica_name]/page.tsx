@@ -14,15 +14,15 @@ type PageProps = InferPagePropsType<RouteType>;
 
 async function EditorServer({ routeParams }: PageProps) {
   const queryClient = new QueryClient();
-  const article_url = decodeURIComponent(routeParams.article_url);
+  const novica_name = decodeURIComponent(routeParams.novica_name);
 
   await queryClient.prefetchQuery({
-    queryKey: ["editor_article", article_url],
+    queryKey: ["editor_article", novica_name],
     queryFn: async () => {
-      if (typeof article_url !== "string") return null;
+      if (typeof novica_name !== "string") return null;
 
-      const article = await read_article({ url: article_url });
-      // console.log("read_article_safe", { article_url, article })
+      const article = await read_article({ url: novica_name });
+      // console.log("read_article_safe", { novica_name, article })
       if (!article.data || article.serverError || article.validationErrors)
         throw new ServerError("Zod error", { ...article });
 

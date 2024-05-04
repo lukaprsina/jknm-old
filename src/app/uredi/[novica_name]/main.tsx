@@ -44,22 +44,22 @@ import '@mdxeditor/editor/style.css'
 // import "modified-editor/style.css";
 
 function useEditorArticle(
-  article_url: string | undefined,
+  novica_name: string | undefined,
   update_state: () => void,
 ) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
   const query = useQuery({
-    queryKey: ["editor_article", article_url],
+    queryKey: ["editor_article", novica_name],
     queryFn: async () => {
-      if (!article_url) {
+      if (!novica_name) {
         console.log("throwing error query: no article url")
         throw new Error("No article url");
       }
 
-      const response = await read_article({ url: article_url });
-      console.log("queryFn", { article_url, response });
+      const response = await read_article({ url: novica_name });
+      console.log("queryFn", { novica_name, response });
       if (!response.data || response.serverError || response.validationErrors)
         throw new ServerError("Zod error", { ...response });
 
@@ -68,7 +68,7 @@ function useEditorArticle(
   });
 
   const mutation = useMutation({
-    mutationKey: ["save_article", article_url],
+    mutationKey: ["save_article", novica_name],
     mutationFn: async (input: SaveArticleType) => {
       if (typeof query.data === "undefined") {
         console.log("throwing error mutation: no query.data")
@@ -77,7 +77,7 @@ function useEditorArticle(
 
       update_state();
       const response = await save_article(input);
-      console.log("mutationFn", { article_url, response });
+      console.log("mutationFn", { novica_name, response });
       if (!response.data || response.serverError || response.validationErrors)
         throw new ServerError("Zod error", { ...response });
 
@@ -86,7 +86,7 @@ function useEditorArticle(
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["editor_article", article_url], data);
+      queryClient.setQueryData(["editor_article", novica_name], data);
       update_state();
     },
   });
@@ -111,19 +111,19 @@ export default function InitializedMDXEditor({
   const routeParams = useRouteParams(Route.routeParams);
   const theme = useTheme();
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const article_url = useMemo(
-    () => decodeURIComponent(routeParams.data?.article_url ?? ""),
-    [routeParams.data?.article_url],
+  const novica_name = useMemo(
+    () => decodeURIComponent(routeParams.data?.novica_name ?? ""),
+    [routeParams.data?.novica_name],
   );
 
-  const { query, mutation } = useEditorArticle(article_url, update_state);
+  const { query, mutation } = useEditorArticle(novica_name, update_state);
 
   useEffect(() => {
-    if (article_url) {
+    if (novica_name) {
       query.refetch();
       update_state();
     }
-  }, [article_url, query.refetch]);
+  }, [novica_name, query.refetch]);
 
   function update_state() {
     const markdown = innerRef.current?.getMarkdown();
@@ -241,7 +241,7 @@ export default function InitializedMDXEditor({
             <Button asChild variant="outline">
               <Link
                 className="no-underline"
-                href={`/novica/${article_url}`}
+                href={`/novica/${novica_name}`}
                 target="_blank"
               >
                 Obišči stran
@@ -267,7 +267,7 @@ export default function InitializedMDXEditor({
             </Button>
           </div>
           <Badge className="" variant="outline">
-            {query.data.published ? "Popravljanje" : "Neobjavljeno"}
+            {query.data.published ? "Objavljeno" : "Neobjavljeno"}
           </Badge>
         </div>
 
@@ -275,7 +275,7 @@ export default function InitializedMDXEditor({
           <MDXEditor
             plugins={allPlugins(
               query.data.content,
-              routeParams.data.article_url
+              routeParams.data.novica_name
             )}
             {...props}
             markdown={query.data.content}

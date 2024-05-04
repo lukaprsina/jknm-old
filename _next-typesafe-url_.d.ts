@@ -11,7 +11,7 @@ declare module "@@@next-typesafe-url" {
   
   interface DynamicRouter {
     "/novica/[novica_name]": InferRoute<import("./src/app/novica/[novica_name]/routeType").RouteType>;
-    "/uredi/[article_url]": InferRoute<import("./src/app/uredi/[article_url]/routeType").RouteType>;
+    "/uredi/[novica_name]": InferRoute<import("./src/app/uredi/[novica_name]/routeType").RouteType>;
   }
 
   interface StaticRouter {

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const Route = {
   routeParams: z.object({
-    article_url: z.string(),
+    novica_name: z.string(),
   }),
 } satisfies DynamicRoute;
 export type RouteType = typeof Route;

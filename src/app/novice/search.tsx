@@ -12,9 +12,9 @@ import { Card, CardContent } from "~/components/ui/card";
 import Image from "next/image";
 import { Suspense } from "react";
 import { MDXModule } from "mdx/types";
-import Link from "next/link";
 import { ARTICLE_PREFIX } from "~/lib/fs";
 import { algoliaInstance } from "~/lib/algolia";
+import Link from "next/link";
 
 export function Search() {
   return (
@@ -50,7 +50,7 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
     function () {
       (async function () {
         const code = String(
-          await compile(hit.content, {
+          await compile(hit.content ?? "", {
             outputFormat: "function-body",
           }),
         );
@@ -71,12 +71,12 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
     <Card className="flex h-52 w-full overflow-hidden">
       <CardContent className="h-full w-full p-0">
         <Link
-          href={`${ARTICLE_PREFIX}/${hit.url}`}
+          href={`${ARTICLE_PREFIX}/${hit.url ?? ""}`}
           className="flex h-full w-full gap-10"
         >
           <Image
-            src={hit.imageUrl}
-            alt={hit.title}
+            src={hit.imageUrl ?? ""}
+            alt={hit.title ?? ""}
             width={1500}
             height={1000}
             className="m-0 h-full w-auto origin-right rounded-xl border text-xs shadow transition-all hover:scale-105"

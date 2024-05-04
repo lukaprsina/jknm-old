@@ -80,11 +80,14 @@ export function PublishDrawer({
     return (
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
         <Button
-          onClick={() =>
-            save()
-              .then(() => setDrawerOpen(true))
-              .catch((error) => console.error("Error saving: ", error))
-          }
+          onClick={async () => {
+            try {
+              await save()
+              setDrawerOpen(true)
+            } catch (error) {
+              console.error("Error saving: ", error)
+            }
+          }}
           variant="outline"
         >
           Nastavitve novičke

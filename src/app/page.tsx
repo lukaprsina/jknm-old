@@ -1,15 +1,12 @@
 import ResponsiveShell from "../components/responsive_shell";
 import { get_published_articles } from "~/server/data_layer/articles";
 import { getServerAuthSession } from "~/server/auth";
-import ArticleView, {
-  ArticleViewSwitch,
-} from "./article_view";
 import {
   HydrationBoundary,
   QueryClient,
   dehydrate,
 } from "@tanstack/react-query";
-import Parallax from "./parallax";
+import ArticleView from "./article_view";
 
 export default async function HomePage() {
   const queryClient = new QueryClient();
@@ -24,15 +21,12 @@ export default async function HomePage() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ResponsiveShell user={session?.user}>
-        <Parallax>
-          <div className="container prose-xl pt-10 dark:prose-invert">
-            <ArticleViewSwitch />
-            {/* Public articles */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <ArticleView />
-            </div>
+        <div className="container prose-xl pt-10 dark:prose-invert">
+          {/* Public articles */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ArticleView />
           </div>
-        </Parallax>
+        </div>
       </ResponsiveShell>
     </HydrationBoundary>
   );
