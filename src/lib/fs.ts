@@ -25,7 +25,8 @@ export function remove_article_prefix(str: string) {
 }
 
 export function sanitize_for_fs(str: string) {
-  const slashes = normalize_slashes_to_relative(str);
+  const decoded = decodeURIComponent(str);
+  const slashes = normalize_slashes_to_relative(decoded);
   const sanitized = sanitize(slashes);
   return sanitized.replace(/\s/g, "-");
 }
