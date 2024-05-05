@@ -20,7 +20,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useEffect, useState } from "react";
-import { PublishForm } from "./publish_form";
+import { PublishForm, PublishFormValues } from "./publish_form";
 import { SaveArticleType } from "~/server/data_layer/articles";
 import { Article } from "@prisma/client";
 import { useRouteParams, useSearchParams } from "next-typesafe-url/app";
@@ -29,13 +29,14 @@ import { Route } from "./routeType";
 
 type PublishDrawerProps = {
   save_content: () => string | undefined;
-  configure_article: (forced_title: string | undefined, forced_url: string | undefined, published: boolean) => void;
+  configure_article: (props: PublishFormValues) => void;
   imageUrls: string[];
   title: string;
   articleId: number;
   content: string;
   url: string;
   published: boolean;
+  selectedImageUrl?: string;
 };
 
 export function PublishDrawer({
@@ -45,6 +46,7 @@ export function PublishDrawer({
   title,
   url,
   published,
+  selectedImageUrl,
   save_content,
   configure_article
 }: PublishDrawerProps) {
@@ -52,8 +54,8 @@ export function PublishDrawer({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const routeParams = useRouteParams(Route.routeParams);
   const [newUrlAfterReload, setNewUrlAfterReload] = useState<string | undefined>(undefined);
-  // the component rerenders if the article changes!!
 
+  // the component rerenders if the article changes
   const localstorage_open_settings = () => {
     const nastavitve_string = localStorage.getItem("nastavitve")
     if (!nastavitve_string) return
@@ -100,6 +102,7 @@ export function PublishDrawer({
             title={title}
             url={url}
             published={published}
+            selectedImageUrl={selectedImageUrl}
             setDrawerOpen={setDrawerOpen}
           />
         </DialogContent>
@@ -130,6 +133,7 @@ export function PublishDrawer({
           title={title}
           url={url}
           published={published}
+          selectedImageUrl={selectedImageUrl}
           setDrawerOpen={setDrawerOpen}
         />
         <DrawerFooter className="pt-2">

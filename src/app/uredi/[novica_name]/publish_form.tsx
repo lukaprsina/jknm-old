@@ -23,20 +23,25 @@ import Image from "next/image";
 import useLog from "~/hooks/use_log";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
-const formSchema = z.object({
+const form_schema = z.object({
   title: z.string(),
   url: z.string(),
+  image_url: z.string(),
   published: z.boolean(),
 });
 
+// export form_schema as a type
+export type PublishFormValues = z.infer<typeof form_schema>;
+
 type PublishFormProps = {
-  configure_article: (forced_title: string | undefined, forced_url: string | undefined, published: boolean) => void;
+  configure_article: (props: PublishFormValues) => void;
   imageUrls: string[];
   title: string;
   url: string;
   article_id: number;
   content: string;
   published: boolean;
+  selectedImageUrl?: string;
   setDrawerOpen: (open: boolean) => void;
 }
 
@@ -47,20 +52,27 @@ export function PublishForm({
   article_id,
   content,
   imageUrls,
+  selectedImageUrl,
   configure_article,
   setDrawerOpen
 }: PublishFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof form_schema>>({
+    resolver: zodResolver(form_schema),
     defaultValues: {
       title,
       url,
       published,
+      image_url: selectedImageUrl
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    configure_article(values.title, values.url, values.published);
+  function onSubmit(values: z.infer<typeof form_schema>) {
+    configure_article({
+      title: values.title,
+      url: values.url,
+      published: values.published,
+      image_url: values.image_url,
+    });
     setDrawerOpen(false)
   }
 
@@ -97,7 +109,17 @@ export function PublishForm({
             </FormItem>
           )}
         />
-        <SelectImage imageUrls={imageUrls} />
+        <FormField
+          control={form.control}
+          name="image_url"
+          render={({ field }) => (
+            <SelectImage
+              imageUrls={imageUrls}
+              selectedImageUrl={field.value}
+              setSelectedImageUrl={field.onChange}
+            />
+          )}
+        />
         <FormField
           control={form.control}
           name="published"
@@ -124,28 +146,38 @@ export function PublishForm({
   );
 }
 
-export function SelectImage({ imageUrls }: { imageUrls: string[] }) {
+type SelectImageProps = {
+  imageUrls: string[]
+  selectedImageUrl?: string
+  setSelectedImageUrl: (value: string) => void
+}
+
+export function SelectImage({ imageUrls, selectedImageUrl, setSelectedImageUrl }: SelectImageProps) {
   return (
-    <div className="space-y-2 ">
-      <span>Naslovna slika</span>
-      <ToggleGroup
-        type="single"
-        className="justify-start"
-      >
-        {imageUrls.map((url) => (
-          <ToggleGroupItem value={url} key={url} className="h-auto">
-            <Image
-              key={url}
-              src={url}
-              alt="Slika"
-              width={100}
-              height={100}
-              className="rounded-md h-auto"
-            />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </div>
+    <FormItem>
+      <FormLabel>Naslovna slika</FormLabel>
+      <FormControl>
+        <ToggleGroup
+          type="single"
+          className="justify-start h-28"
+          value={selectedImageUrl}
+          onValueChange={(value) => setSelectedImageUrl(value)}
+        >
+          {imageUrls.map((url) => (
+            <ToggleGroupItem value={url} key={url} className="h-full">
+              <Image
+                key={url}
+                src={url}
+                alt="Slika"
+                width={120}
+                height={120}
+                className="rounded-md h-auto"
+              />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </FormControl>
+    </FormItem>
   );
 }
 

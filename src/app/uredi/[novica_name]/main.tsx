@@ -42,7 +42,7 @@ import { ServerError } from "~/lib/server_error";
 // import '@lukaprsina/mdxeditor/style.css'
 import '@mdxeditor/editor/style.css'
 import useLog from "~/hooks/use_log";
-import { SelectImage } from "./publish_form";
+import { PublishFormValues, SelectImage } from "./publish_form";
 // import "modified-editor/style.css";
 
 function useEditorArticle(
@@ -180,12 +180,12 @@ export default function InitializedMDXEditor({
     return new_url
   }
 
-  function configure_article(forced_title: string | undefined, forced_url: string | undefined, published: boolean) {
+  function configure_article({ image_url, published, title, url }: PublishFormValues) {
     const markdown = innerRef.current?.getMarkdown();
     if (!innerRef.current || !query.data || typeof markdown !== "string")
       return;
 
-    const { new_title, new_markdown, new_url } = recurse_article(markdown, forced_title, forced_url);
+    const { new_title, new_markdown, new_url } = recurse_article(markdown, title, url);
 
     /* console.log("save", {
       new_title,
@@ -199,7 +199,8 @@ export default function InitializedMDXEditor({
       title: new_title,
       url: new_url,
       content: new_markdown,
-      published
+      image_url,
+      published,
     });
   }
 
@@ -214,9 +215,6 @@ export default function InitializedMDXEditor({
 
   return (
     <ResponsiveShell user={session.data?.user}>
-      <div className="w-full">
-        <SelectImage imageUrls={imageUrls} />
-      </div>
       <div className="container prose-xl dark:prose-invert pt-4">
         <div className="flex-end py-2 flex justify-between">
           <div className="space-x-2">
@@ -238,6 +236,7 @@ export default function InitializedMDXEditor({
               articleId={query.data.id}
               content={query.data.content}
               imageUrls={imageUrls}
+              selectedImageUrl={query.data.imageUrl ?? imageUrls.at(0) ?? undefined}
               title={title}
               url={url}
               published={query.data.published}
