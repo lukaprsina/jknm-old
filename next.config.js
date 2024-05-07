@@ -20,7 +20,32 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: 'https',
+        hostname: 'jamarski-klub-novo-mesto.s3.eu-central-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'jamarski-klub-novo-mesto.s3.eu-central-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '*',
+        port: '',
+        pathname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '*',
+        port: '',
+        pathname: '**',
+      },
     ],
+    // jamarski-klub-novo-mesto.s3.eu-central-1.amazonaws.com
   },
 };
 

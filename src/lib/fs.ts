@@ -15,7 +15,7 @@ export function normalize_slashes_to_relative(str: string) {
 export function normalize_slashes_to_absolute(str: string) {
   const normalized = path.normalize(str);
 
-  return path.join("/", normalized).replace(/\\/g, "/")
+  return path.join("/", normalized).replace(/\\/g, "/");
 }
 
 export function remove_article_prefix(str: string) {
@@ -24,7 +24,7 @@ export function remove_article_prefix(str: string) {
   return removed_prefix;
 }
 
-export function sanitize_for_fs(str: string) {
+export function title_to_url(str: string) {
   const decoded = decodeURIComponent(str);
   const slashes = normalize_slashes_to_relative(decoded);
   const sanitized = sanitize(slashes);

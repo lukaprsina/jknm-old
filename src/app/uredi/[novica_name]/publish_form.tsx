@@ -15,10 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
-import {
-  save_article,
-  type SaveArticleType,
-} from "~/server/data_layer/articles";
+import { save_article, type SaveArticleType } from "~/server/articles";
 import Image from "next/image";
 import useLog from "~/hooks/use_log";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -43,7 +40,7 @@ type PublishFormProps = {
   published: boolean;
   selectedImageUrl?: string;
   setDrawerOpen: (open: boolean) => void;
-}
+};
 
 export function PublishForm({
   title,
@@ -54,7 +51,7 @@ export function PublishForm({
   imageUrls,
   selectedImageUrl,
   configure_article,
-  setDrawerOpen
+  setDrawerOpen,
 }: PublishFormProps) {
   const form = useForm<z.infer<typeof form_schema>>({
     resolver: zodResolver(form_schema),
@@ -62,7 +59,7 @@ export function PublishForm({
       title,
       url,
       published,
-      image_url: selectedImageUrl
+      image_url: selectedImageUrl,
     },
   });
 
@@ -73,7 +70,7 @@ export function PublishForm({
       published: values.published,
       image_url: values.image_url,
     });
-    setDrawerOpen(false)
+    setDrawerOpen(false);
   }
 
   return (
@@ -147,45 +144,54 @@ export function PublishForm({
 }
 
 type SelectImageProps = {
-  imageUrls: string[]
-  selectedImageUrl?: string
-  setSelectedImageUrl: (value: string) => void
-}
+  imageUrls: string[];
+  selectedImageUrl?: string;
+  setSelectedImageUrl: (value: string) => void;
+};
 
-export function SelectImage({ imageUrls, selectedImageUrl, setSelectedImageUrl }: SelectImageProps) {
+export function SelectImage({
+  imageUrls,
+  selectedImageUrl,
+  setSelectedImageUrl,
+}: SelectImageProps) {
+  console.warn({ imageUrls, selectedImageUrl });
   return (
     <FormItem>
       <FormLabel>Naslovna slika</FormLabel>
       <FormControl>
         <ToggleGroup
           type="single"
-          className="justify-start h-28"
+          className="h-28 justify-start"
           value={selectedImageUrl}
           onValueChange={(value) => setSelectedImageUrl(value)}
         >
-          {imageUrls.map((url) => (
-            <ToggleGroupItem value={url} key={url} className="h-full">
-              <Image
-                key={url}
-                src={url}
-                alt="Slika"
-                width={120}
-                height={120}
-                className="rounded-md h-auto"
-              />
-            </ToggleGroupItem>
-          ))}
+          {imageUrls
+            .filter((url) => url.length != 0)
+            .map((url) => (
+              <ToggleGroupItem value={url} key={url} className="h-full">
+                <Image
+                  key={url}
+                  src={url}
+                  alt="Slika"
+                  width={120}
+                  height={120}
+                  className="h-auto rounded-md"
+                />
+              </ToggleGroupItem>
+            ))}
         </ToggleGroup>
       </FormControl>
     </FormItem>
   );
 }
 
-{/* <Image
+{
+  /* <Image
             key={url}
             src={url}
             alt="Slika"
             width={100}
             height={100}
             className="rounded-md"
-          /> */}
+          /> */
+}

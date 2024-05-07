@@ -13,7 +13,7 @@ import {
   UndoRedo,
   type MDXEditorMethods,
   type MDXEditorProps,
-} from '@mdxeditor/editor'
+} from "@mdxeditor/editor";
 // } from '@lukaprsina/mdxeditor'
 // } from "modified-editor";
 import useForwardedRef from "~/hooks/use_forwarded_ref";
@@ -27,9 +27,9 @@ import ResponsiveShell from "../../../components/responsive_shell";
 import { Badge } from "~/components/ui/badge";
 import {
   SaveArticleType,
-  read_article,
+  get_article_by_url,
   save_article,
-} from "../../../server/data_layer/articles";
+} from "../../../server/articles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { allPlugins, recurse_article } from "./helpers";
 import { Route } from "./routeType";
@@ -40,14 +40,14 @@ import { useSession } from "next-auth/react";
 import { ServerError } from "~/lib/server_error";
 
 // import '@lukaprsina/mdxeditor/style.css'
-import '@mdxeditor/editor/style.css'
+import "@mdxeditor/editor/style.css";
 import useLog from "~/hooks/use_log";
 import { PublishFormValues, SelectImage } from "./publish_form";
 // import "modified-editor/style.css";
 
 function useEditorArticle(
   novica_name: string | undefined,
-  update_state: () => void
+  update_state: () => void,
 ) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -59,7 +59,7 @@ function useEditorArticle(
         throw new Error("No article url");
       }
 
-      const response = await read_article({ url: novica_name });
+      const response = await get_article_by_url({ url: novica_name });
       console.log("queryFn", { novica_name, response });
       if (!response.data || response.serverError || response.validationErrors)
         throw new ServerError("Zod error", { ...response });
@@ -72,7 +72,7 @@ function useEditorArticle(
     mutationKey: ["save_article", novica_name],
     mutationFn: async (input: SaveArticleType) => {
       if (typeof query.data === "undefined") {
-        console.error("mutation: No query.data", { query, input })
+        console.error("mutation: No query.data", { query, input });
         throw new Error("No query.data");
       }
 
@@ -119,7 +119,7 @@ export default function InitializedMDXEditor({
   const { query, mutation } = useEditorArticle(novica_name, update_state);
 
   useEffect(() => {
-    console.log("useEffect", routeParams.data?.novica_name, novica_name)
+    console.log("useEffect", routeParams.data?.novica_name, novica_name);
     if (routeParams.data?.novica_name !== novica_name) {
       query.refetch();
       update_state();
@@ -128,17 +128,19 @@ export default function InitializedMDXEditor({
 
   useEffect(() => {
     if (query.data) update_state();
-  }, [query.data])
+  }, [query.data]);
 
   function update_state() {
-    console.log("update_state 1")
+    console.log("update_state 1");
     const markdown = innerRef.current?.getMarkdown();
     if (!innerRef.current || !query.data || !markdown) return;
 
     const { new_title, new_markdown, image_urls, new_url } = recurse_article(
-      markdown, undefined, undefined
+      markdown,
+      undefined,
+      undefined,
     );
-    console.log("update_state 2")
+    console.log("update_state 2");
 
     setTitle(new_title);
     setUrl(new_url);
@@ -160,7 +162,11 @@ export default function InitializedMDXEditor({
     if (!innerRef.current || !query.data || typeof markdown !== "string")
       return;
 
-    const { new_title, new_markdown, new_url } = recurse_article(markdown, undefined, undefined);
+    const { new_title, new_markdown, new_url } = recurse_article(
+      markdown,
+      undefined,
+      undefined,
+    );
 
     /* console.log("save", {
       new_title,
@@ -174,18 +180,27 @@ export default function InitializedMDXEditor({
       title: new_title,
       url: new_url,
       content: new_markdown,
-      published: query.data.published
+      published: query.data.published,
     });
 
-    return new_url
+    return new_url;
   }
 
-  function configure_article({ image_url, published, title, url }: PublishFormValues) {
+  function configure_article({
+    image_url,
+    published,
+    title,
+    url,
+  }: PublishFormValues) {
     const markdown = innerRef.current?.getMarkdown();
     if (!innerRef.current || !query.data || typeof markdown !== "string")
       return;
 
-    const { new_title, new_markdown, new_url } = recurse_article(markdown, title, url);
+    const { new_title, new_markdown, new_url } = recurse_article(
+      markdown,
+      title,
+      url,
+    );
 
     /* console.log("save", {
       new_title,
@@ -215,8 +230,8 @@ export default function InitializedMDXEditor({
 
   return (
     <ResponsiveShell user={session.data?.user}>
-      <div className="container prose-xl dark:prose-invert pt-4">
-        <div className="flex-end py-2 flex justify-between">
+      <div className="container prose-xl pt-4 dark:prose-invert">
+        <div className="flex-end flex justify-between py-2">
           <div className="space-x-2">
             <Button variant="outline" onClick={() => save_content()}>
               Shrani
@@ -236,7 +251,9 @@ export default function InitializedMDXEditor({
               articleId={query.data.id}
               content={query.data.content}
               imageUrls={imageUrls}
-              selectedImageUrl={query.data.imageUrl ?? imageUrls.at(0) ?? undefined}
+              selectedImageUrl={
+                query.data.imageUrl ?? imageUrls.at(0) ?? undefined
+              }
               title={title}
               url={url}
               published={query.data.published}
@@ -251,7 +268,7 @@ export default function InitializedMDXEditor({
           <MDXEditor
             plugins={allPlugins(
               query.data.content,
-              routeParams.data.novica_name
+              routeParams.data.novica_name,
             )}
             {...props}
             markdown={query.data.content}

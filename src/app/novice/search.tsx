@@ -6,7 +6,7 @@ import * as runtime from "react/jsx-runtime";
 import "instantsearch.css/themes/reset.css";
 import { SearchBox, Hits } from "react-instantsearch";
 import { Hit as SearchHit } from "instantsearch.js";
-import { InstantSearchNext } from 'react-instantsearch-nextjs';
+import { InstantSearchNext } from "react-instantsearch-nextjs";
 import { Jsx } from "hast-util-to-jsx-runtime";
 import { Card, CardContent } from "~/components/ui/card";
 import Image from "next/image";
@@ -23,8 +23,8 @@ export function Search() {
       indexName="novice"
       routing={{
         router: {
-          cleanUrlOnDispose: false
-        }
+          cleanUrlOnDispose: false,
+        },
       }}
       searchClient={algoliaInstance.getClient()}
     >

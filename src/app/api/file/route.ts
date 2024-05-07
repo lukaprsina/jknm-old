@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-import { extension } from "mime-types";
-import { FILESYSTEM_PREFIX, normalize_slashes_to_absolute, normalize_slashes_to_relative, sanitize_for_fs, WEB_FILESYSTEM_PREFIX } from "~/lib/fs";
+import {
+  FILESYSTEM_PREFIX,
+  normalize_slashes_to_absolute,
+  title_to_url,
+} from "~/lib/fs";
 
 export const dynamic = "force-dynamic";
-
-const NAME_PREFIX = "blobid-";
 
 export async function POST(request: NextRequest) {
   const form_data = await request.formData();
@@ -16,12 +17,8 @@ export async function POST(request: NextRequest) {
   if (!(file_contents instanceof File) || typeof url !== "string")
     return NextResponse.error();
 
-  // const file_extension = extension(file_contents.type);
-  // unix time in miliseconds
-  // const name = NAME_PREFIX + Date.now() + "." + file_extension;
-
-  const sanitized_article_name = sanitize_for_fs(url);
-  const sanitized_image_name = sanitize_for_fs(file_contents.name);
+  const sanitized_article_name = title_to_url(url);
+  const sanitized_image_name = title_to_url(file_contents.name);
 
   const image_folder = path.join(FILESYSTEM_PREFIX, sanitized_article_name);
   await fs.mkdir(path.dirname(image_folder), { recursive: true });
@@ -33,8 +30,10 @@ export async function POST(request: NextRequest) {
     "novica",
     sanitized_article_name,
     "slika",
-    sanitized_image_name
+    sanitized_image_name,
   );
 
-  return NextResponse.json({ location: normalize_slashes_to_absolute(response_location) });
+  return NextResponse.json({
+    location: normalize_slashes_to_absolute(response_location),
+  });
 }

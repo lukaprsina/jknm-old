@@ -1,7 +1,7 @@
 import { db } from "~/server/db";
 import fs from "fs/promises";
 import path from "path";
-import { FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
+import { FILESYSTEM_PREFIX, title_to_url } from "~/lib/fs";
 import { faker } from "@faker-js/faker";
 import compileMDXOnServer from "~/lib/compileMDX";
 import { algoliaElevatedInstance } from "~/lib/algoliaElevated";
@@ -16,7 +16,7 @@ async function main() {
 
   for (let i = 0; i < 10; i++) {
     const title = `${faker.commerce.productName()} ${i}`;
-    const url = sanitize_for_fs(title);
+    const url = title_to_url(title);
 
     const content = `# ${title}
         
@@ -33,7 +33,7 @@ Some content`;
       url,
       content,
       imageUrl,
-    })
+    });
 
     const cached = await compileMDXOnServer(content);
 

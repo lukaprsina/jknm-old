@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/drawer";
 import { useEffect, useState } from "react";
 import { PublishForm, PublishFormValues } from "./publish_form";
-import { SaveArticleType } from "~/server/data_layer/articles";
+import { SaveArticleType } from "~/server/articles";
 import { Article } from "@prisma/client";
 import { useRouteParams, useSearchParams } from "next-typesafe-url/app";
 import { useRouter } from "next/navigation";
@@ -48,45 +48,44 @@ export function PublishDrawer({
   published,
   selectedImageUrl,
   save_content,
-  configure_article
+  configure_article,
 }: PublishDrawerProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const routeParams = useRouteParams(Route.routeParams);
-  const [newUrlAfterReload, setNewUrlAfterReload] = useState<string | undefined>(undefined);
+  const [newUrlAfterReload, setNewUrlAfterReload] = useState<
+    string | undefined
+  >(undefined);
 
   // the component rerenders if the article changes
   const localstorage_open_settings = () => {
-    const nastavitve_string = localStorage.getItem("nastavitve")
-    if (!nastavitve_string) return
-    const nastavitve = JSON.parse(nastavitve_string) as boolean
-    localStorage.setItem("nastavitve", JSON.stringify(false))
-    if (nastavitve) setDrawerOpen(true)
-  }
+    const nastavitve_string = localStorage.getItem("nastavitve");
+    if (!nastavitve_string) return;
+    const nastavitve = JSON.parse(nastavitve_string) as boolean;
+    localStorage.setItem("nastavitve", JSON.stringify(false));
+    if (nastavitve) setDrawerOpen(true);
+  };
 
   if (newUrlAfterReload === routeParams.data?.novica_name) {
-    localstorage_open_settings()
+    localstorage_open_settings();
   }
 
   const onOpenSettings = () => {
-    const new_url = save_content()
+    const new_url = save_content();
 
     if (new_url == routeParams.data?.novica_name) {
-      setNewUrlAfterReload(undefined)
-      setDrawerOpen(true)
+      setNewUrlAfterReload(undefined);
+      setDrawerOpen(true);
     } else {
-      setNewUrlAfterReload(new_url)
-      localStorage.setItem("nastavitve", JSON.stringify(true))
+      setNewUrlAfterReload(new_url);
+      localStorage.setItem("nastavitve", JSON.stringify(true));
     }
-  }
+  };
 
   if (isDesktop) {
     return (
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <Button
-          onClick={() => onOpenSettings()}
-          variant="outline"
-        >
+        <Button onClick={() => onOpenSettings()} variant="outline">
           Nastavitve novičke
         </Button>
         <DialogContent className="sm:max-w-[425px]">
@@ -112,11 +111,7 @@ export function PublishDrawer({
 
   return (
     <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-      <Button
-        onClick={() => onOpenSettings()}
-      >
-        Nastavitve novičke
-      </Button>
+      <Button onClick={() => onOpenSettings()}>Nastavitve novičke</Button>
       <DrawerTrigger asChild>
         <Button variant="outline">Nastavitve novičke</Button>
       </DrawerTrigger>

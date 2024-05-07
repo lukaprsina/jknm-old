@@ -7,7 +7,7 @@ import {
   QueryClient,
   dehydrate,
 } from "@tanstack/react-query";
-import { read_article } from "~/server/data_layer/articles";
+import { get_article_by_url } from "~/server/articles";
 import { ServerError } from "~/lib/server_error";
 
 type PageProps = InferPagePropsType<RouteType>;
@@ -21,7 +21,7 @@ async function EditorServer({ routeParams }: PageProps) {
     queryFn: async () => {
       if (typeof novica_name !== "string") return null;
 
-      const article = await read_article({ url: novica_name });
+      const article = await get_article_by_url({ url: novica_name });
       // console.log("read_article_safe", { novica_name, article })
       if (!article.data || article.serverError || article.validationErrors)
         throw new ServerError("Zod error", { ...article });

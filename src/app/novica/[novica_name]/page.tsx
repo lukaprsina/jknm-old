@@ -1,4 +1,4 @@
-import { read_article } from "~/server/data_layer/articles";
+import { get_article_by_url } from "~/server/articles";
 import { type Metadata } from "next";
 import ResponsiveShell from "~/components/responsive_shell";
 import { getServerAuthSession } from "~/server/auth";
@@ -19,7 +19,7 @@ type ArticleType = {
 export async function generateMetadata({
   params,
 }: ArticleType): Promise<Metadata> {
-  const response = await read_article({
+  const response = await get_article_by_url({
     url: decodeURIComponent(params.novica_name),
   });
   return {
@@ -29,13 +29,13 @@ export async function generateMetadata({
 
 async function Article({ routeParams }: PageProps) {
   const session = await getServerAuthSession();
-  const article = await read_article({
+  const article = await get_article_by_url({
     url: decodeURIComponent(routeParams.novica_name),
   });
 
   return (
     <ResponsiveShell editable={true} user={session?.user}>
-      <div className="container prose dark:prose-invert lg:prose-lg pt-12">
+      <div className="container prose pt-12 dark:prose-invert lg:prose-lg">
         {article.data?.content ? (
           <MDXRemote
             source={article.data?.content}

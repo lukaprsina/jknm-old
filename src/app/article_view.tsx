@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { Card } from "~/components/ui/card";
 import { ArrayElement } from "~/lib/typescript_utils";
-import { get_published_articles } from "~/server/data_layer/articles";
+import { get_published_articles } from "~/server/articles";
 
 export type PublishedArticles = ArrayElement<
   Awaited<ReturnType<typeof get_published_articles>>
@@ -26,24 +26,26 @@ export default function ArticleView() {
     else return articles.slice(1);
   }, [articles]);
 
-  return <>
-    {articles && articles[0] ? (
-      <>
-        <Card className="col-span-1 row-span-1 h-96 sm:col-span-2">
-          <ArticleCard article={articles[0]} />
-        </Card>
-        {articles_without_first.map((article) => (
-          <div key={article.id}>
-            <Card className="col-span-1 h-96">
-              <ArticleCardNew article={article} />
-            </Card>
-          </div>
-        ))}
-      </>
-    ) : (
-      <p>Ni novic</p>
-    )}
-  </>
+  return (
+    <>
+      {articles && articles[0] ? (
+        <>
+          <Card className="col-span-1 row-span-1 h-96 sm:col-span-2">
+            <ArticleCard article={articles[0]} />
+          </Card>
+          {articles_without_first.map((article) => (
+            <div key={article.id}>
+              <Card className="col-span-1 h-96">
+                <ArticleCardNew article={article} />
+              </Card>
+            </div>
+          ))}
+        </>
+      ) : (
+        <p>Ni novic</p>
+      )}
+    </>
+  );
 }
 
 type ArticleCardProps = {

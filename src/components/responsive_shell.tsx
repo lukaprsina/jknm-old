@@ -3,7 +3,7 @@
 import {
   new_article,
   type new_article as new_article_type,
-} from "../server/data_layer/articles";
+} from "../server/articles";
 import Link from "next/link";
 import {
   HamburgerMenuIcon,

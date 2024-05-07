@@ -15,43 +15,71 @@ import {
   AdmonitionDirectiveDescriptor,
   diffSourcePlugin,
   markdownShortcutPlugin,
-} from '@mdxeditor/editor'
+} from "@mdxeditor/editor";
 // } from '@lukaprsina/mdxeditor'
 // } from "modified-editor";
 import { Toolbar } from "./toolbar";
-import { WEB_FILESYSTEM_PREFIX, sanitize_for_fs } from "~/lib/fs";
+import { WEB_FILESYSTEM_PREFIX, title_to_url } from "~/lib/fs";
 import path from "path";
 import { fromMarkdown } from "mdast-util-from-markdown";
 import { toMarkdown } from "mdast-util-to-markdown";
 import { toString as markdownToString } from "mdast-util-to-string";
 import type { Parent, Code } from "mdast";
-import { SaveArticleType } from "~/server/data_layer/articles";
+import { SaveArticleType } from "~/server/articles";
+import { useRouteParams } from "next-typesafe-url/app";
+import { Route } from "./routeType";
 
 const imageUploadHandler = async (
   image: File,
-  url?: string,
-): Promise<string | undefined> => {
+  novica_name: string,
+): Promise<string> => {
   if (!image) throw new Error("No image");
-  if (typeof url == "undefined") throw new Error("No url");
 
   const form = new FormData();
   form.append("file", image);
-  form.append("url", url);
 
-  const image_response = await fetch("/api/file", {
-    method: "POST",
-    body: form,
-  });
+  const direct_url_response = await fetch(
+    `/novica/${novica_name}/api/upload_image`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ filename: image.name, content_type: image.type }),
+    },
+  );
 
-  if (image_response.ok) {
-    const image_json = (await image_response.json()) as { location: string };
-    return image_json.location;
+  if (direct_url_response.ok) {
+    const { url, fields, image_filename, image_url } =
+      await direct_url_response.json();
+    console.log(fields);
+
+    const formData = new FormData();
+    Object.entries(fields).forEach(([key, value]) => {
+      formData.append(key, value as string);
+    });
+    formData.append("file", image);
+
+    const uploadResponse = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (uploadResponse.ok) {
+      console.log("Upload Response:", url);
+      // https://jamarski-klub-novo-mesto.s3.eu-central-1.amazonaws.com/Intelligent-Concrete-Table-9.5/slike/FoldingAtHome-points-certificate-132572.jpg
+      // return image_filename as string;
+      return `${url}${image_url as string}`;
+    } else {
+      console.error("S3 Upload Error:", uploadResponse);
+      throw new Error("Failed to upload the image to S3");
+    }
   } else {
-    throw new Error("Failed to upload image");
+    throw new Error("Failed to create upload link for image");
   }
 };
 
-export function allPlugins(diffMarkdown: string, url?: string) {
+export function allPlugins(diffMarkdown: string, novica_name: string) {
   return [
     toolbarPlugin({ toolbarContents: () => <Toolbar /> }),
     headingsPlugin(),
@@ -60,10 +88,7 @@ export function allPlugins(diffMarkdown: string, url?: string) {
     linkPlugin(),
     linkDialogPlugin(),
     imagePlugin({
-      imageUploadHandler: async (image) => {
-        const imageUrl = await imageUploadHandler(image, url);
-        return imageUrl || '';
-      },
+      imageUploadHandler: (image) => imageUploadHandler(image, novica_name),
     }),
     tablePlugin(),
     thematicBreakPlugin(),
@@ -82,7 +107,11 @@ export function change_url(previous_url: string, current_url: string) {
   return path.join(IMAGE_FS_PREFIX, current_url, name);
 }
 
-export function recurse_article(markdown: string, forced_title: string | undefined, forced_url: string | undefined) {
+export function recurse_article(
+  markdown: string,
+  forced_title: string | undefined,
+  forced_url: string | undefined,
+) {
   const tree = fromMarkdown(markdown);
 
   function find_heading(node: Parent | Code): string | undefined {
@@ -133,8 +162,7 @@ export function recurse_article(markdown: string, forced_title: string | undefin
     new_title = `untitled-${now.getTime()}`;
   }
 
-  if (typeof new_url !== "string") new_url = sanitize_for_fs(new_title);
-
+  if (typeof new_url !== "string") new_url = title_to_url(new_title);
 
   change_images(tree, new_url);
   const new_markdown = toMarkdown(tree).trim();

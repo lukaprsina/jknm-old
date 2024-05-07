@@ -1,5 +1,5 @@
 import ResponsiveShell from "../components/responsive_shell";
-import { get_published_articles } from "~/server/data_layer/articles";
+import { get_published_articles } from "~/server/articles";
 import { getServerAuthSession } from "~/server/auth";
 import {
   HydrationBoundary,
