@@ -20,5 +20,6 @@ declare module "@@@next-typesafe-url" {
     "/prijava": StaticRoute;
     "/racun/novice": StaticRoute;
     "/racun": StaticRoute;
+    "/s3": StaticRoute;
   }
 }

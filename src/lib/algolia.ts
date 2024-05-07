@@ -7,7 +7,10 @@ class AlgoliaClient {
   private client: SearchClient;
 
   private constructor() {
-    this.client = algoliasearch(env.NEXT_PUBLIC_ALGOLIA_ID, env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY);
+    this.client = algoliasearch(
+      env.NEXT_PUBLIC_ALGOLIA_ID,
+      env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY,
+    );
   }
 
   public static getInstance(): AlgoliaClient {

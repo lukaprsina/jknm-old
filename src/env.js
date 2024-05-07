@@ -45,7 +45,7 @@ export const env = createEnv({
     NEXT_PUBLIC_MEILI_CONFIG_FILE: z.string(),
     NEXT_PUBLIC_MEILI_MASTER_KEY: z.string(),
     NEXT_PUBLIC_ALGOLIA_ID: z.string(),
-    NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: z.string()
+    NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: z.string(),
   },
 
   /**

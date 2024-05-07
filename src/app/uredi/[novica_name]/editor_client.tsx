@@ -10,10 +10,9 @@ import { Skeleton } from "~/components/ui/skeleton";
 
 const Editor = dynamic(() => import("./main"), { ssr: false });
 
-export const ForwardRefEditor = forwardRef<
-  MDXEditorMethods,
-  MDXEditorProps
->((props, ref) => <Editor {...props} editorRef={ref} />);
+export const ForwardRefEditor = forwardRef<MDXEditorMethods, MDXEditorProps>(
+  (props, ref) => <Editor {...props} editorRef={ref} />,
+);
 
 ForwardRefEditor.displayName = "ForwardRefEditor";
 
