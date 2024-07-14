@@ -4,11 +4,11 @@ import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
 import { title_to_url } from "~/lib/fs";
 
-import { action } from "~/lib/safe_action";
+import { action_client } from "~/lib/safe_action";
 import { z } from "zod";
 import type { Article } from "@prisma/client";
 import compileMDXOnServer from "~/lib/compileMDX";
-import { algoliaElevatedInstance } from "~/lib/algoliaElevated";
+import { algoliaElevatedInstance } from "~/lib/algolia_elevated";
 import { title } from "process";
 
 /* 
@@ -43,11 +43,10 @@ export async function get_published_articles() {
   });
 }
 
-export const get_article_by_url = action(
-  z.object({
-    url: z.string(),
-  }),
-  async ({ url }): Promise<Article | undefined> => {
+export const get_article_by_url = action_client.schema(z.object({
+  url: z.string(),
+})).action(
+  async ({ parsedInput: { url } }) => {
     const article = await db.article.findUnique({
       where: {
         url,
@@ -59,21 +58,21 @@ export const get_article_by_url = action(
   },
 );
 
-export const get_article_id_url = action(
+export const get_article_id_url = action_client.schema(
   z.object({
     id: z.number(),
-  }),
-  async ({ id }): Promise<Article | undefined> => {
-    const article = await db.article.findUnique({
-      where: {
-        id,
-      },
-    });
+  })).action(
+    async ({ parsedInput: { id } }): Promise<Article | undefined> => {
+      const article = await db.article.findUnique({
+        where: {
+          id,
+        },
+      });
 
-    if (!article) throw new Error("No article found");
-    return can_user_read_article(article);
-  },
-);
+      if (!article) throw new Error("No article found");
+      return can_user_read_article(article);
+    },
+  );
 
 async function can_user_read_article(article: Article) {
   const session = await getServerAuthSession();
@@ -87,89 +86,89 @@ async function can_user_read_article(article: Article) {
   return article ?? undefined;
 }
 
-export const new_article = action(
+export const new_article = action_client.schema(
   z.object({
     draftArticleId: z.number().optional(),
-  }),
-  async ({ draftArticleId }) => {
-    const session = await getServerAuthSession();
-    if (!session?.user) throw new Error("No user");
+  })).action(
+    async ({ parsedInput: { draftArticleId } }) => {
+      const session = await getServerAuthSession();
+      if (!session?.user) throw new Error("No user");
 
-    let final_title;
-    if (draftArticleId) {
-      const original_article = await db.article.findUniqueOrThrow({
-        where: {
-          id: draftArticleId,
-        },
-        select: {
-          title: true,
-          drafts: {
-            where: {
-              createdById: session.user.id,
+      let final_title;
+      if (draftArticleId) {
+        const original_article = await db.article.findUniqueOrThrow({
+          where: {
+            id: draftArticleId,
+          },
+          select: {
+            title: true,
+            drafts: {
+              where: {
+                createdById: session.user.id,
+              },
             },
           },
+        });
+
+        final_title = `${original_article.title}-draft-${original_article.drafts.length + 1}`;
+      } else {
+        const now = new Date();
+        final_title = `untitled-${now.getTime()}`;
+      }
+
+      let final_url = title_to_url(final_title);
+
+      const duplicate = await db.article.findFirst({
+        where: {
+          url: final_url,
         },
       });
 
-      final_title = `${original_article.title}-draft-${original_article.drafts.length + 1}`;
-    } else {
-      const now = new Date();
-      final_title = `untitled-${now.getTime()}`;
-    }
+      if (duplicate) throw new Error("Duplicate URL");
 
-    let final_url = title_to_url(final_title);
-
-    const duplicate = await db.article.findFirst({
-      where: {
-        url: final_url,
-      },
-    });
-
-    if (duplicate) throw new Error("Duplicate URL");
-
-    const content = `# ${final_title}`;
-    const cached = await compileMDXOnServer(content);
-    const article = await db.article.create({
-      data: {
-        title: final_title,
-        url: final_title,
-        cached,
-        createdById: session.user.id,
-        content,
-        draftArticleId,
-      },
-    });
-
-    // add article to drafts of draftArticleId, if draftArticleId exists
-    if (draftArticleId) {
-      await db.article.update({
-        where: {
-          id: draftArticleId,
-        },
+      const content = `# ${final_title}`;
+      const cached = await compileMDXOnServer(content);
+      const article = await db.article.create({
         data: {
-          drafts: {
-            connect: {
-              id: article.id,
-            },
-          },
+          title: final_title,
+          url: final_title,
+          cached,
+          createdById: session.user.id,
+          content,
+          draftArticleId,
         },
       });
-    }
 
-    console.log("server: new article", { id: article.url, draftArticleId });
+      // add article to drafts of draftArticleId, if draftArticleId exists
+      if (draftArticleId) {
+        await db.article.update({
+          where: {
+            id: draftArticleId,
+          },
+          data: {
+            drafts: {
+              connect: {
+                id: article.id,
+              },
+            },
+          },
+        });
+      }
 
-    const algolia = algoliaElevatedInstance.getClient();
-    const index = algolia.initIndex("novice");
-    index.saveObject({
-      objectID: article.id,
-      title: final_title,
-      url: final_url,
-      content: content,
-    });
+      console.log("server: new article", { id: article.url, draftArticleId });
 
-    return article;
-  },
-);
+      const algolia = algoliaElevatedInstance.getClient();
+      const index = algolia.initIndex("novice");
+      index.saveObject({
+        objectID: article.id,
+        title: final_title,
+        url: final_url,
+        content: content,
+      });
+
+      return article;
+    },
+  );
 
 const save_article_schema = z.object({
   id: z.number(),
@@ -185,7 +184,7 @@ const save_article_schema = z.object({
 
 export type SaveArticleType = z.infer<typeof save_article_schema>;
 
-export const save_article = action(save_article_schema, async (article) => {
+export const save_article = action_client.schema(save_article_schema).action(async ({ parsedInput: article }) => {
   const session = await getServerAuthSession();
   if (!session?.user) throw new Error("No user");
   console.log("server: saving article", article.url);
@@ -243,30 +242,30 @@ export const save_article = action(save_article_schema, async (article) => {
   return updated_article;
 });
 
-export const get_drafts_by_id = action(
+export const get_drafts_by_id = action_client.schema(
   z.object({
     id: z.number(),
-  }),
-  async ({ id }) => {
-    const session = await getServerAuthSession();
-    if (!session?.user) throw new Error("No user");
+  })).action(
+    async ({ parsedInput: { id } }) => {
+      const session = await getServerAuthSession();
+      if (!session?.user) throw new Error("No user");
 
-    const original_article = await db.article.findUniqueOrThrow({
-      where: {
-        id,
-      },
-      include: {
-        drafts: {
-          where: {
-            createdById: session.user.id,
-          },
-          orderBy: {
-            updatedAt: "desc",
+      const original_article = await db.article.findUniqueOrThrow({
+        where: {
+          id,
+        },
+        include: {
+          drafts: {
+            where: {
+              createdById: session.user.id,
+            },
+            orderBy: {
+              updatedAt: "desc",
+            },
           },
         },
-      },
-    });
+      });
 
-    return original_article.drafts;
-  },
-);
+      return original_article.drafts;
+    },
+  );

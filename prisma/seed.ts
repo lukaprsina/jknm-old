@@ -4,7 +4,7 @@ import path from "path";
 import { FILESYSTEM_PREFIX, title_to_url } from "~/lib/fs";
 import { faker } from "@faker-js/faker";
 import compileMDXOnServer from "~/lib/compileMDX";
-import { algoliaElevatedInstance } from "~/lib/algoliaElevated";
+import { algoliaElevatedInstance } from "~/lib/algolia_elevated";
 
 async function main() {
   const luka_user = await db.user.findFirst({
