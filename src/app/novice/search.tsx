@@ -4,7 +4,13 @@ import { compile, run } from "@mdx-js/mdx";
 import { Fragment, useEffect, useState } from "react";
 import * as runtime from "react/jsx-runtime";
 import "instantsearch.css/themes/reset.css";
-import { SearchBox, Hits, useSearchBox } from "react-instantsearch";
+import {
+  SearchBox,
+  Hits,
+  useSearchBox,
+  SortBy,
+  useSortBy,
+} from "react-instantsearch";
 import { Hit as SearchHit } from "instantsearch.js";
 import { InstantSearchNext } from "react-instantsearch-nextjs";
 import { Jsx } from "hast-util-to-jsx-runtime";
@@ -15,8 +21,15 @@ import { MDXModule } from "mdx/types";
 import { ARTICLE_PREFIX } from "~/lib/fs";
 import { algoliaInstance } from "~/lib/algolia";
 import Link from "next/link";
-import type { UseSearchBoxProps } from 'react-instantsearch';
+import type { UseSearchBoxProps, UseSortByProps } from "react-instantsearch";
 import { Input } from "~/components/ui/input";
+import { ArticleCardHorizontal, ArticleCardVertical } from "../article_view";
+import { Select, SelectItem } from "~/components/ui/select";
+import {
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "@radix-ui/react-select";
 
 export function Search() {
   return (
@@ -30,20 +43,32 @@ export function Search() {
       }}
       searchClient={algoliaInstance.getClient()}
     >
-      <CustomSearchBox />
-      {/* <SearchBox autoCapitalize="none" /> */}
-      <Hits hitComponent={Hit} />
+      <div /* className="flex flex-col pb-4 sm:flex-row" */>
+        <CustomSearchBox />
+        <CustomSortBy
+          items={[
+            { value: "novice", label: "Najnovejše" },
+            { value: "novice_date_asc", label: "Najstarejše" },
+          ]}
+        />
+        {/* <SearchBox autoCapitalize="none" /> */}
+      </div>
+      <Hits
+        hitComponent={Hit}
+        classNames={{
+          list: "grid grid-cols-1 gap-4 sm:grid-cols-2",
+        }}
+      />
     </InstantSearchNext>
   );
 }
 
-const queryHook: UseSearchBoxProps['queryHook'] = (query, search) => {
+const queryHook: UseSearchBoxProps["queryHook"] = (query, search) => {
   search(query);
 };
 
 function CustomSearchBox() {
   const search_api = useSearchBox({ queryHook });
-
 
   return (
     <Input
@@ -52,6 +77,25 @@ function CustomSearchBox() {
       value={search_api.query}
       onChange={(e) => search_api.refine(e.target.value)}
     />
+  );
+}
+
+function CustomSortBy(props: UseSortByProps) {
+  const { currentRefinement, options, refine } = useSortBy(props);
+
+  return (
+    <Select onValueChange={(value) => refine(value)} value={currentRefinement}>
+      <SelectTrigger className="z-50 flex flex-1">
+        <SelectValue placeholder="Sortiraj po ..." />
+      </SelectTrigger>
+      <SelectContent className="z-50">
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -91,6 +135,12 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
   if (!hit.imageUrl) return;
 
   return (
+    <Card className="col-span-1 h-96">
+      <ArticleCardHorizontal article={hit} />
+    </Card>
+  );
+
+  return (
     <Card className="flex h-52 w-full overflow-hidden">
       <CardContent className="h-full w-full p-0">
         <Link
@@ -102,7 +152,7 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
             alt={hit.title ?? ""}
             width={1500}
             height={1000}
-            className="m-0 h-full w-auto rounded-xl border text-xs shadow transition-all transform-gpu hover:scale-105"
+            className="m-0 h-full w-auto transform-gpu rounded-xl border text-xs shadow transition-all hover:scale-105"
           />
           <Suspense fallback={<p>Loading content</p>}>
             <div className="m-2 h-full max-h-full w-full overflow-hidden text-xs">

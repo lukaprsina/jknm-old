@@ -6,7 +6,7 @@ import {
 } from "@algolia/autocomplete-js";
 import { NoviceHit } from "~/app/novice/search";
 import { algoliaInstance } from "~/lib/algolia";
-import React, { createElement, Fragment, useEffect, useRef, useState } from "react";
+import React, { createElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
 
 import "@algolia/autocomplete-theme-classic";
@@ -111,11 +111,15 @@ function ProductItem({ hit, components }: ProductItemProps) {
   const [mdxModule, setMdxModule] = useState<MDXModule>();
   const Content = mdxModule ? mdxModule.default : Fragment;
 
+  const content_preview = useMemo(() => {
+    return hit.content.split("\n").slice(0, 3).join("\n");
+  }, [hit.content]);
+
   useEffect(
     function () {
       (async function () {
         const code = String(
-          await compile(hit.content ?? "", {
+          await compile(content_preview ?? "", {
             outputFormat: "function-body",
           }),
         );
@@ -129,7 +133,7 @@ function ProductItem({ hit, components }: ProductItemProps) {
         setMdxModule(cached);
       })();
     },
-    [hit.content],
+    [content_preview],
   );
 
   if (!hit.imageUrl) return;
@@ -141,9 +145,9 @@ function ProductItem({ hit, components }: ProductItemProps) {
           <img src={hit.imageUrl} alt="TODO: alt" width="40" height="40" />
         </div> */}
         <div className="aa-ItemContentBody">
-          <div className="aa-ItemContentTitle">
+          {/* <div className="aa-ItemContentTitle">
             <components.Highlight hit={hit} attribute="title" />
-          </div>
+          </div> */}
           <div className="aa-ItemContentDescription">
             <Content />
             {/* <components.Snippet hit={hit} attribute="content" /> */}

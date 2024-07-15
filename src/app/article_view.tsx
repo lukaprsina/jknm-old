@@ -7,10 +7,6 @@ import { Card } from "~/components/ui/card";
 import { ArrayElement } from "~/lib/typescript_utils";
 import { get_published_articles } from "~/server/articles";
 
-export type PublishedArticles = ArrayElement<
-  Awaited<ReturnType<typeof get_published_articles>>
->;
-
 export default function ArticleView() {
   const { data: articles } = useQuery({
     queryKey: ["published_articles"],
@@ -31,12 +27,12 @@ export default function ArticleView() {
       {articles && articles[0] ? (
         <>
           <Card className="col-span-1 row-span-1 h-96 sm:col-span-2">
-            <ArticleCard article={articles[0]} />
+            <ArticleCardHorizontal article={articles[0]} />
           </Card>
           {articles_without_first.map((article) => (
             <div key={article.id}>
               <Card className="col-span-1 h-96">
-                <ArticleCardNew article={article} />
+                <ArticleCardVertical article={article} />
               </Card>
             </div>
           ))}
@@ -48,11 +44,15 @@ export default function ArticleView() {
   );
 }
 
-type ArticleCardProps = {
-  article: PublishedArticles;
+export type ArticleCardProps = {
+  article: {
+    imageUrl: string | null;
+    title: string;
+    url: string;
+  };
 };
 
-function ArticleCard({ article }: ArticleCardProps) {
+export function ArticleCardHorizontal({ article }: ArticleCardProps) {
   return (
     <Link href={`/novica/${article.url}`} className="flex h-full gap-2">
       <div className="h-full w-2/3 rounded-xl bg-primary/10">
@@ -71,7 +71,7 @@ function ArticleCard({ article }: ArticleCardProps) {
   );
 }
 
-function ArticleCardNew({ article }: ArticleCardProps) {
+export function ArticleCardVertical({ article }: ArticleCardProps) {
   return (
     <Link
       href={`/novica/${article.url}`}

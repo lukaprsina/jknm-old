@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 
 async function clear_directory(directory: string) {
   try {
-    await fs.access(directory)
+    await fs.access(directory);
   } catch (e) {
     console.error(e);
     return;
@@ -25,6 +25,8 @@ async function main() {
   await db.article.deleteMany({});
 
   await clear_directory(path.join(process.cwd(), FILESYSTEM_PREFIX));
+
+  console.log("Deleted all articles and files");
 }
 
 await main();

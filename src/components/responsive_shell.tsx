@@ -120,18 +120,12 @@ function MainNav({
             alt="logo"
             sizes="100vw"
             placeholder="empty"
-
             className="mr-2 h-auto object-contain scale-75"
           />
         </Link>
         <DesktopNavMenu />
       </div>
       <div className="flex flex-1 items-center justify-between space-x-2 lg:justify-end">
-        {/* <Input
-          className="ml-5 block w-full flex-1 lg:hidden lg:w-auto lg:flex-none navbar:block"
-          type="text"
-          placeholder="Search ..."
-        /> */}
         <NoviceAutocomplete />
         <Button
           size="icon"

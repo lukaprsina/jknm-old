@@ -1,11 +1,12 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { SignInForm } from "./signin_form";
+import { signIn, useSession } from "next-auth/react";
 import { Skeleton } from "~/components/ui/skeleton";
 import ResponsiveShell from "../../components/responsive_shell";
 import Image from "next/image";
 import logo from "~/content/logo.png";
+import { Button } from "~/components/ui/button";
+import { Icons } from "~/components/icons";
 
 export default function Prijava() {
   const { data, status } = useSession();
@@ -25,6 +26,8 @@ export default function Prijava() {
 }
 
 function SignIn() {
+  const isLoading = false
+
   return (
     <div className="relative hidden h-full min-h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="dark:border-r> relative hidden h-full flex-col justify-center bg-muted p-10 text-white lg:flex">
@@ -44,10 +47,22 @@ function SignIn() {
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Prijava</h1>
             <p className="text-sm text-muted-foreground">
-              Vnesi email ali se prijavi preko družbenih omrežij
+              Prijavi se z Google računom (domena mora biti jknm.si)
             </p>
           </div>
-          <SignInForm />
+          <Button
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.google className="mr-2 h-4 w-4" />
+            )}{" "}
+            Google
+          </Button>
         </div>
       </div>
     </div>

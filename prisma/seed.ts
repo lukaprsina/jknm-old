@@ -27,12 +27,19 @@ Some content`;
 
     const algolia = algoliaElevatedInstance.getClient();
     const index = algolia.initIndex("novice");
+    const createdAt = new Date();
+    const publishedAt = new Date();
+    createdAt.setDate(createdAt.getDate() - 100 + 3 * i);
+    publishedAt.setDate(publishedAt.getDate() - 99 + 3 * i);
+
     await index.saveObject({
       objectID: i,
       title,
       url,
       content,
       imageUrl,
+      createdAt,
+      publishedAt,
     });
 
     const cached = await compileMDXOnServer(content);
