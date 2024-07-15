@@ -4,7 +4,7 @@ import { compile, run } from "@mdx-js/mdx";
 import { Fragment, useEffect, useState } from "react";
 import * as runtime from "react/jsx-runtime";
 import "instantsearch.css/themes/reset.css";
-import { SearchBox, Hits } from "react-instantsearch";
+import { SearchBox, Hits, useSearchBox } from "react-instantsearch";
 import { Hit as SearchHit } from "instantsearch.js";
 import { InstantSearchNext } from "react-instantsearch-nextjs";
 import { Jsx } from "hast-util-to-jsx-runtime";
@@ -15,6 +15,8 @@ import { MDXModule } from "mdx/types";
 import { ARTICLE_PREFIX } from "~/lib/fs";
 import { algoliaInstance } from "~/lib/algolia";
 import Link from "next/link";
+import type { UseSearchBoxProps } from 'react-instantsearch';
+import { Input } from "~/components/ui/input";
 
 export function Search() {
   return (
@@ -28,9 +30,28 @@ export function Search() {
       }}
       searchClient={algoliaInstance.getClient()}
     >
-      <SearchBox autoCapitalize="none" />
+      <CustomSearchBox />
+      {/* <SearchBox autoCapitalize="none" /> */}
       <Hits hitComponent={Hit} />
     </InstantSearchNext>
+  );
+}
+
+const queryHook: UseSearchBoxProps['queryHook'] = (query, search) => {
+  search(query);
+};
+
+function CustomSearchBox() {
+  const search_api = useSearchBox({ queryHook });
+
+
+  return (
+    <Input
+      // type="submit"
+      placeholder="Iskanje ..."
+      value={search_api.query}
+      onChange={(e) => search_api.refine(e.target.value)}
+    />
   );
 }
 
@@ -67,6 +88,8 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
     [hit.content],
   );
 
+  if (!hit.imageUrl) return;
+
   return (
     <Card className="flex h-52 w-full overflow-hidden">
       <CardContent className="h-full w-full p-0">
@@ -75,11 +98,11 @@ function Hit({ hit }: { hit: SearchHit<NoviceHit> }) {
           className="flex h-full w-full gap-10"
         >
           <Image
-            src={hit.imageUrl ?? ""}
+            src={hit.imageUrl}
             alt={hit.title ?? ""}
             width={1500}
             height={1000}
-            className="m-0 h-full w-auto origin-right rounded-xl border text-xs shadow transition-all hover:scale-105"
+            className="m-0 h-full w-auto rounded-xl border text-xs shadow transition-all transform-gpu hover:scale-105"
           />
           <Suspense fallback={<p>Loading content</p>}>
             <div className="m-2 h-full max-h-full w-full overflow-hidden text-xs">

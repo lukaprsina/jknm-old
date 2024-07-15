@@ -40,7 +40,6 @@ import { signOut, useSession } from "next-auth/react";
 import { DesktopNavMenu } from "./nav_menu";
 import Image from "next/image";
 import logo from "~/content/logo.png";
-import useLog from "~/hooks/use_log";
 import { NoviceAutocomplete } from "./autocomplete";
 
 type TrimmedUser = {
@@ -120,8 +119,9 @@ function MainNav({
             src={logo}
             alt="logo"
             sizes="100vw"
-            placeholder="blur"
-            className="mr-2 h-auto object-contain"
+            placeholder="empty"
+
+            className="mr-2 h-auto object-contain scale-75"
           />
         </Link>
         <DesktopNavMenu />
@@ -155,6 +155,7 @@ function MainNav({
               const response = await new_article({});
 
               if (
+                response &&
                 typeof response.serverError == "undefined" &&
                 typeof response.validationErrors == "undefined" &&
                 response.data

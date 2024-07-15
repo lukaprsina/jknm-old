@@ -6,18 +6,22 @@ import {
 } from "@algolia/autocomplete-js";
 import { NoviceHit } from "~/app/novice/search";
 import { algoliaInstance } from "~/lib/algolia";
-import React, { createElement, Fragment, useEffect, useRef } from "react";
+import React, { createElement, Fragment, useEffect, useRef, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
 
 import "@algolia/autocomplete-theme-classic";
 import Link from "next/link";
 import { ARTICLE_PREFIX } from "~/lib/fs";
+import { MDXModule } from "mdx/types";
+import { compile, Jsx, run } from "@mdx-js/mdx";
+import * as runtime from "react/jsx-runtime";
 
 type AutocompleteProps = {
   openOnFocus: boolean;
   getSources: (props: { query: string }) => AutocompleteSource<NoviceHit>[];
 };
 
+// https://www.algolia.com/doc/ui-libraries/autocomplete/integrations/using-react/
 export function Autocomplete(props: AutocompleteProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLElement>();
@@ -30,7 +34,7 @@ export function Autocomplete(props: AutocompleteProps) {
 
     const search = autocomplete({
       container: containerRef.current,
-      renderer: { createElement, Fragment, render: () => {} },
+      renderer: { createElement, Fragment, render: () => { } },
       defaultActiveItemId: 0,
       render({ children }, root) {
         if (!panelRootRef.current || rootRef.current !== root) {
@@ -48,7 +52,7 @@ export function Autocomplete(props: AutocompleteProps) {
     return () => {
       search.destroy();
     };
-  }, []);
+  }, [props]);
 
   return <div ref={containerRef} />;
 }
@@ -77,7 +81,7 @@ export function NoviceAutocomplete() {
             });
           },
           templates: {
-            header({}) {
+            header({ }) {
               return (
                 <>
                   <span className="aa-SourceHeaderTitle">Novice</span>
@@ -104,18 +108,45 @@ type ProductItemProps = {
 };
 
 function ProductItem({ hit, components }: ProductItemProps) {
+  const [mdxModule, setMdxModule] = useState<MDXModule>();
+  const Content = mdxModule ? mdxModule.default : Fragment;
+
+  useEffect(
+    function () {
+      (async function () {
+        const code = String(
+          await compile(hit.content ?? "", {
+            outputFormat: "function-body",
+          }),
+        );
+
+        const cached = await run(code, {
+          Fragment,
+          baseUrl: "/",
+          jsx: runtime.jsx as Jsx,
+          jsxs: runtime.jsxs as Jsx,
+        });
+        setMdxModule(cached);
+      })();
+    },
+    [hit.content],
+  );
+
+  if (!hit.imageUrl) return;
+
   return (
     <Link className="aa-ItemLink" href={`/${ARTICLE_PREFIX}/${hit.url}`}>
-      <div className="aa-ItemContent">
-        <div className="aa-ItemIcon">
+      <div className="aa-ItemContent overflow-hidden h-12">
+        {/* <div className="aa-ItemIcon">
           <img src={hit.imageUrl} alt="TODO: alt" width="40" height="40" />
-        </div>
+        </div> */}
         <div className="aa-ItemContentBody">
           <div className="aa-ItemContentTitle">
             <components.Highlight hit={hit} attribute="title" />
           </div>
           <div className="aa-ItemContentDescription">
-            <components.Snippet hit={hit} attribute="content" />
+            <Content />
+            {/* <components.Snippet hit={hit} attribute="content" /> */}
           </div>
         </div>
       </div>
