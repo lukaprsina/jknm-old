@@ -21,8 +21,6 @@ export default function Prijava() {
 }
 
 function SignIn() {
-  const isLoading = false;
-
   return (
     <div className="relative hidden h-full min-h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="dark:border-r> relative hidden h-full flex-col justify-center bg-muted p-10 text-white lg:flex">
@@ -42,20 +40,15 @@ function SignIn() {
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Prijava</h1>
             <p className="text-sm text-muted-foreground">
-              Prijavi se z Google računom (domena mora biti jknm.si)
+              Prijavi se z Google računom info@jknm.si.
             </p>
           </div>
           <Button
             onClick={() => signIn("google", { callbackUrl: "/" })}
             variant="outline"
             type="button"
-            disabled={isLoading}
           >
-            {isLoading ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Icons.google className="mr-2 h-4 w-4" />
-            )}{" "}
+            <Icons.google className="mr-2 h-4 w-4" />
             Google
           </Button>
         </div>

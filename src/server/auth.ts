@@ -54,6 +54,8 @@ export const authOptions: NextAuthOptions = {
     }) {
       if (account?.provider != "google") return false;
       if (!(profile as GoogleProfile)?.email_verified) return false;
+
+      // TODO: info@jknm.si
       if (!profile?.email?.endsWith("@jknm.si")) return false;
       return true;
     },

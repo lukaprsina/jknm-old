@@ -4,7 +4,6 @@
 
 css full height ne štima
 db index
-nastavitve novičke morajo it v url search params
 
 editor:
 

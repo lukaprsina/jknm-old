@@ -71,9 +71,9 @@ export default function ResponsiveShell({
     <div className="relative -z-20 h-full min-h-screen justify-between">
       <header className="top-0 z-20 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center">
-          <MobileNav />
+          <MobileSideNav />
           <MainNav
-            signedIn={typeof user !== "undefined"}
+            signedIn={!!user}
             editable={editable ?? false}
             new_article={new_article}
             sanitized_url={sanitized_url}
@@ -159,7 +159,7 @@ function MainNav({
   );
 }
 
-function MobileNav() {
+function MobileSideNav() {
   const session = useSession();
 
   return (
@@ -181,11 +181,9 @@ function MobileNav() {
             <Link href="/">Domov</Link>
           </Button>
           <Button asChild variant="link">
-            {session.status == "authenticated" ? (
-              <Link href="/nastavitve/profil">Nastavitve</Link>
-            ) : (
+            {session.status !== "authenticated" ? (
               <Link href="/prijava">Prijava</Link>
-            )}
+            ) : null}
           </Button>
         </div>
         <SheetFooter></SheetFooter>
@@ -200,11 +198,9 @@ function Footer() {
   return (
     <>
       <Button asChild variant="link">
-        {session.status == "authenticated" ? (
-          <Link href="/nastavitve">Nastavitve</Link>
-        ) : (
+        {session.status !== "authenticated" ? (
           <Link href="/prijava">Prijava</Link>
-        )}
+        ) : null}
       </Button>
     </>
   );
@@ -267,20 +263,6 @@ function UserNav({ className, user, buttons }: UserNavProps) {
             <DropdownMenuSeparator />
           </>
         ) : null}
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/nastavitve/profil">Nastavitve</Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={async () => {
-            await signOut();
-            router.push("/prijava");
-          }}
-        >
-          Zamenjaj račun
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
           Odjavi se
         </DropdownMenuItem>
