@@ -10,11 +10,6 @@ import { Icons } from "~/components/icons";
 
 export default function Prijava() {
   const { data, status } = useSession();
-  // const router = useRouter()
-
-  // TODO
-  /* if (status == "authenticated")
-        router.push("/racun") */
 
   return (
     <ResponsiveShell user={data?.user}>
@@ -26,7 +21,7 @@ export default function Prijava() {
 }
 
 function SignIn() {
-  const isLoading = false
+  const isLoading = false;
 
   return (
     <div className="relative hidden h-full min-h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">

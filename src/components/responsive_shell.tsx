@@ -12,11 +12,10 @@ import {
   PlusIcon,
 } from "@radix-ui/react-icons";
 import { usePathname, useRouter } from "next/navigation";
-import { HTMLProps, useMemo, useState } from "react";
+import { HTMLProps, useMemo } from "react";
 import { remove_article_prefix } from "~/lib/fs";
 import { ModeToggle } from "../app/mode_toggle";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
   Sheet,
   SheetContent,
@@ -112,7 +111,7 @@ function MainNav({
   const router = useRouter();
 
   return (
-    <div className="flex w-full justify-between">
+    <div className="flex w-full justify-end lg:justify-between">
       <div className="mr-4 hidden h-full items-center gap-4 lg:flex">
         <Link href="/" className="flex h-full w-14">
           <Image
@@ -120,20 +119,13 @@ function MainNav({
             alt="logo"
             sizes="100vw"
             placeholder="empty"
-            className="mr-2 h-auto object-contain scale-75"
+            className="mr-2 h-auto scale-75 object-contain"
           />
         </Link>
         <DesktopNavMenu />
       </div>
-      <div className="flex flex-1 items-center justify-between space-x-2 lg:justify-end">
+      <div className="flex items-center justify-between space-x-2 [--aa-background-color-rgb:0,200,200]">
         <NoviceAutocomplete />
-        <Button
-          size="icon"
-          variant="outline"
-          className="hidden lg:flex navbar:hidden"
-        >
-          <MagnifyingGlassIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
         {editable && signedIn && (
           <Button asChild size="icon" variant="outline">
             <Link href={`/uredi/${sanitized_url}`} className="h-fill">
@@ -190,7 +182,7 @@ function MobileNav() {
           </Button>
           <Button asChild variant="link">
             {session.status == "authenticated" ? (
-              <Link href="/racun">Račun</Link>
+              <Link href="/nastavitve/profil">Nastavitve</Link>
             ) : (
               <Link href="/prijava">Prijava</Link>
             )}
@@ -209,7 +201,7 @@ function Footer() {
     <>
       <Button asChild variant="link">
         {session.status == "authenticated" ? (
-          <Link href="/racun">Račun</Link>
+          <Link href="/nastavitve">Nastavitve</Link>
         ) : (
           <Link href="/prijava">Prijava</Link>
         )}
@@ -277,7 +269,7 @@ function UserNav({ className, user, buttons }: UserNavProps) {
         ) : null}
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/racun">Profil</Link>
+            <Link href="/nastavitve/profil">Nastavitve</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

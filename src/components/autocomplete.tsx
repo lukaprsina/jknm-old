@@ -6,7 +6,14 @@ import {
 } from "@algolia/autocomplete-js";
 import { NoviceHit } from "~/app/novice/search";
 import { algoliaInstance } from "~/lib/algolia";
-import React, { createElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  createElement,
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createRoot, Root } from "react-dom/client";
 
 import "@algolia/autocomplete-theme-classic";
@@ -15,6 +22,7 @@ import { ARTICLE_PREFIX } from "~/lib/fs";
 import { MDXModule } from "mdx/types";
 import { compile, Jsx, run } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
+import "./autocomplete.css";
 
 type AutocompleteProps = {
   openOnFocus: boolean;
@@ -34,7 +42,7 @@ export function Autocomplete(props: AutocompleteProps) {
 
     const search = autocomplete({
       container: containerRef.current,
-      renderer: { createElement, Fragment, render: () => { } },
+      renderer: { createElement, Fragment, render: () => {} },
       defaultActiveItemId: 0,
       render({ children }, root) {
         if (!panelRootRef.current || rootRef.current !== root) {
@@ -81,7 +89,7 @@ export function NoviceAutocomplete() {
             });
           },
           templates: {
-            header({ }) {
+            header({}) {
               return (
                 <>
                   <span className="aa-SourceHeaderTitle">Novice</span>
@@ -139,8 +147,11 @@ function ProductItem({ hit, components }: ProductItemProps) {
   if (!hit.imageUrl) return;
 
   return (
-    <Link className="aa-ItemLink" href={`/${ARTICLE_PREFIX}/${hit.url}`}>
-      <div className="aa-ItemContent overflow-hidden h-12">
+    <Link
+      className="aa-ItemLink text-inherit"
+      href={`/${ARTICLE_PREFIX}/${hit.url}`}
+    >
+      <div className="aa-ItemContent h-12 overflow-hidden">
         {/* <div className="aa-ItemIcon">
           <img src={hit.imageUrl} alt="TODO: alt" width="40" height="40" />
         </div> */}

@@ -12,15 +12,15 @@ export const metadata: Metadata = {
 const sidebarNavItems = [
   {
     title: "Profil",
-    href: "/racun/profil",
+    href: "/nastavitve/profil",
   },
   {
     title: "Novičke",
-    href: "/racun/novice",
+    href: "/nastavitve/novice",
   },
   {
     title: "Dostop",
-    href: "/racun/dostop",
+    href: "/nastavitve/dostop",
   },
 ];
 
@@ -37,8 +37,6 @@ export default async function SettingsLayout({
   return (
     <ResponsiveShell user={session?.user}>
       <div className="container prose-lg pt-10 dark:prose-invert md:block">
-        {" "}
-        {/* space-y-6 p-10 pb-16 */}
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">
             {session ? `Živjo, ${name}! 👋` : "Moj Profil"}

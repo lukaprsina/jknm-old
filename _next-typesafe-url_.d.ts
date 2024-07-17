@@ -15,11 +15,12 @@ declare module "@@@next-typesafe-url" {
   }
 
   interface StaticRouter {
+    "/nastavitve/novice": StaticRoute;
+    "/nastavitve": StaticRoute;
+    "/nastavitve/profil": StaticRoute;
     "/novice": StaticRoute;
     "/": StaticRoute;
     "/prijava": StaticRoute;
-    "/racun/novice": StaticRoute;
-    "/racun": StaticRoute;
     "/s3": StaticRoute;
   }
 }

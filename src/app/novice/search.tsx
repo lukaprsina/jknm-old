@@ -4,13 +4,7 @@ import { compile, run } from "@mdx-js/mdx";
 import { Fragment, useEffect, useState } from "react";
 import * as runtime from "react/jsx-runtime";
 import "instantsearch.css/themes/reset.css";
-import {
-  SearchBox,
-  Hits,
-  useSearchBox,
-  SortBy,
-  useSortBy,
-} from "react-instantsearch";
+import { Hits, useSearchBox } from "react-instantsearch";
 import { Hit as SearchHit } from "instantsearch.js";
 import { InstantSearchNext } from "react-instantsearch-nextjs";
 import { Jsx } from "hast-util-to-jsx-runtime";
@@ -21,15 +15,9 @@ import { MDXModule } from "mdx/types";
 import { ARTICLE_PREFIX } from "~/lib/fs";
 import { algoliaInstance } from "~/lib/algolia";
 import Link from "next/link";
-import type { UseSearchBoxProps, UseSortByProps } from "react-instantsearch";
+import type { UseSearchBoxProps } from "react-instantsearch";
 import { Input } from "~/components/ui/input";
-import { ArticleCardHorizontal, ArticleCardVertical } from "../article_view";
-import { Select, SelectItem } from "~/components/ui/select";
-import {
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@radix-ui/react-select";
+import { ArticleCardHorizontal } from "../article_view";
 
 export function Search() {
   return (
@@ -45,12 +33,6 @@ export function Search() {
     >
       <div /* className="flex flex-col pb-4 sm:flex-row" */>
         <CustomSearchBox />
-        <CustomSortBy
-          items={[
-            { value: "novice", label: "Najnovejše" },
-            { value: "novice_date_asc", label: "Najstarejše" },
-          ]}
-        />
         {/* <SearchBox autoCapitalize="none" /> */}
       </div>
       <Hits
@@ -71,31 +53,14 @@ function CustomSearchBox() {
   const search_api = useSearchBox({ queryHook });
 
   return (
-    <Input
-      // type="submit"
-      placeholder="Iskanje ..."
-      value={search_api.query}
-      onChange={(e) => search_api.refine(e.target.value)}
-    />
-  );
-}
-
-function CustomSortBy(props: UseSortByProps) {
-  const { currentRefinement, options, refine } = useSortBy(props);
-
-  return (
-    <Select onValueChange={(value) => refine(value)} value={currentRefinement}>
-      <SelectTrigger className="z-50 flex flex-1">
-        <SelectValue placeholder="Sortiraj po ..." />
-      </SelectTrigger>
-      <SelectContent className="z-50">
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="pb-4">
+      <Input
+        // type="submit"
+        placeholder="Iskanje ..."
+        value={search_api.query}
+        onChange={(e) => search_api.refine(e.target.value)}
+      />
+    </div>
   );
 }
 

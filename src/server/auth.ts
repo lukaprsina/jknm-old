@@ -1,10 +1,12 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import {
+  Account,
   getServerSession,
+  Profile,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import GoogleProvider, { GoogleProfile } from "next-auth/providers/google";
 
 import { db } from "~/server/db";
 
@@ -43,6 +45,18 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+    async signIn({
+      account,
+      profile,
+    }: {
+      account: Account | null;
+      profile?: Profile | GoogleProfile;
+    }) {
+      if (account?.provider != "google") return false;
+      if (!(profile as GoogleProfile)?.email_verified) return false;
+      if (!profile?.email?.endsWith("@jknm.si")) return false;
+      return true;
+    },
   },
   adapter: PrismaAdapter(db),
   providers: [
