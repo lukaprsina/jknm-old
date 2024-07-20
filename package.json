@@ -33,6 +33,7 @@
     "@aws-sdk/signature-v4-crt": "^3.614.0",
     "@faker-js/faker": "^8.4.1",
     "@hookform/resolvers": "^3.9.0",
+    "@lexical/monorepo": "github:facebook/lexical",
     "@mdx-js/loader": "^3.0.1",
     "@mdx-js/mdx": "^3.0.1",
     "@mdx-js/react": "^3.0.1",
