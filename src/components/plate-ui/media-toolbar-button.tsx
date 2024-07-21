@@ -22,12 +22,11 @@ export const MediaToolbarButton = withRef<
 >(({ nodeType, ...rest }, ref) => {
   const editor = useEditorRef();
   const [imageURL, setImageURL] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const form_ref = React.useRef<HTMLFormElement>(null);
+  const file_input_ref = React.useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
 
     if (!file) {
       alert("Please select a file to upload.");
@@ -79,23 +78,21 @@ export const MediaToolbarButton = withRef<
 
   return (
     <>
-      <form ref={form_ref} onSubmit={handleSubmit}>
+      <form>
         <input
           id="file"
+          hidden
           type="file"
-          onChange={(e) => {
-            const files = e.target.files;
-            if (files) {
-              setFile(files?.item(0) ?? null);
-            }
-          }}
+          onChange={handleChange}
+          ref={file_input_ref}
           accept="image/png, image/jpeg"
         />
         <ToolbarButton
           ref={ref}
-          type="submit"
           disabled={uploading}
-          onClick={async () => {}}
+          onClick={() => {
+            file_input_ref.current?.click();
+          }}
           onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
           }}
