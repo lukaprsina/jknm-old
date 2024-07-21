@@ -1,8 +1,7 @@
-import type { Config } from "tailwindcss";
-import animate from "tailwindcss-animate";
-import typography from "@tailwindcss/typography";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
-const config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -20,8 +19,8 @@ const config = {
       },
     },
     extend: {
-      screens: {
-        navbar: "1148px",
+      fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -79,7 +78,6 @@ const config = {
       },
     },
   },
-  plugins: [animate, typography],
-} satisfies Config;
+  plugins: [require("tailwindcss-animate")],
+};
 
-export default config;

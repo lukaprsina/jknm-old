@@ -48,7 +48,8 @@ function SignIn() {
             variant="outline"
             type="button"
           >
-            <Icons.google className="mr-2 h-4 w-4" />
+            {/* TODO */}
+            {/* <Icons.google className="mr-2 h-4 w-4" /> */}
             Google
           </Button>
         </div>

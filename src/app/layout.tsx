@@ -6,7 +6,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "~/app/theme_provider";
 import Providers from "~/app/providers";
 import { cn } from "~/lib/utils";
-import { getSession } from "next-auth/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +30,7 @@ export default function RootLayout({
         className={cn(
           "relative -z-30 min-h-screen bg-background font-sans antialiased",
           inter.variable,
+          "[&_.slate-selected]:!bg-primary/20 [&_.slate-selection-area]:border [&_.slate-selection-area]:border-primary [&_.slate-selection-area]:bg-primary/10",
         )}
       >
         <ThemeProvider
