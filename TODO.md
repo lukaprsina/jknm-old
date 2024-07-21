@@ -20,3 +20,6 @@ search
 ## Na novo
 
 - sortiranje _novice_ - tekst določa velikost slike
+- https://platejs.org/docs/components/toolbar
+- https://froala.com/wysiwyg-editor/examples/tui-advanced-image-editor/
+- https://www.blocknotejs.org/examples/backend/file-uploading

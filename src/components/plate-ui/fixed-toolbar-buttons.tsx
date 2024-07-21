@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import {
   MARK_BOLD,
@@ -6,16 +6,17 @@ import {
   MARK_ITALIC,
   MARK_STRIKETHROUGH,
   MARK_UNDERLINE,
-} from '@udecode/plate-basic-marks';
-import { useEditorReadOnly } from '@udecode/plate-common';
+} from "@udecode/plate-basic-marks";
+import { useEditorReadOnly } from "@udecode/plate-common";
 
-import { Icons } from '@/components/icons';
+import { Icons } from "@/components/icons";
 
-import { InsertDropdownMenu } from './insert-dropdown-menu';
-import { MarkToolbarButton } from './mark-toolbar-button';
-import { ModeDropdownMenu } from './mode-dropdown-menu';
-import { ToolbarGroup } from './toolbar';
-import { TurnIntoDropdownMenu } from './turn-into-dropdown-menu';
+import { InsertDropdownMenu } from "./insert-dropdown-menu";
+import { MarkToolbarButton } from "./mark-toolbar-button";
+import { ModeDropdownMenu } from "./mode-dropdown-menu";
+import { ToolbarGroup } from "./toolbar";
+import { TurnIntoDropdownMenu } from "./turn-into-dropdown-menu";
+import { MediaToolbarButton } from "./media-toolbar-button";
 
 export function FixedToolbarButtons() {
   const readOnly = useEditorReadOnly();
@@ -25,7 +26,7 @@ export function FixedToolbarButtons() {
       <div
         className="flex flex-wrap"
         style={{
-          transform: 'translateX(calc(-1px))',
+          transform: "translateX(calc(-1px))",
         }}
       >
         {!readOnly && (
@@ -48,7 +49,6 @@ export function FixedToolbarButtons() {
               >
                 <Icons.underline />
               </MarkToolbarButton>
-
               <MarkToolbarButton
                 nodeType={MARK_STRIKETHROUGH}
                 tooltip="Strikethrough (⌘+⇧+M)"
@@ -58,6 +58,7 @@ export function FixedToolbarButtons() {
               <MarkToolbarButton nodeType={MARK_CODE} tooltip="Code (⌘+E)">
                 <Icons.code />
               </MarkToolbarButton>
+              <MediaToolbarButton />
             </ToolbarGroup>
           </>
         )}
