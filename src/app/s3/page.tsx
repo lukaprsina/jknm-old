@@ -53,13 +53,7 @@ export default function Page() {
       });
 
       if (uploadResponse.ok) {
-        alert("Upload successful!");
-        console.log(
-          "Upload Response:",
-          uploadResponse,
-          uploadResponse.url,
-          url,
-        );
+        console.log("Image URL:", `${url}${fields.key}`);
       } else {
         console.error("S3 Upload Error:", uploadResponse);
         alert("Upload failed.");
