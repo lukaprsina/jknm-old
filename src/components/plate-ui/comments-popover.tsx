@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-
 import { cn } from '@udecode/cn';
 import {
   CommentProvider,
@@ -24,19 +23,19 @@ export type FloatingCommentsContentProps = {
 export function CommentsPopoverContent(props: FloatingCommentsContentProps) {
   const { disableForm } = props;
 
-  const { activeCommentId, hasNoComment, myUserId, ref } =
+  const { ref, activeCommentId, hasNoComment, myUserId } =
     useFloatingCommentsContentState();
 
   return (
     <CommentProvider
-      id={activeCommentId}
       key={activeCommentId}
+      id={activeCommentId}
       scope={SCOPE_ACTIVE_COMMENT}
     >
-      <div className={cn(popoverVariants(), 'relative w-[310px]')} ref={ref}>
+      <div ref={ref} className={cn(popoverVariants(), 'relative w-[310px]')}>
         {!hasNoComment && (
           <>
-            <CommentItem commentId={activeCommentId} key={activeCommentId} />
+            <CommentItem key={activeCommentId} commentId={activeCommentId} />
 
             <CommentReplyItems />
           </>
@@ -49,7 +48,7 @@ export function CommentsPopoverContent(props: FloatingCommentsContentProps) {
 }
 
 export function CommentsPopover() {
-  const { activeCommentId, loaded } = useFloatingCommentsState();
+  const { loaded, activeCommentId } = useFloatingCommentsState();
 
   if (!loaded || !activeCommentId) return null;
 

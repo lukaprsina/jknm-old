@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-
 import { cn, withRef, withVariants } from '@udecode/cn';
 import {
   Resizable as ResizablePrimitive,
@@ -27,10 +26,10 @@ export const mediaResizeHandleVariants = cva(
 const resizeHandleVariants = cva(cn('absolute z-40'), {
   variants: {
     direction: {
-      bottom: 'w-full cursor-row-resize',
       left: 'h-full cursor-col-resize',
       right: 'h-full cursor-col-resize',
       top: 'w-full cursor-row-resize',
+      bottom: 'w-full cursor-row-resize',
     },
   },
 });
@@ -44,8 +43,8 @@ const ResizeHandleVariants = withVariants(
 export const ResizeHandle = withRef<typeof ResizeHandlePrimitive>(
   (props, ref) => (
     <ResizeHandleVariants
-      direction={props.options?.direction}
       ref={ref}
+      direction={props.options?.direction}
       {...props}
     />
   )
@@ -54,8 +53,8 @@ export const ResizeHandle = withRef<typeof ResizeHandlePrimitive>(
 const resizableVariants = cva('', {
   variants: {
     align: {
-      center: 'mx-auto',
       left: 'mr-auto',
+      center: 'mx-auto',
       right: 'ml-auto',
     },
   },

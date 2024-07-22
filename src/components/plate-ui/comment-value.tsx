@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-
 import { cn } from '@udecode/cn';
 import {
   CommentEditActions,
@@ -18,13 +17,13 @@ export function CommentValue() {
 
       <div className="flex space-x-2">
         <CommentEditActions.CancelButton
-          className={buttonVariants({ size: 'xs', variant: 'outline' })}
+          className={buttonVariants({ variant: 'outline', size: 'xs' })}
         >
           Cancel
         </CommentEditActions.CancelButton>
 
         <CommentEditActions.SaveButton
-          className={buttonVariants({ size: 'xs', variant: 'default' })}
+          className={buttonVariants({ variant: 'default', size: 'xs' })}
         >
           Save
         </CommentEditActions.SaveButton>

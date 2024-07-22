@@ -1,15 +1,12 @@
 'use client';
 
 import * as React from 'react';
-
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { cn, withRef } from '@udecode/cn';
 import { cva } from 'class-variance-authority';
 
 export const Popover = PopoverPrimitive.Root;
-
 export const PopoverTrigger = PopoverPrimitive.Trigger;
-
 export const PopoverAnchor = PopoverPrimitive.Anchor;
 
 export const popoverVariants = cva(
@@ -17,13 +14,13 @@ export const popoverVariants = cva(
 );
 
 export const PopoverContent = withRef<typeof PopoverPrimitive.Content>(
-  ({ align = 'center', className, sideOffset = 4, style, ...props }, ref) => (
+  ({ className, style, align = 'center', sideOffset = 4, ...props }, ref) => (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
-        align={align}
-        className={cn(popoverVariants(), className)}
         ref={ref}
+        align={align}
         sideOffset={sideOffset}
+        className={cn(popoverVariants(), className)}
         style={{ zIndex: 1000, ...style }}
         {...props}
       />

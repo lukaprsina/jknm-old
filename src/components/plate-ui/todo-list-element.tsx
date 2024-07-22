@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { cn, withRef } from '@udecode/cn';
 import { PlateElement } from '@udecode/plate-common';
 import {
@@ -10,15 +9,15 @@ import {
 import { Checkbox } from './checkbox';
 
 export const TodoListElement = withRef<typeof PlateElement>(
-  ({ children, className, ...props }, ref) => {
+  ({ className, children, ...props }, ref) => {
     const { element } = props;
     const state = useTodoListElementState({ element });
     const { checkboxProps } = useTodoListElement(state);
 
     return (
       <PlateElement
-        className={cn('flex flex-row py-1', className)}
         ref={ref}
+        className={cn('flex flex-row py-1', className)}
         {...props}
       >
         <div

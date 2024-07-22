@@ -1,10 +1,9 @@
 'use client';
 
 import * as React from 'react';
-
 import * as ToolbarPrimitive from '@radix-ui/react-toolbar';
 import { cn, withCn, withRef, withVariants } from '@udecode/cn';
-import { type VariantProps, cva } from 'class-variance-authority';
+import { cva, VariantProps } from 'class-variance-authority';
 
 import { Icons } from '@/components/icons';
 
@@ -28,7 +27,7 @@ export const ToolbarLink = withCn(
 
 export const ToolbarSeparator = withCn(
   ToolbarPrimitive.Separator,
-  'my-1 w-px shrink-0 bg-border'
+  'my-1 w-[1px] shrink-0 bg-border'
 );
 
 const toolbarButtonVariants = cva(
@@ -37,22 +36,22 @@ const toolbarButtonVariants = cva(
     '[&_svg:not([data-icon])]:size-5'
   ),
   {
-    defaultVariants: {
-      size: 'sm',
-      variant: 'default',
-    },
     variants: {
-      size: {
-        default: 'h-10 px-3',
-        lg: 'h-11 px-5',
-        sm: 'h-9 px-2',
-      },
       variant: {
         default:
           'bg-transparent hover:bg-muted hover:text-muted-foreground aria-checked:bg-accent aria-checked:text-accent-foreground',
         outline:
           'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
       },
+      size: {
+        default: 'h-10 px-3',
+        sm: 'h-9 px-2',
+        lg: 'h-11 px-5',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'sm',
     },
   }
 );
@@ -61,35 +60,35 @@ const ToolbarButton = withTooltip(
   // eslint-disable-next-line react/display-name
   React.forwardRef<
     React.ElementRef<typeof ToolbarToggleItem>,
-    {
-      isDropdown?: boolean;
-      pressed?: boolean;
-    } & Omit<
+    Omit<
       React.ComponentPropsWithoutRef<typeof ToolbarToggleItem>,
       'asChild' | 'value'
     > &
-      VariantProps<typeof toolbarButtonVariants>
+      VariantProps<typeof toolbarButtonVariants> & {
+        pressed?: boolean;
+        isDropdown?: boolean;
+      }
   >(
     (
-      { children, className, isDropdown, pressed, size, variant, ...props },
+      { className, variant, size, isDropdown, children, pressed, ...props },
       ref
     ) => {
       return typeof pressed === 'boolean' ? (
         <ToolbarToggleGroup
-          disabled={props.disabled}
           type="single"
           value="single"
+          disabled={props.disabled}
         >
           <ToolbarToggleItem
+            ref={ref}
             className={cn(
               toolbarButtonVariants({
-                size,
                 variant,
+                size,
               }),
               isDropdown && 'my-1 justify-between pr-1',
               className
             )}
-            ref={ref}
             value={pressed ? 'single' : ''}
             {...props}
           >
@@ -107,15 +106,15 @@ const ToolbarButton = withTooltip(
         </ToolbarToggleGroup>
       ) : (
         <ToolbarPrimitive.Button
+          ref={ref}
           className={cn(
             toolbarButtonVariants({
-              size,
               variant,
+              size,
             }),
             isDropdown && 'pr-1',
             className
           )}
-          ref={ref}
           {...props}
         >
           {children}
@@ -125,7 +124,6 @@ const ToolbarButton = withTooltip(
   )
 );
 ToolbarButton.displayName = 'ToolbarButton';
-
 export { ToolbarButton };
 
 export const ToolbarToggleItem = withVariants(
@@ -139,13 +137,12 @@ export const ToolbarGroup = withRef<
   {
     noSeparator?: boolean;
   }
->(({ children, className, noSeparator }, ref) => {
+>(({ className, children, noSeparator }, ref) => {
   const childArr = React.Children.map(children, (c) => c);
-
   if (!childArr || childArr.length === 0) return null;
 
   return (
-    <div className={cn('flex', className)} ref={ref}>
+    <div ref={ref} className={cn('flex', className)}>
       {!noSeparator && (
         <div className="h-full py-1">
           <Separator orientation="vertical" />

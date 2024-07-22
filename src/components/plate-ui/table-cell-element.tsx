@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { cn, withProps, withRef } from '@udecode/cn';
 import { PlateElement } from '@udecode/plate-common';
 import {
@@ -17,35 +16,36 @@ export const TableCellElement = withRef<
     hideBorder?: boolean;
     isHeader?: boolean;
   }
->(({ children, className, hideBorder, isHeader, style, ...props }, ref) => {
+>(({ children, className, style, hideBorder, isHeader, ...props }, ref) => {
   const { element } = props;
 
   const {
-    borders,
     colIndex,
-    colSpan,
+    rowIndex,
+    readOnly,
+    selected,
     hovered,
     hoveredLeft,
-    isSelectingCell,
-    readOnly,
-    rowIndex,
     rowSize,
-    selected,
+    borders,
+    isSelectingCell,
+    colSpan,
   } = useTableCellElementState();
   const { props: cellProps } = useTableCellElement({ element: props.element });
   const resizableState = useTableCellElementResizableState({
     colIndex,
-    colSpan,
     rowIndex,
+    colSpan,
   });
 
-  const { bottomProps, hiddenLeft, leftProps, rightProps } =
+  const { rightProps, bottomProps, leftProps, hiddenLeft } =
     useTableCellElementResizable(resizableState);
 
   const Cell = isHeader ? 'th' : 'td';
 
   return (
     <PlateElement
+      ref={ref}
       asChild
       className={cn(
         'relative h-full overflow-visible border-none bg-background p-0',
@@ -68,7 +68,6 @@ export const TableCellElement = withRef<
           ),
         className
       )}
-      ref={ref}
       {...cellProps}
       {...props}
       style={
@@ -135,7 +134,6 @@ export const TableCellElement = withRef<
     </PlateElement>
   );
 });
-
 TableCellElement.displayName = 'TableCellElement';
 
 export const TableCellHeaderElement = withProps(TableCellElement, {

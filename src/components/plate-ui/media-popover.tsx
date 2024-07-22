@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-
 import {
   isSelectionExpanded,
   useEditorSelector,
@@ -7,8 +6,8 @@ import {
   useRemoveNodeButton,
 } from '@udecode/plate-common';
 import {
-  FloatingMedia as FloatingMediaPrimitive,
   floatingMediaActions,
+  FloatingMedia as FloatingMediaPrimitive,
   useFloatingMediaSelectors,
 } from '@udecode/plate-media';
 import { useReadOnly, useSelected } from 'slate-react';
@@ -16,17 +15,16 @@ import { useReadOnly, useSelected } from 'slate-react';
 import { Icons } from '@/components/icons';
 
 import { Button, buttonVariants } from './button';
-import { CaptionButton } from './caption';
 import { inputVariants } from './input';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { Separator } from './separator';
 
 export interface MediaPopoverProps {
-  children: React.ReactNode;
   pluginKey?: string;
+  children: React.ReactNode;
 }
 
-export function MediaPopover({ children, pluginKey }: MediaPopoverProps) {
+export function MediaPopover({ pluginKey, children }: MediaPopoverProps) {
   const readOnly = useReadOnly();
   const selected = useSelected();
 
@@ -50,7 +48,7 @@ export function MediaPopover({ children, pluginKey }: MediaPopoverProps) {
   if (readOnly) return <>{children}</>;
 
   return (
-    <Popover modal={false} open={isOpen}>
+    <Popover open={isOpen} modal={false}>
       <PopoverAnchor>{children}</PopoverAnchor>
 
       <PopoverContent
@@ -65,27 +63,25 @@ export function MediaPopover({ children, pluginKey }: MediaPopoverProps) {
               </div>
 
               <FloatingMediaPrimitive.UrlInput
-                className={inputVariants({ h: 'sm', variant: 'ghost' })}
+                className={inputVariants({ variant: 'ghost', h: 'sm' })}
+                placeholder="Paste the embed link..."
                 options={{
                   pluginKey,
                 }}
-                placeholder="Paste the embed link..."
               />
             </div>
           </div>
         ) : (
           <div className="box-content flex h-9 items-center gap-1">
             <FloatingMediaPrimitive.EditButton
-              className={buttonVariants({ size: 'sm', variant: 'ghost' })}
+              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
             >
               Edit link
             </FloatingMediaPrimitive.EditButton>
 
-            <CaptionButton variant="ghost">Caption</CaptionButton>
+            <Separator orientation="vertical" className="my-1" />
 
-            <Separator className="my-1" orientation="vertical" />
-
-            <Button size="sms" variant="ghost" {...buttonProps}>
+            <Button variant="ghost" size="sms" {...buttonProps}>
               <Icons.delete className="size-4" />
             </Button>
           </div>

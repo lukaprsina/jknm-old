@@ -1,17 +1,16 @@
 import React from 'react';
-
 import { cn } from '@udecode/cn';
 import {
-  type PlaceholderProps,
   createNodeHOC,
   createNodesHOC,
+  PlaceholderProps,
   usePlaceholderState,
 } from '@udecode/plate-common';
 import { ELEMENT_H1 } from '@udecode/plate-heading';
 import { ELEMENT_PARAGRAPH } from '@udecode/plate-paragraph';
 
 export const Placeholder = (props: PlaceholderProps) => {
-  const { children, nodeProps, placeholder } = props;
+  const { children, placeholder, nodeProps } = props;
 
   const { enabled } = usePlaceholderState(props);
 
@@ -31,22 +30,21 @@ export const Placeholder = (props: PlaceholderProps) => {
 };
 
 export const withPlaceholder = createNodeHOC(Placeholder);
-
 export const withPlaceholdersPrimitive = createNodesHOC(Placeholder);
 
 export const withPlaceholders = (components: any) =>
   withPlaceholdersPrimitive(components, [
     {
-      hideOnBlur: true,
       key: ELEMENT_PARAGRAPH,
       placeholder: 'Type a paragraph',
+      hideOnBlur: true,
       query: {
         maxLevel: 1,
       },
     },
     {
-      hideOnBlur: false,
       key: ELEMENT_H1,
       placeholder: 'Untitled',
+      hideOnBlur: false,
     },
   ]);
