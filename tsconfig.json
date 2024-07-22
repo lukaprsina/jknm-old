@@ -14,11 +14,7 @@
     "checkJs": true,
     "strictNullChecks": true,
     /* Bundled projects */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2022"
-    ],
+    "lib": ["dom", "dom.iterable", "ES2022"],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -32,12 +28,8 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./src/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ]
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -49,10 +41,7 @@
     "**/*.js",
     ".next/types/**/*.ts",
     "src/app/md_example/layout.tsx",
-    "src/app/md_example/ipsum/page.mdx",
+    "src/app/md_example/ipsum/page.mdx"
   ],
-  "exclude": [
-    "node_modules",
-    "vendor"
-  ]
+  "exclude": ["node_modules", "vendor"]
 }
