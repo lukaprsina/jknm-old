@@ -23,8 +23,8 @@ async function EditorServer({ routeParams }: PageProps) {
 
       const article = await get_article_by_url({ url: novica_name });
       // console.log("read_article_safe", { novica_name, article })
-      if (!article.data || article.serverError || article.validationErrors)
-        throw new ServerError("Zod error", { ...article });
+      if (!article?.data || article.serverError || article.validationErrors)
+        throw new Error("Zod error");
 
       return article.data;
     },

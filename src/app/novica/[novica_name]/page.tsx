@@ -23,7 +23,7 @@ export async function generateMetadata({
     url: decodeURIComponent(params.novica_name),
   });
   return {
-    title: response.data?.title,
+    title: response?.data?.title,
   };
 }
 
@@ -35,8 +35,8 @@ async function Article({ routeParams }: PageProps) {
 
   return (
     <ResponsiveShell editable={true} user={session?.user}>
-      <div className="container prose pt-12 dark:prose-invert lg:prose-lg">
-        {article.data?.content ? (
+      <div className="prose dark:prose-invert lg:prose-lg container pt-12">
+        {article?.data?.content ? (
           <MDXRemote
             source={article.data?.content}
             components={custom_mdx_components}

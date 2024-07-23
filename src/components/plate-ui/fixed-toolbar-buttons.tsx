@@ -30,7 +30,7 @@ import { MarkToolbarButton } from "./mark-toolbar-button";
 import { ModeDropdownMenu } from "./mode-dropdown-menu";
 import { ToolbarGroup } from "./toolbar";
 import { TurnIntoDropdownMenu } from "./turn-into-dropdown-menu";
-import { SaveToolbarButton } from "./save-toolbar-button";
+import { SaveToolbarButton } from "~/app/plate/save/save-toolbar-button";
 
 export function FixedToolbarButtons() {
   const readOnly = useEditorReadOnly();

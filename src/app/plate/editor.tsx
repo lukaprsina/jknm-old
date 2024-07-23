@@ -159,7 +159,7 @@ import { FloatingToolbarButtons } from "@/components/plate-ui/floating-toolbar-b
 import { withPlaceholders } from "@/components/plate-ui/placeholder";
 import { withDraggables } from "@/components/plate-ui/with-draggables";
 import { useRef } from "react";
-import { createSavePlugin } from "./save_plugin";
+import { createSavePlugin } from "./save/save_plugin";
 
 const plugins = createPlugins(
   [
@@ -178,9 +178,7 @@ const plugins = createPlugins(
     createMediaEmbedPlugin(),
     createCaptionPlugin({
       options: {
-        pluginKeys: [
-          /* ELEMENT_IMAGE, ELEMENT_MEDIA_EMBED */
-        ],
+        pluginKeys: [ELEMENT_IMAGE, ELEMENT_MEDIA_EMBED],
       },
     }),
     createMentionPlugin(),
@@ -315,12 +313,19 @@ const plugins = createPlugins(
     createDeserializeMdPlugin(),
     createJuicePlugin(),
     // My plugins
+    createSavePlugin({
+      options: {
+        hotkey: ["ctrl+m"],
+        save_callback: (value) => {
+          console.log("Saving...");
+        },
+      },
+    }),
     createNormalizeTypesPlugin({
       options: {
         rules: [{ path: [0], strictType: ELEMENT_H1 }],
       },
     }),
-    createSavePlugin(),
   ],
   {
     components: withDraggables(

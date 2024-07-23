@@ -61,8 +61,8 @@ function useEditorArticle(
 
       const response = await get_article_by_url({ url: novica_name });
       console.log("queryFn", { novica_name, response });
-      if (!response.data || response.serverError || response.validationErrors)
-        throw new ServerError("Zod error", { ...response });
+      if (!response?.data || response.serverError || response.validationErrors)
+        throw new Error("Zod error");
 
       return response.data;
     },
@@ -78,8 +78,8 @@ function useEditorArticle(
 
       const response = await save_article(input);
       console.log("mutationFn", { novica_name, response });
-      if (!response.data || response.serverError || response.validationErrors)
-        throw new ServerError("Zod error", { ...response });
+      if (!response?.data || response.serverError || response.validationErrors)
+        throw new Error("Zod error");
 
       router.push(`/uredi/${response.data.url}`);
 
@@ -230,7 +230,7 @@ export default function InitializedMDXEditor({
 
   return (
     <ResponsiveShell user={session.data?.user}>
-      <div className="container prose-xl pt-4 dark:prose-invert">
+      <div className="prose-xl dark:prose-invert container pt-4">
         <div className="flex-end flex justify-between py-2">
           <div className="space-x-2">
             <Button variant="outline" onClick={() => save_content()}>
